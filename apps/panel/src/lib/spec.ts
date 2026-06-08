@@ -34,6 +34,12 @@ export function buildServerSpec(server: Server, allocations: DbAllocation[]): Se
   }
   env.SERVER_MEMORY = String(server.memoryMb);
 
+  // Garry's Mod: mount a Steam Workshop collection server-side (addons + maps)
+  // by appending +host_workshop_collection to the launch line when one is set.
+  if (template.game === "garrysmod" && env.WORKSHOP_COLLECTION && !/host_workshop_collection/.test(env.GAME_PARAMS ?? "")) {
+    env.GAME_PARAMS = `${(env.GAME_PARAMS ?? "").trim()} +host_workshop_collection ${env.WORKSHOP_COLLECTION}`.trim();
+  }
+
   // Inject the platform CurseForge key so itzg can fetch CF mods/modpacks.
   if (appEnv.curseforgeKey && template.game === "minecraft") env.CF_API_KEY = appEnv.curseforgeKey;
 

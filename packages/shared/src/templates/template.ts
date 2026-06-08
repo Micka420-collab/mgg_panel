@@ -120,4 +120,5 @@ export type TemplateFeature =
   | "steamcmd" // installed via SteamCMD
   | "wine" // runs a Windows binary under Wine/Proton
   | "auto-pause" // can sleep when empty (lazymc-style)
-  | "world-upload"; // supports uploading an existing world/save
+  | "world-upload" // supports uploading an existing world/save
+  | "workshop"; // Steam Workshop addons & maps (Garry's Mod / Source)

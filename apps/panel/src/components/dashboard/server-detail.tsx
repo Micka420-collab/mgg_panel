@@ -15,6 +15,7 @@ import { SettingsPanel } from "./settings-panel";
 import { BackupsPanel } from "./backups-panel";
 import { NetworkPanel } from "./network-panel";
 import { ModsPanel } from "./mods-panel";
+import { WorkshopPanel } from "./workshop-panel";
 import { SchedulesPanel } from "./schedules-panel";
 import { SubusersPanel } from "./subusers-panel";
 import { AppearancePanel } from "./appearance-panel";
@@ -81,7 +82,7 @@ export function ServerDetail({ id }: { id: string }) {
   }
 
   const features: string[] = detail.features ?? [];
-  const supportsContent = ["mods", "plugins", "modpacks"].some((f) => features.includes(f));
+  const supportsContent = ["mods", "plugins", "modpacks", "workshop"].some((f) => features.includes(f));
 
   const tabs: { key: Tab; label: string; icon: any; show: boolean }[] = [
     { key: "console", label: "Console", icon: Terminal, show: true },
@@ -187,7 +188,9 @@ export function ServerDetail({ id }: { id: string }) {
         {tab === "appearance" && <AppearancePanel id={id} canWrite={can("file.write")} />}
         {tab === "stats" && <MetricsPanel id={id} />}
         {tab === "map" && <MapPanel id={id} detail={detail} />}
-        {tab === "mods" && <ModsPanel id={id} canManage={can("startup.update")} />}
+        {tab === "mods" && (s.game === "garrysmod"
+          ? <WorkshopPanel id={id} canManage={can("startup.update")} />
+          : <ModsPanel id={id} canManage={can("startup.update")} />)}
         {tab === "mod-doctor" && <ModDoctorPanel id={id} canFix={can("file.write")} />}
         {tab === "schedules" && <SchedulesPanel id={id} canManage={can("schedule.update")} />}
         {tab === "settings" && <SettingsPanel id={id} detail={detail} onSaved={load} canRename={can("settings.rename")} canStartup={can("startup.update")} />}

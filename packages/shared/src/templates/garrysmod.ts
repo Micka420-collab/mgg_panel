@@ -34,7 +34,7 @@ export const garrysmod: GameTemplate = {
   docsUrl: "https://github.com/ich777/docker-steamcmd-server",
   dataPath: "/serverdata/serverfiles",
   resources: { memoryMb: 4096, cpuPercent: 200, diskMb: 16384 },
-  features: ["steamcmd", "query", "mods", "world-upload"],
+  features: ["steamcmd", "query", "workshop", "world-upload"],
   ports: [
     // Source uses one UDP port for gameplay AND A2S query/join. The image binds
     // RCON (TCP, same number) internally on GAME_PORT.

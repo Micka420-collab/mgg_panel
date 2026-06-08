@@ -49,6 +49,7 @@ services:
       CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
       CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
       CURSEFORGE_API_KEY: ${CURSEFORGE_API_KEY:-}
+      STEAM_API_KEY: ${STEAM_API_KEY:-}
       ALERT_WEBHOOK: ${ALERT_WEBHOOK:-}
       # DuckDNS — stable "<domain>.duckdns.org" that follows the home IP (optional)
       DUCKDNS_DOMAIN: ${DUCKDNS_DOMAIN:-}
