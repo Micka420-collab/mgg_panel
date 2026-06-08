@@ -26,6 +26,7 @@ import {
   streamStats,
 } from "./docker.js";
 import { sendRcon, queryPlayers } from "./rcon.js";
+import { queryA2S } from "./a2s.js";
 import { volumeSize } from "./files.js";
 import { logger } from "./logger.js";
 
@@ -350,13 +351,24 @@ class ServerManager extends EventEmitter {
       .then((stop) => (rt.stopStats = stop))
       .catch((e) => logger.warn({ e, serverId }, "stats stream failed"));
 
-    // periodic player query (RCON-capable games only)
+    // periodic player query - RCON (Minecraft) or A2S (Source/Steam query games)
     if (rt.spec.rcon) {
       rt.playerTimer = setInterval(async () => {
         if (rt.state !== ServerState.Running) return;
         const players = await queryPlayers(await rconHost(serverId), rt.spec.rcon!.port, rt.spec.rcon!.password);
         if (players) rt.players = players;
       }, 15000);
+    } else if (rt.spec.features.includes("query")) {
+      // Source-engine games (Garry's Mod, ...) have no RCON list; read the live
+      // player count straight off the game port with an A2S_INFO query.
+      const primary = rt.spec.allocations.find((a) => a.primary) ?? rt.spec.allocations[0];
+      if (primary) {
+        rt.playerTimer = setInterval(async () => {
+          if (rt.state !== ServerState.Running) return;
+          const players = await queryA2S(await rconHost(serverId), primary.port);
+          if (players) rt.players = players;
+        }, 15000);
+      }
     }
     // periodic disk usage
     rt.diskTimer = setInterval(async () => {
