@@ -2,6 +2,7 @@ import type { GameTemplate } from "./template.js";
 import { minecraftJava, minecraftBedrock } from "./minecraft.js";
 import { icarus } from "./icarus.js";
 import { valheim, palworld, rust } from "./extra.js";
+import { garrysmod } from "./garrysmod.js";
 import { velocityProxy } from "./velocity.js";
 
 export * from "./template.js";
@@ -14,6 +15,7 @@ export const TEMPLATES: GameTemplate[] = [
   valheim,
   palworld,
   rust,
+  garrysmod,
   velocityProxy,
 ];
 
