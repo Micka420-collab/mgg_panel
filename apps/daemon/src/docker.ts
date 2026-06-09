@@ -3,7 +3,7 @@ import { PassThrough } from "node:stream";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { ServerState, type ServerBuildSpec, type ServerStats } from "@aether/shared";
+import { ServerState, type ServerBuildSpec, type ServerStats } from "@mgg/shared";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
 
@@ -20,7 +20,7 @@ export function containerName(serverId: string): string {
 // containers on a dedicated bridge network the daemon also joins, and reach
 // RCON by container name. The network is separate from the compose network, so
 // game containers stay isolated from postgres/panel.
-const GAME_NETWORK = "aether-games";
+const GAME_NETWORK = "mgg-games";
 
 let containerizedP: Promise<boolean> | null = null;
 /** True when the daemon itself runs inside a container (vs. directly on the host). */
@@ -98,7 +98,7 @@ export function hostMemoryMb(): number {
 /**
  * RAM actually available for new allocations, in MB. Reads /proc/meminfo's
  * MemAvailable (host-wide, so it accounts for ALL processes — including game
- * containers started outside Aether and reclaimable cache). Falls back to
+ * containers started outside MGG and reclaimable cache). Falls back to
  * os.freemem() off Linux. This is the basis for start-time admission so we never
  * start a server the host can't fit.
  */
@@ -113,11 +113,11 @@ export async function hostAvailableMb(): Promise<number> {
   return Math.round(os.freemem() / (1024 * 1024));
 }
 
-/** Sum of the memory limits of currently-RUNNING Aether game containers (MB). */
+/** Sum of the memory limits of currently-RUNNING MGG game containers (MB). */
 export async function runningManagedMemoryMb(): Promise<number> {
   try {
     const list = await docker.listContainers({
-      filters: { label: ["aether.managed=true"], status: ["running"] },
+      filters: { label: ["mgg.managed=true"], status: ["running"] },
     } as Docker.ContainerListOptions);
     let bytes = 0;
     for (const c of list) {
@@ -134,7 +134,7 @@ export function hostVolumePath(serverId: string): string {
   return path.join(config.dataDir, serverId);
 }
 
-/** Map Docker's container state to Aether's ServerState. */
+/** Map Docker's container state to MGG's ServerState. */
 export function mapState(info: Docker.ContainerInspectInfo | null): ServerState {
   if (!info) return ServerState.Offline;
   const s = info.State;
@@ -257,9 +257,9 @@ export async function buildContainer(spec: ServerBuildSpec): Promise<void> {
     StdinOnce: false,
     Env: env,
     Labels: {
-      "aether.managed": "true",
-      "aether.serverId": spec.serverId,
-      "aether.templateId": spec.templateId,
+      "mgg.managed": "true",
+      "mgg.serverId": spec.serverId,
+      "mgg.templateId": spec.templateId,
     },
     ExposedPorts: exposed,
     Cmd: spec.startupCommand ? ["/bin/sh", "-c", spec.startupCommand] : undefined,

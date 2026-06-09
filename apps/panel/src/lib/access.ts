@@ -1,6 +1,6 @@
 import "server-only";
 import type { Allocation, Node, Server, User } from "@prisma/client";
-import { ALL_SCOPES, hasScope, type Scope } from "@aether/shared";
+import { ALL_SCOPES, hasScope, type Scope } from "@mgg/shared";
 import { db } from "./db";
 import { HttpError } from "./auth";
 

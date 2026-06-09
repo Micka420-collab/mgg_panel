@@ -6,7 +6,7 @@ import { authApi, requireApiScope } from "@/lib/api-auth";
 import { getServerContext, assertScope, assertNotSuspended } from "@/lib/access";
 import { DaemonClient } from "@/lib/daemon";
 import { buildServerSpec } from "@/lib/spec";
-import { getTemplate, buildAddress, validateVariable, hasScope } from "@aether/shared";
+import { getTemplate, buildAddress, validateVariable, hasScope } from "@mgg/shared";
 
 export const GET = route(async (req: Request, ctx: { params: { id: string } }) => {
   const principal = await authApi(req);

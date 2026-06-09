@@ -37,7 +37,7 @@ export default function LinkLauncherPage() {
         <CheckCircle2 className="mx-auto h-12 w-12 text-online" />
         <h1 className="mt-4 font-display text-2xl font-bold text-white">Launcher connected</h1>
         <p className="mt-2 text-sm text-white/55">
-          You can return to your launcher — it&apos;s now signed in to your Aether account.
+          You can return to your launcher — it&apos;s now signed in to your MGG account.
         </p>
       </div>
     );

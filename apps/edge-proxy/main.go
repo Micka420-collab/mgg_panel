@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Config for the Aether edge proxy: where to reach the daemon, and the routes
+// Config for the MGG edge proxy: where to reach the daemon, and the routes
 // (public listen → internal backend) it should front with wake-on-join.
 type Config struct {
 	DaemonURL   string  `json:"daemonUrl"`
@@ -25,7 +25,7 @@ func main() {
 		if err := json.Unmarshal(raw, &cfg); err != nil {
 			log.Fatalf("parse config: %v", err)
 		}
-	} else if os.Getenv("AETHER_DYNAMIC") != "1" {
+	} else if os.Getenv("MGG_DYNAMIC") != "1" {
 		log.Fatalf("read config %s: %v", path, err)
 	}
 
@@ -36,7 +36,7 @@ func main() {
 	if v := os.Getenv("DAEMON_TOKEN"); v != "" {
 		cfg.DaemonToken = v
 	}
-	if os.Getenv("AETHER_DYNAMIC") == "1" {
+	if os.Getenv("MGG_DYNAMIC") == "1" {
 		cfg.Dynamic = true
 	}
 
@@ -46,7 +46,7 @@ func main() {
 		if cfg.DaemonURL == "" || cfg.DaemonToken == "" {
 			log.Fatal("dynamic mode requires DAEMON_URL and DAEMON_TOKEN")
 		}
-		log.Printf("⟁ Aether edge proxy — dynamic, daemon %s", cfg.DaemonURL)
+		log.Printf("⟁ MGG edge proxy — dynamic, daemon %s", cfg.DaemonURL)
 		(&Dynamic{p: p}).run() // blocks
 		return
 	}
@@ -54,7 +54,7 @@ func main() {
 	if len(cfg.Routes) == 0 {
 		log.Fatal("no routes configured (set routes[] or enable dynamic mode)")
 	}
-	log.Printf("⟁ Aether edge proxy — %d static route(s), daemon %s", len(cfg.Routes), cfg.DaemonURL)
+	log.Printf("⟁ MGG edge proxy — %d static route(s), daemon %s", len(cfg.Routes), cfg.DaemonURL)
 	started := 0
 	for _, r := range cfg.Routes {
 		if _, err := p.startRoute(r); err != nil {

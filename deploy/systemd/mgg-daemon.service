@@ -1,0 +1,51 @@
+# Hardened systemd unit for running the MGG daemon directly on the host
+# (an alternative to the Docker Compose 'daemon' service — running on the host
+# avoids giving a container the Docker socket).
+#
+# Install:
+#   sudo cp deploy/systemd/mgg-daemon.service /etc/systemd/system/
+#   sudo useradd --system --no-create-home --shell /usr/sbin/nologin mgg || true
+#   sudo usermod -aG docker mgg
+#   sudo mkdir -p /var/lib/mgg/volumes /var/lib/mgg/backups
+#   sudo chown -R mgg:mgg /var/lib/mgg /opt/mgg
+#   sudo systemctl daemon-reload && sudo systemctl enable --now mgg-daemon
+
+[Unit]
+Description=MGG game-server daemon
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=mgg
+Group=mgg
+WorkingDirectory=/opt/mgg/apps/daemon
+ExecStart=/usr/bin/node /opt/mgg/apps/daemon/dist/index.js
+Restart=always
+RestartSec=3
+
+# Environment (or use EnvironmentFile=/opt/mgg/.env)
+Environment=NODE_ENV=production
+Environment=DAEMON_PORT=8080
+Environment=DAEMON_DATA_DIR=/var/lib/mgg/volumes
+Environment=DAEMON_BACKUP_DIR=/var/lib/mgg/backups
+Environment=DOCKER_SOCKET=/var/run/docker.sock
+# EnvironmentFile=/opt/mgg/.env
+
+# ── Hardening ──────────────────────────────────────────────
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/mgg
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

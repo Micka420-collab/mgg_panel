@@ -1,5 +1,5 @@
 {
-  "name": "@aether/panel",
+  "name": "@mgg/panel",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -17,7 +17,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@aether/shared": "*",
+    "@mgg/shared": "*",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",

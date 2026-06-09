@@ -13,7 +13,7 @@ import {
   ArrowRight,
   Zap,
 } from "lucide-react";
-import { TEMPLATES } from "@aether/shared";
+import { TEMPLATES } from "@mgg/shared";
 import { AmbientBackground } from "@/components/ambient";
 import { MarketingNav } from "@/components/marketing/nav";
 import { Footer } from "@/components/marketing/footer";
@@ -34,10 +34,10 @@ const FEATURES = [
 
 const FAQ = [
   { q: "Which games can I host?", a: "Minecraft (Java & Bedrock — Paper, Purpur, Fabric, Forge, NeoForge, modpacks) and Icarus ship today. Valheim, Palworld and Rust are included too, and the template engine makes adding any game pure data." },
-  { q: "Can I connect my own Minecraft launcher?", a: "Yes — that's a first-class feature. Aether exposes a device-code OAuth flow and a versioned REST + WebSocket API so your launcher can authenticate users, list their servers, fetch live connection info (ip:port), and start/stop/join with one call." },
+  { q: "Can I connect my own Minecraft launcher?", a: "Yes — that's a first-class feature. MGG exposes a device-code OAuth flow and a versioned REST + WebSocket API so your launcher can authenticate users, list their servers, fetch live connection info (ip:port), and start/stop/join with one call." },
   { q: "How does sleeping save me money?", a: "Idle servers stop and free node resources, then wake on the first join. You get unlimited play without paying for an always-on box — and we never bill crashed or errored runtime." },
   { q: "Is my data safe?", a: "Every server runs in an isolated container with strict CPU/RAM/PID limits. Backups are world-flushed before archiving, can be locked against deletion, and pushed to S3. Accounts support TOTP 2FA and scoped API keys." },
-  { q: "Can I self-host Aether?", a: "Absolutely. Aether is a clean TypeScript monorepo (panel + daemon) that runs on a single Ubuntu box with Docker via a one-command installer." },
+  { q: "Can I self-host MGG?", a: "Absolutely. MGG is a clean TypeScript monorepo (panel + daemon) that runs on a single Ubuntu box with Docker via a one-command installer." },
 ];
 
 export default function LandingPage() {
@@ -161,7 +161,7 @@ export default function LandingPage() {
       <section id="features" className="px-6 pt-28">
         <div className="mx-auto max-w-6xl">
           <Reveal>
-            <span className="kicker"><Sparkles className="h-3.5 w-3.5" /> Why Aether</span>
+            <span className="kicker"><Sparkles className="h-3.5 w-3.5" /> Why MGG</span>
             <h2 className="mt-5 font-display text-4xl font-bold text-white">Everything the others charge extra for.</h2>
           </Reveal>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
@@ -312,7 +312,7 @@ minecraft.launch({
           <div className="rounded-3xl bg-base/85 px-8 py-14 text-center backdrop-blur-xl">
             <h2 className="font-display text-4xl font-bold text-white text-balance">Your server is one click away.</h2>
             <p className="mx-auto mt-3 max-w-lg text-white/60">
-              Join thousands of communities running on Aether. Deploy free in seconds — no credit card to explore.
+              Join thousands of communities running on MGG. Deploy free in seconds — no credit card to explore.
             </p>
             <div className="mt-8 flex justify-center gap-3">
               <Link href="/register" className="btn-primary px-6 py-3 text-base">

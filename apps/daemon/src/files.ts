@@ -7,7 +7,7 @@ import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import tar from "tar-fs";
 import unzipper from "unzipper";
-import type { FileEntry } from "@aether/shared";
+import type { FileEntry } from "@mgg/shared";
 import { hostVolumePath } from "./docker.js";
 import { config } from "./config.js";
 
@@ -176,7 +176,7 @@ function byteCap(getCount: () => number, addCount: (n: number) => void, limit: n
  *  - a single wrapping top-level folder is stripped, so an archive of
  *    "MyServer/world/…" lands as "world/…" (the common case for hand-zipped servers).
  *  - `clear` wipes the destination first but always preserves the internal
- *    `.aether/` spec dir the daemon needs to manage the server.
+ *    `.mgg/` spec dir the daemon needs to manage the server.
  */
 export async function importArchive(
   serverId: string,
@@ -245,7 +245,7 @@ export async function importArchive(
     // 4. optionally clear the destination (but keep the internal spec dir)
     if (opts.clear) {
       for (const entry of await fs.readdir(root)) {
-        if (entry === ".aether") continue;
+        if (entry === ".mgg") continue;
         await fs.rm(path.join(root, entry), { recursive: true, force: true });
       }
     }
@@ -254,7 +254,7 @@ export async function importArchive(
     let files = 0;
     const copyInto = async (dir: string, dest: string): Promise<void> => {
       for (const e of await fs.readdir(dir, { withFileTypes: true })) {
-        if (e.name === "__MACOSX" || e.name === ".aether") continue;
+        if (e.name === "__MACOSX" || e.name === ".mgg") continue;
         const from = path.join(dir, e.name);
         const to = path.join(dest, e.name);
         if (e.isDirectory()) {
@@ -277,9 +277,9 @@ export async function importArchive(
 /**
  * Copy one server's volume contents onto another's — the primitive behind
  * "push to origin" (promote a clone's files back to its source). The internal
- * `.aether/` spec dir is NEVER copied or removed, so the destination keeps its
+ * `.mgg/` spec dir is NEVER copied or removed, so the destination keeps its
  * own identity (ports, spec). With `clear`, the destination is wiped first
- * (except `.aether/`). Symlinks/special files are skipped. Caller should stop
+ * (except `.mgg/`). Symlinks/special files are skipped. Caller should stop
  * both containers and back up the destination first (the /promote route does).
  */
 export async function syncVolume(
@@ -296,7 +296,7 @@ export async function syncVolume(
 
   if (opts.clear) {
     for (const name of await fs.readdir(dst)) {
-      if (name === ".aether") continue;
+      if (name === ".mgg") continue;
       await fs.rm(path.join(dst, name), { recursive: true, force: true });
     }
   }
@@ -305,7 +305,7 @@ export async function syncVolume(
   const walk = async (from: string, to: string): Promise<void> => {
     await fs.mkdir(to, { recursive: true });
     for (const e of await fs.readdir(from, { withFileTypes: true })) {
-      if (e.name === ".aether") continue; // never carry over the daemon's spec dir
+      if (e.name === ".mgg") continue; // never carry over the daemon's spec dir
       const f = path.join(from, e.name);
       const t = path.join(to, e.name);
       if (e.isDirectory()) await walk(f, t);

@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser, HttpError } from "@/lib/auth";
 import { json, route } from "@/lib/http";
 import { createServer } from "@/lib/provision";
-import { requireTemplate } from "@aether/shared";
+import { requireTemplate } from "@mgg/shared";
 import { DEFAULT_PLANS } from "@/lib/plans";
 import { audit } from "@/lib/audit";
 

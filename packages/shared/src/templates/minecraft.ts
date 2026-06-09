@@ -13,7 +13,7 @@ export const minecraftJava: GameTemplate = {
   tagline: "Vanilla, Paper, Fabric, Forge, NeoForge & more",
   description:
     "The full Java Edition experience. Pick any flavour (Paper, Purpur, Fabric, Forge, NeoForge, Quilt, Vanilla) and any version, then install plugins and mods in one click. RCON console, fast Aikar JVM flags and auto world management included.",
-  author: "Aether",
+  author: "MGG",
   icon: "🟩",
   color: "#5BA744",
   category: "minecraft",
@@ -99,7 +99,7 @@ export const minecraftJava: GameTemplate = {
       key: "MOTD",
       name: "Message of the day",
       description: "Shown in the server list. Supports colour codes (§).",
-      default: "§bPowered by §lAether",
+      default: "§bPowered by §lMGG",
       userViewable: true,
       userEditable: true,
       type: "string",
@@ -211,7 +211,7 @@ export const minecraftJava: GameTemplate = {
     {
       key: "MEMORY",
       name: "JVM heap override",
-      description: "Leave blank to let Aether size the heap from your plan's RAM.",
+      description: "Leave blank to let MGG size the heap from your plan's RAM.",
       default: "",
       userViewable: false,
       userEditable: false,
@@ -224,7 +224,7 @@ export const minecraftJava: GameTemplate = {
     image: "itzg/minecraft-server:latest",
     entrypoint: "bash",
     script:
-      '#!/bin/bash\necho "[Aether] Minecraft self-provisions on first boot (flavour: $TYPE, version: $VERSION)."\necho "[Aether] Install step complete."\n',
+      '#!/bin/bash\necho "[MGG] Minecraft self-provisions on first boot (flavour: $TYPE, version: $VERSION)."\necho "[MGG] Install step complete."\n',
   },
   configFiles: [
     {
@@ -251,7 +251,7 @@ export const minecraftBedrock: GameTemplate = {
   tagline: "Mobile, console & Windows cross-play",
   description:
     "Host a Bedrock dedicated server for cross-platform play across mobile, console and Windows. Add-ons supported.",
-  author: "Aether",
+  author: "MGG",
   icon: "🧱",
   color: "#7AB648",
   category: "minecraft",
@@ -269,8 +269,8 @@ export const minecraftBedrock: GameTemplate = {
     { key: "VERSION", name: "Version", description: "LATEST or a specific Bedrock version.", default: "LATEST", userViewable: true, userEditable: true, type: "string", rules: "required|string", group: "General" },
     { key: "GAMEMODE", name: "Game mode", description: "survival / creative / adventure.", default: "survival", userViewable: true, userEditable: true, type: "enum", rules: "string", group: "World", options: ["survival", "creative", "adventure"].map((v) => ({ value: v, label: v })) },
     { key: "DIFFICULTY", name: "Difficulty", description: "peaceful / easy / normal / hard.", default: "normal", userViewable: true, userEditable: true, type: "enum", rules: "string", group: "World", options: ["peaceful", "easy", "normal", "hard"].map((v) => ({ value: v, label: v })) },
-    { key: "SERVER_NAME", name: "Server name", description: "Shown in the friends list.", default: "Aether Bedrock", userViewable: true, userEditable: true, type: "string", rules: "string", group: "World" },
+    { key: "SERVER_NAME", name: "Server name", description: "Shown in the friends list.", default: "MGG Bedrock", userViewable: true, userEditable: true, type: "string", rules: "string", group: "World" },
     { key: "MAX_PLAYERS", name: "Max players", description: "Max simultaneous players.", default: "10", userViewable: true, userEditable: true, type: "number", rules: "integer|between:1,100", group: "World" },
   ],
-  install: { image: "itzg/minecraft-bedrock-server:latest", entrypoint: "bash", script: '#!/bin/bash\necho "[Aether] Bedrock self-provisions on first boot."\n' },
+  install: { image: "itzg/minecraft-bedrock-server:latest", entrypoint: "bash", script: '#!/bin/bash\necho "[MGG] Bedrock self-provisions on first boot."\n' },
 };

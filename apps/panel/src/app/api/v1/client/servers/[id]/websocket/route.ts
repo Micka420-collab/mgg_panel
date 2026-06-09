@@ -2,7 +2,7 @@ import { route, json } from "@/lib/http";
 import { authApi, requireApiScope } from "@/lib/api-auth";
 import { getServerContext, assertScope } from "@/lib/access";
 import { DaemonClient, signWsToken } from "@/lib/daemon";
-import { hasScope, type Scope } from "@aether/shared";
+import { hasScope, type Scope } from "@mgg/shared";
 
 /** Short-lived token + socket URL for the launcher to stream live console/stats. */
 export const GET = route(async (req, ctx: { params: { id: string } }) => {

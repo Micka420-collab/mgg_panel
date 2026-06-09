@@ -37,7 +37,7 @@ apps/panel/prisma/*.db
 
 # Go build artifacts
 *.exe
-apps/edge-proxy/aether-edge-proxy
+apps/edge-proxy/mgg-edge-proxy
 apps/edge-proxy/edge-proxy
 apps/edge-proxy/config.json
 

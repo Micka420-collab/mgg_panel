@@ -8,7 +8,7 @@ import { DaemonClient } from "@/lib/daemon";
 import { isSteamConfigured, getItemDetails, parseWorkshopId, type WorkshopItem } from "@/lib/steam-workshop";
 import { audit } from "@/lib/audit";
 
-const LUA_PATH = "garrysmod/lua/autorun/server/aether_workshop.lua";
+const LUA_PATH = "garrysmod/lua/autorun/server/mgg_workshop.lua";
 
 function parseList(v?: string): string[] {
   return (v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -18,7 +18,7 @@ function buildLua(addons: string[], maps: string[]): string {
   const ids = [...new Set([...addons, ...maps])];
   const body = ids.map((id) => `  resource.AddWorkshop("${id}")`).join("\n");
   return [
-    "-- Managed by Aether - do not edit by hand.",
+    "-- Managed by MGG - do not edit by hand.",
     "-- Tells joining clients to download this server's Workshop addons & maps.",
     "if SERVER then",
     body,

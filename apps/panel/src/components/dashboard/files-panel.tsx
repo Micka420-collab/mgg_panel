@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Folder, FileText, ChevronRight, Save, Trash2, FolderPlus, Loader2, ArrowUp, X, Upload,
 } from "lucide-react";
-import type { FileEntry } from "@aether/shared";
+import type { FileEntry } from "@mgg/shared";
 import { api } from "@/lib/client";
 import { formatBytes } from "@/lib/util";
 

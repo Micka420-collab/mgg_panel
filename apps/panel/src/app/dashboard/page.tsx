@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Plus, Cpu, MemoryStick, HardDrive, ServerOff } from "lucide-react";
-import { getTemplate, buildAddress } from "@aether/shared";
+import { getTemplate, buildAddress } from "@mgg/shared";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { StateBadge } from "@/components/dashboard/state-badge";

@@ -15,7 +15,7 @@ import {
   validateVariable,
   hasScope,
   type Scope,
-} from "@aether/shared";
+} from "@mgg/shared";
 import {
   buildSystemPrompt,
   type AssistantContext,
@@ -438,7 +438,7 @@ function agentSystemPrompt(ctx: AssistantContext, currentServerId: string): stri
     buildSystemPrompt(ctx),
     "",
     "── AGENT MODE ──",
-    "You can take REAL actions in Aether using the provided tools (power, console, settings, mods/plugins, and creating servers).",
+    "You can take REAL actions in MGG using the provided tools (power, console, settings, mods/plugins, and creating servers).",
     `The server currently open is "${ctx.serverName}" with id ${currentServerId} — prefer it unless the user clearly means another one (use list_my_servers to find ids).`,
     "Rules:",
     "- Only act when the user actually asks you to change something. For pure questions, just answer.",

@@ -31,7 +31,7 @@ async function main() {
   server.listen(config.port, () => {
     logger.info(
       { port: config.port, dataDir: config.dataDir, dockerSocket: config.dockerSocket },
-      "🛰️  Aether daemon online",
+      "🛰️  MGG daemon online",
     );
   });
 

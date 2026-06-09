@@ -1,7 +1,7 @@
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import type { User } from "@prisma/client";
-import { hasScope, type Scope } from "@aether/shared";
+import { hasScope, type Scope } from "@mgg/shared";
 import { db } from "./db";
 import { env } from "./env";
 import { sha256, randomString, constantTimeEqual } from "./crypto";

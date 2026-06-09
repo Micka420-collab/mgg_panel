@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { json, route } from "@/lib/http";
 import { generateApiKey } from "@/lib/api-auth";
-import { LAUNCHER_DEFAULT_SCOPES, ALL_SCOPES } from "@aether/shared";
+import { LAUNCHER_DEFAULT_SCOPES, ALL_SCOPES } from "@mgg/shared";
 import { audit } from "@/lib/audit";
 
 export const GET = route(async () => {

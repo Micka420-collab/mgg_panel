@@ -1,5 +1,5 @@
 /**
- * The generic game-template schema (Aether's equivalent of a Pterodactyl "egg",
+ * The generic game-template schema (MGG's equivalent of a Pterodactyl "egg",
  * but typed). A template fully describes how to install, configure, boot, watch
  * and stop one kind of game server inside Docker. Minecraft and Icarus are the
  * first two templates; any SteamCMD / Java / custom game can be added by writing

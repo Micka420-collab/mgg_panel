@@ -1,6 +1,6 @@
 import "server-only";
 import type { User, Prisma } from "@prisma/client";
-import { requireTemplate, resolveEnvironment } from "@aether/shared";
+import { requireTemplate, resolveEnvironment } from "@mgg/shared";
 import { db } from "./db";
 import { HttpError } from "./auth";
 import { randomString } from "./crypto";

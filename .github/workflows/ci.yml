@@ -27,8 +27,8 @@ jobs:
         run: npm test
       - name: Production build (panel + daemon)
         run: |
-          npm run build --workspace @aether/panel
-          npm run build --workspace @aether/daemon
+          npm run build --workspace @mgg/panel
+          npm run build --workspace @mgg/daemon
         env:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
 

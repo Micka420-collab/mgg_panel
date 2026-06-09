@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser, HttpError } from "@/lib/auth";
 import { json, noContent, route } from "@/lib/http";
 import { getServerContext } from "@/lib/access";
-import { buildAddress, getTemplate } from "@aether/shared";
+import { buildAddress, getTemplate } from "@mgg/shared";
 import { isDnsConfigured, domainBase, validateSubdomain, fqdnFor, claimSubdomain, releaseSubdomain } from "@/lib/dns";
 import { audit } from "@/lib/audit";
 

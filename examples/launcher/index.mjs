@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Aether — reference launcher client.
+ * MGG — reference launcher client.
  *
  * Demonstrates exactly how a custom Minecraft launcher integrates:
  *   1. authenticate a user (device-code flow, or an API key)
@@ -12,14 +12,14 @@
  * Zero dependencies — uses Node's built-in fetch (Node 18+).
  *
  * Usage:
- *   AETHER_URL=http://localhost:3000 node index.mjs            # device-code login
- *   AETHER_URL=... AETHER_TOKEN=aeth_... node index.mjs --start
+ *   MGG_URL=http://localhost:3000 node index.mjs            # device-code login
+ *   MGG_URL=... MGG_TOKEN=aeth_... node index.mjs --start
  */
 
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
-const BASE = (process.env.AETHER_URL || "http://localhost:3000").replace(/\/$/, "");
+const BASE = (process.env.MGG_URL || "http://localhost:3000").replace(/\/$/, "");
 const ARG_START = process.argv.includes("--start");
 
 async function api(path, { method = "GET", body, token } = {}) {
@@ -42,7 +42,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function deviceLogin() {
   const { data: start } = await api("/api/v1/auth/device/start", { method: "POST" });
   console.log("\n────────────────────────────────────────────");
-  console.log("  Sign in to Aether");
+  console.log("  Sign in to MGG");
   console.log(`  1. open:  ${start.verification_uri}`);
   console.log(`  2. enter: ${start.user_code}`);
   console.log("────────────────────────────────────────────\n");
@@ -66,7 +66,7 @@ async function deviceLogin() {
 }
 
 async function main() {
-  const token = process.env.AETHER_TOKEN || (await deviceLogin());
+  const token = process.env.MGG_TOKEN || (await deviceLogin());
 
   const me = await api("/api/v1/auth/me", { token });
   if (me.status !== 200) throw new Error(me.data?.error || "auth failed");

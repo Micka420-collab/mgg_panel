@@ -1,4 +1,4 @@
-# ── Aether daemon (Docker control plane) ─────────────────────────────────
+# ── MGG daemon (Docker control plane) ─────────────────────────────────
 FROM node:20-bookworm-slim AS build
 WORKDIR /app
 # Only the workspaces this image needs (shared + daemon). No lockfile is committed,
@@ -7,7 +7,7 @@ COPY package.json tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/daemon ./apps/daemon
 RUN npm install --include=dev --no-audit --no-fund
-RUN npm run build:shared && npm run build --workspace @aether/daemon
+RUN npm run build:shared && npm run build --workspace @mgg/daemon
 
 # ── Runtime ──────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim AS run

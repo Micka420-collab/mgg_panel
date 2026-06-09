@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser, HttpError } from "@/lib/auth";
 import { json, noContent, route } from "@/lib/http";
 import { getServerContext } from "@/lib/access";
-import { ALL_SCOPES } from "@aether/shared";
+import { ALL_SCOPES } from "@mgg/shared";
 
 export const dynamic = "force-dynamic";
 

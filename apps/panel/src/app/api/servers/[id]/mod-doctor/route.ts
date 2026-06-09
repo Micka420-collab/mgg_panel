@@ -5,7 +5,7 @@ import { getServerContext, assertScope, assertNotSuspended } from "@/lib/access"
 import { DaemonClient } from "@/lib/daemon";
 import { modContext, resolveGameVersion } from "@/lib/modrinth";
 import { analyzeMods, type ModDoctorContext, type ModFile } from "@/lib/mod-doctor";
-import { hasScope } from "@aether/shared";
+import { hasScope } from "@mgg/shared";
 import { audit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";

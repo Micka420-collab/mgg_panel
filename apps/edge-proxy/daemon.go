@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// DaemonClient talks to the Aether daemon control API (Bearer node token).
+// DaemonClient talks to the MGG daemon control API (Bearer node token).
 type DaemonClient struct {
 	base   string
 	token  string

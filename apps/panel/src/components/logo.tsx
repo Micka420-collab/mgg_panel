@@ -15,7 +15,7 @@ export function Logo({ className, href = "/" }: { className?: string; href?: str
         <path d="M32 12 L50 50 H40 L32 31 L24 50 H14 Z" fill="url(#lg)" />
         <circle cx="32" cy="30" r="20" fill="none" stroke="url(#lg)" strokeWidth="2" opacity="0.45" />
       </svg>
-      <span className="font-display text-xl font-semibold tracking-tight text-white">Aether</span>
+      <span className="font-display text-xl font-semibold tracking-tight text-white">MGG</span>
     </span>
   );
   if (href === null) return mark;

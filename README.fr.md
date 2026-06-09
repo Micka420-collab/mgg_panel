@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="apps/panel/public/favicon.svg" width="96" alt="Logo Aether" />
+<img src="apps/panel/public/favicon.svg" width="96" alt="Logo MGG" />
 
-# Aether
+# MGG Panel
 
 ### Des serveurs de jeu, invoqués en quelques secondes.
 
@@ -21,7 +21,7 @@ tourne sur *votre* matériel, selon vos règles, sans abonnement par siège.
 
 <br/>
 
-[![CI](https://github.com/Micka420-collab/Aether_Panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Micka420-collab/Aether_Panel/actions/workflows/ci.yml)
+[![CI](https://github.com/Micka420-collab/mgg_panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Micka420-collab/mgg_panel/actions/workflows/ci.yml)
 [![Licence : MIT](https://img.shields.io/badge/Licence-MIT-22B8D8.svg?style=flat-square)](LICENSE)
 ![Auto-hébergé](https://img.shields.io/badge/auto--h%C3%A9berg%C3%A9-Ubuntu%20%2B%20Docker-7C5CFF?style=flat-square)
 ![Installation](https://img.shields.io/badge/installation-une%20commande-34D399?style=flat-square)
@@ -40,14 +40,14 @@ tourne sur *votre* matériel, selon vos règles, sans abonnement par siège.
 
 <br/>
 
-<img src="docs/screenshots/demo.svg" width="760" alt="Console Aether — déploiement d'un serveur" />
+<img src="docs/screenshots/demo.svg" width="760" alt="Console MGG — déploiement d'un serveur" />
 
 <br/>
 
 ### Une commande. Votre propre plateforme d'hébergement de jeux.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Micka420-collab/Aether_Panel/main/deploy/get.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Micka420-collab/mgg_panel/main/deploy/get.sh | sudo bash
 ```
 
 <br/>
@@ -63,10 +63,10 @@ curl -fsSL https://raw.githubusercontent.com/Micka420-collab/Aether_Panel/main/d
 **Ubuntu + Docker — littéralement une ligne :**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Micka420-collab/Aether_Panel/main/deploy/get.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Micka420-collab/mgg_panel/main/deploy/get.sh | sudo bash
 ```
 
-C'est tout. Le bootstrap clone le dépôt dans `/opt/aether`, installe Docker, génère
+C'est tout. Le bootstrap clone le dépôt dans `/opt/mgg`, installe Docker, génère
 des secrets forts, construit les images et démarre toute la stack —
 **panel + daemon + Postgres + Caddy + edge-proxy**. À la fin il affiche l'URL de votre
 panel ; ouvrez-la et inscrivez-vous — le **premier compte devient administrateur**. ✨
@@ -80,7 +80,7 @@ curl -fsSL .../deploy/get.sh | sudo APP_DOMAIN=panel.example.com APPLY_FIREWALL=
 <summary><b>Vous préférez cloner d'abord ? (même résultat)</b></summary>
 
 ```bash
-git clone https://github.com/Micka420-collab/Aether_Panel.git aether && cd aether
+git clone https://github.com/Micka420-collab/mgg_panel.git mgg && cd mgg
 sudo bash deploy/install.sh        # ajoutez APPLY_FIREWALL=1 pour durcir l'hôte aussi
 ```
 
@@ -97,7 +97,7 @@ make up          # démarrer la stack
 make logs        # suivre panel + daemon
 make ps          # statut
 make update      # git pull + rebuild + restart
-make backup-db   # dump Postgres gzip dans /var/lib/aether/backups
+make backup-db   # dump Postgres gzip dans /var/lib/mgg/backups
 make down        # arrêter
 make help        # tout lister (par défaut)
 ```
@@ -113,8 +113,8 @@ npm run build:shared
 cp .env.example .env                            # puis éditez les secrets
 cp apps/panel/.env.example apps/panel/.env
 # démarrez Postgres, puis :
-npm run db:push  --workspace @aether/panel
-npm run db:seed  --workspace @aether/panel
+npm run db:push  --workspace @mgg/panel
+npm run db:seed  --workspace @mgg/panel
 npm run dev                                     # panel :3000 + daemon :8080
 npm test                                        # vitest (moteur de templates + jail des chemins)
 ```
@@ -128,7 +128,7 @@ Le daemon a besoin d'un moteur Docker accessible (`/var/run/docker.sock`).
 
 <div align="center">
 
-<img src="docs/screenshots/dashboard.svg" width="900" alt="Dashboard Aether — console serveur live" />
+<img src="docs/screenshots/dashboard.svg" width="900" alt="Dashboard MGG — console serveur live" />
 
 <br/><sub>Console live, télémétrie temps réel, fichiers, mods, tâches, sauvegardes & plus — dans un dashboard qui ne date pas de 2014.</sub>
 
@@ -181,7 +181,7 @@ poussez-la sur l'original (sauvegarde auto de l'original avant) · **🚓 GTA V 
 
 ---
 
-## Pourquoi Aether ?
+## Pourquoi MGG ?
 
 Conçu pour surpasser Pterodactyl, Aternos, Shockbyte & GPORTAL sur **trois axes à la fois** :
 

@@ -7,12 +7,12 @@ const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Aether — Game servers, summoned in seconds",
+  title: "MGG Panel — Game servers, summoned in seconds",
   description:
     "Premium multi-game server hosting for Minecraft, Icarus and more. Instant deploys, a stunning control panel, wake-on-join sleeping, one-click mods, and a clean API for your custom launcher.",
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   openGraph: {
-    title: "Aether — Game servers, summoned in seconds",
+    title: "MGG Panel — Game servers, summoned in seconds",
     description: "Premium multi-game hosting with a control panel that out-classes the rest.",
     type: "website",
   },

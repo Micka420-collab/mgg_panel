@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { requireUser, HttpError } from "@/lib/auth";
 import { json, noContent, route } from "@/lib/http";
-import { getTemplate } from "@aether/shared";
+import { getTemplate } from "@mgg/shared";
 import { audit } from "@/lib/audit";
 
 /**

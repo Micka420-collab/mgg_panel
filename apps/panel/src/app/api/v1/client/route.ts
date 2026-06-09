@@ -4,7 +4,7 @@ import { authApi, requireApiScope } from "@/lib/api-auth";
 import { reconcileStates } from "@/lib/server-state";
 
 export const dynamic = "force-dynamic";
-import { getTemplate, buildAddress } from "@aether/shared";
+import { getTemplate, buildAddress } from "@mgg/shared";
 
 /** List every server the authenticated user can access (owner or sub-user). */
 export const GET = route(async (req) => {

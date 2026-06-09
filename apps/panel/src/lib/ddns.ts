@@ -10,7 +10,7 @@ import { env } from "./env";
  * players one stable address to connect to.
  *
  * Config comes from the environment:
- *   DUCKDNS_DOMAIN  the subdomain label only (e.g. "aether" for aether.duckdns.org)
+ *   DUCKDNS_DOMAIN  the subdomain label only (e.g. "mgg" for mgg.duckdns.org)
  *   DUCKDNS_TOKEN   the account token from the DuckDNS dashboard
  */
 

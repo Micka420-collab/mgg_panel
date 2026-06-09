@@ -49,7 +49,7 @@ export default function LoginPage() {
         {stage === "creds" ? "Welcome back" : "Two-factor authentication"}
       </h1>
       <p className="mt-1 text-sm text-white/50">
-        {stage === "creds" ? "Sign in to your Aether control panel." : "Enter the 6-digit code from your authenticator."}
+        {stage === "creds" ? "Sign in to your MGG control panel." : "Enter the 6-digit code from your authenticator."}
       </p>
 
       {error && <div className="mt-4 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}

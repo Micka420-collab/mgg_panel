@@ -1,4 +1,4 @@
-# Aether reverse proxy.
+# MGG reverse proxy.
 # APP_DOMAIN defaults to :80 (no TLS). Set APP_DOMAIN=panel.example.com for
 # automatic HTTPS via Let's Encrypt.
 

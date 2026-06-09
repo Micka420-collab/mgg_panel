@@ -8,7 +8,7 @@ import { env } from "./env";
 import { randomToken, sha256, encrypt, decrypt } from "./crypto";
 import { clientIp } from "./ratelimit";
 
-export const SESSION_COOKIE = "aether_session";
+export const SESSION_COOKIE = "mgg_session";
 const SESSION_TTL_DAYS = 30;
 
 // ── passwords ──────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 // (defeats the account-enumeration timing oracle).
 let dummyHash: string | null = null;
 export async function getDummyHash(): Promise<string> {
-  if (!dummyHash) dummyHash = await bcrypt.hash("aether-nonexistent-account", 12);
+  if (!dummyHash) dummyHash = await bcrypt.hash("mgg-nonexistent-account", 12);
   return dummyHash;
 }
 
@@ -107,7 +107,7 @@ export function newTotpSecret(): string {
   return authenticator.generateSecret();
 }
 export function totpUri(username: string, secret: string): string {
-  return authenticator.keyuri(username, "Aether", secret);
+  return authenticator.keyuri(username, "MGG", secret);
 }
 export function verifyTotp(token: string, secret: string): boolean {
   try {

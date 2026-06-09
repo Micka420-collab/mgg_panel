@@ -6,7 +6,7 @@ import {
   type ConsoleClientMessage,
   type ConsoleServerMessage,
   type Scope,
-} from "@aether/shared";
+} from "@mgg/shared";
 import { config } from "./config.js";
 import { manager } from "./server-manager.js";
 import { logger } from "./logger.js";

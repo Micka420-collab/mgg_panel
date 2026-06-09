@@ -4,7 +4,7 @@ import { verifyPassword, HttpError } from "@/lib/auth";
 import { json, route } from "@/lib/http";
 import { env } from "@/lib/env";
 import { sha256, constantTimeEqual } from "@/lib/crypto";
-import { hasScope, ALL_SCOPES, type Scope } from "@aether/shared";
+import { hasScope, ALL_SCOPES, type Scope } from "@mgg/shared";
 import { audit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";

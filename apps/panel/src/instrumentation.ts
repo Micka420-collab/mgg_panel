@@ -4,7 +4,7 @@
  * tasks fire automatically in a self-hosted deployment.
  */
 export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.AETHER_DISABLE_SCHEDULER !== "1") {
+  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.MGG_DISABLE_SCHEDULER !== "1") {
     const { startScheduler } = await import("./lib/scheduler");
     startScheduler();
   }

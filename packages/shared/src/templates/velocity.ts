@@ -26,7 +26,7 @@ export const velocityProxy: GameTemplate = {
   tagline: "One address for many Minecraft servers",
   description:
     "Run a Velocity proxy in front of your Minecraft Java servers so they form a single network players join through one address. Manage the backend server list, the default/try order and forced-hosts straight from the panel. Powered by the itzg image (TYPE=VELOCITY) which self-provisions Velocity on first boot.",
-  author: "Aether",
+  author: "MGG",
   icon: "🛰️",
   color: "#1A95E0",
   category: "minecraft",
@@ -78,7 +78,7 @@ export const velocityProxy: GameTemplate = {
       key: "MOTD",
       name: "Message of the day",
       description: "Shown in the server list. Supports colour codes (&/§) and MiniMessage.",
-      default: "<#1A95E0>Powered by <bold>Aether</bold>",
+      default: "<#1A95E0>Powered by <bold>MGG</bold>",
       userViewable: true,
       userEditable: true,
       type: "string",
@@ -88,7 +88,7 @@ export const velocityProxy: GameTemplate = {
     {
       key: "MEMORY",
       name: "JVM heap override",
-      description: "Leave blank to let Aether size the heap from your plan's RAM. Proxies are light; 512M–1G is plenty.",
+      description: "Leave blank to let MGG size the heap from your plan's RAM. Proxies are light; 512M–1G is plenty.",
       default: "",
       userViewable: false,
       userEditable: false,
@@ -101,7 +101,7 @@ export const velocityProxy: GameTemplate = {
     image: "itzg/minecraft-server:latest",
     entrypoint: "bash",
     script:
-      '#!/bin/bash\necho "[Aether] Velocity self-provisions on first boot (TYPE=VELOCITY, version: $VELOCITY_VERSION)."\necho "[Aether] Add your backend Minecraft servers from the panel Proxy tab once it is running."\necho "[Aether] Install step complete."\n',
+      '#!/bin/bash\necho "[MGG] Velocity self-provisions on first boot (TYPE=VELOCITY, version: $VELOCITY_VERSION)."\necho "[MGG] Add your backend Minecraft servers from the panel Proxy tab once it is running."\necho "[MGG] Install step complete."\n',
   },
   configFiles: [
     {

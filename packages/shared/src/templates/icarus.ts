@@ -13,8 +13,8 @@ export const icarus: GameTemplate = {
   name: "ICARUS: Dedicated Server",
   tagline: "Survive the alien frontier with your crew",
   description:
-    "Host a persistent ICARUS dedicated server with prospect (world) management, admin controls and Steam-based join. Runs the official Windows server under Wine via SteamCMD, fully managed by Aether — no Windows box required.",
-  author: "Aether",
+    "Host a persistent ICARUS dedicated server with prospect (world) management, admin controls and Steam-based join. Runs the official Windows server under Wine via SteamCMD, fully managed by MGG — no Windows box required.",
+  author: "MGG",
   icon: "🪐",
   color: "#E0552B",
   category: "survival",
@@ -41,7 +41,7 @@ export const icarus: GameTemplate = {
       key: "SERVER_NAME",
       name: "Server name",
       description: "Name shown in the in-game server browser.",
-      default: "Aether ICARUS Server",
+      default: "MGG ICARUS Server",
       userViewable: true,
       userEditable: true,
       type: "string",
@@ -142,14 +142,14 @@ export const icarus: GameTemplate = {
     image: "jammsen/docker-icarus-dedicated-server:latest",
     entrypoint: "bash",
     script:
-      '#!/bin/bash\necho "[Aether] ICARUS will download via SteamCMD (AppID 2089300) and prepare Wine on first boot."\necho "[Aether] This first boot can take several minutes depending on bandwidth."\n',
+      '#!/bin/bash\necho "[MGG] ICARUS will download via SteamCMD (AppID 2089300) and prepare Wine on first boot."\necho "[MGG] This first boot can take several minutes depending on bandwidth."\n',
   },
   configFiles: [
     {
       path: "ServerSettings.ini",
       parser: "ini",
       fields: {
-        ServerName: { label: "Server name", default: "Aether ICARUS Server" },
+        ServerName: { label: "Server name", default: "MGG ICARUS Server" },
         MaxPlayers: { label: "Max players", default: "8", type: "number" },
         JoinPassword: { label: "Join password", default: "" },
       },

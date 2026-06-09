@@ -4,13 +4,13 @@ import { logger } from "./logger.js";
 
 /**
  * Subscribe to the Docker event stream and forward state changes for
- * Aether-managed containers to the server manager. This keeps our state
+ * MGG-managed containers to the server manager. This keeps our state
  * machine correct even when a container dies on its own.
  */
 export async function watchDockerEvents(): Promise<void> {
   try {
     const stream = (await docker.getEvents({
-      filters: { label: ["aether.managed=true"], type: ["container"] },
+      filters: { label: ["mgg.managed=true"], type: ["container"] },
     })) as unknown as NodeJS.ReadableStream;
 
     let buf = "";
@@ -22,7 +22,7 @@ export async function watchDockerEvents(): Promise<void> {
         if (!line.trim()) continue;
         try {
           const ev = JSON.parse(line);
-          const serverId = ev?.Actor?.Attributes?.["aether.serverId"];
+          const serverId = ev?.Actor?.Attributes?.["mgg.serverId"];
           const action: string = ev?.Action ?? "";
           if (serverId) manager.onDockerEvent(serverId, action);
         } catch {

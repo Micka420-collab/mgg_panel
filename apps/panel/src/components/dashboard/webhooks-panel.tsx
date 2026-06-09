@@ -80,7 +80,7 @@ export function WebhooksPanel() {
       </h2>
       <p className="mt-1 text-sm text-white/45">
         POST a JSON payload to an external URL when server events fire. Each delivery is signed with{" "}
-        <code className="font-mono text-white/60">X-Aether-Signature</code> (HMAC-SHA256).
+        <code className="font-mono text-white/60">X-MGG-Signature</code> (HMAC-SHA256).
       </p>
 
       {error && (
@@ -116,7 +116,7 @@ export function WebhooksPanel() {
             className="input"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com/hooks/aether"
+            placeholder="https://example.com/hooks/mgg"
           />
         </div>
         <div>

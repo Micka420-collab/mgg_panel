@@ -1,3 +1,3 @@
-module github.com/aether/edge-proxy
+module github.com/mgg/edge-proxy
 
 go 1.22

@@ -58,7 +58,7 @@ function attrsFor(st: fs.Stats) {
 function longname(name: string, st: fs.Stats): string {
   const dir = st.isDirectory() ? "d" : "-";
   const size = String(st.size).padStart(8);
-  return `${dir}rw-r--r-- 1 aether aether ${size} ${name}`;
+  return `${dir}rw-r--r-- 1 mgg mgg ${size} ${name}`;
 }
 
 export async function startSftp(): Promise<void> {

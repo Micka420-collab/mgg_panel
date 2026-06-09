@@ -54,7 +54,7 @@ export const POST = route(async (req) => {
           currency: "eur",
           unit_amount: amountCents,
           product_data: {
-            name: `${credits.toLocaleString()} Aether credits`,
+            name: `${credits.toLocaleString()} MGG credits`,
             description: `Wallet top-up · ${CREDITS_PER_EUR} credits per €1`,
           },
         },

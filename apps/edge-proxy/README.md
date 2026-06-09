@@ -1,4 +1,4 @@
-# Aether Edge Proxy — wake-on-join
+# MGG Edge Proxy — wake-on-join
 
 A tiny Go proxy that fronts a Minecraft server's public port and implements
 **sleeping / wake-on-join** (the lazymc pattern):
@@ -31,8 +31,8 @@ player ──:25565──▶ edge-proxy ──127.0.0.1:25600──▶ minecraft
 cp config.example.json config.json   # edit daemonToken + routes
 go run ./...                          # or: go build -o edge-proxy ./...
 # or Docker:
-docker build -t aether/edge-proxy .
-docker run --net host -v $PWD/config.json:/config.json aether/edge-proxy
+docker build -t mgg/edge-proxy .
+docker run --net host -v $PWD/config.json:/config.json mgg/edge-proxy
 ```
 
 `config.json`:
@@ -47,7 +47,7 @@ docker run --net host -v $PWD/config.json:/config.json aether/edge-proxy
 }
 ```
 
-Env overrides: `DAEMON_URL`, `DAEMON_TOKEN`, `CONFIG`, `AETHER_DYNAMIC`.
+Env overrides: `DAEMON_URL`, `DAEMON_TOKEN`, `CONFIG`, `MGG_DYNAMIC`.
 
 ## DDoS protection (built-in guard)
 

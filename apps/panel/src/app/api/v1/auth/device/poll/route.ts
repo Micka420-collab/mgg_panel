@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { json, route } from "@/lib/http";
 import { issueSessionToken, issueRefreshToken } from "@/lib/api-auth";
-import { ALL_SCOPES } from "@aether/shared";
+import { ALL_SCOPES } from "@mgg/shared";
 
 const schema = z.object({ device_code: z.string().min(1) });
 

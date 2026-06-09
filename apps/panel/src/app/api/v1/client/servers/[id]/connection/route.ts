@@ -3,7 +3,7 @@ import { authApi, requireApiScope } from "@/lib/api-auth";
 import { getServerContext } from "@/lib/access";
 import { DaemonClient } from "@/lib/daemon";
 import { fqdnFor, isDnsConfigured } from "@/lib/dns";
-import { buildAddress, getTemplate, hasScope, type ConnectionInfo, type ServerState } from "@aether/shared";
+import { buildAddress, getTemplate, hasScope, type ConnectionInfo, type ServerState } from "@mgg/shared";
 
 /**
  * Everything a launcher needs to auto-join: the address/port to pass to the

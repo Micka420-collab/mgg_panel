@@ -45,7 +45,7 @@ export function getStripe(): Stripe {
     _client = new Stripe(secretKey, {
       // Pin the API version for reproducible behaviour across deploys.
       apiVersion: "2024-06-20",
-      appInfo: { name: "Aether", url: "https://github.com" },
+      appInfo: { name: "MGG", url: "https://github.com" },
       typescript: true,
     });
   }

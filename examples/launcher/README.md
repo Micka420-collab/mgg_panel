@@ -1,7 +1,7 @@
-# Aether — reference launcher client
+# MGG — reference launcher client
 
 A minimal, zero-dependency Node script showing exactly how a **custom Minecraft
-launcher** integrates with the Aether API: authenticate the user, list their
+launcher** integrates with the MGG API: authenticate the user, list their
 servers, fetch live connection info, optionally wake a sleeping server, and
 auto-join.
 
@@ -11,10 +11,10 @@ auto-join.
 cd examples/launcher
 
 # Device-code login (opens a code you approve at <panel>/link):
-AETHER_URL=http://localhost:3000 node index.mjs
+MGG_URL=http://localhost:3000 node index.mjs
 
 # …or authenticate with an API key created in your account, and auto-start:
-AETHER_URL=http://localhost:3000 AETHER_TOKEN=aeth_xxx node index.mjs --start
+MGG_URL=http://localhost:3000 MGG_TOKEN=aeth_xxx node index.mjs --start
 ```
 
 ## What it demonstrates

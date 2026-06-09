@@ -1,7 +1,7 @@
 {
-  "name": "@aether/daemon",
+  "name": "@mgg/daemon",
   "version": "1.0.0",
-  "description": "Aether node daemon — controls Docker game-server containers, streams consoles & stats.",
+  "description": "MGG node daemon — controls Docker game-server containers, streams consoles & stats.",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "test": "npm run build && vitest run"
   },
   "dependencies": {
-    "@aether/shared": "*",
+    "@mgg/shared": "*",
     "cors": "^2.8.5",
     "dockerode": "^4.0.2",
     "express": "^4.21.2",

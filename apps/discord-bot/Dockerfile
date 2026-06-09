@@ -1,6 +1,6 @@
-# ── Aether Discord control bot ──────────────────────────────────────────────
+# ── MGG Discord control bot ──────────────────────────────────────────────
 # Self-contained image. Build context is this directory (apps/discord-bot):
-#   docker build -t aether/discord-bot apps/discord-bot
+#   docker build -t mgg/discord-bot apps/discord-bot
 #
 # Multi-stage: compile the TypeScript in a build stage, then ship only the
 # runtime (node_modules + dist) in a slim final image.

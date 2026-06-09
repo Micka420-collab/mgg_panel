@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { route, json } from "@/lib/http";
 import { HttpError } from "@/lib/auth";
 import { DaemonClient } from "@/lib/daemon";
-import { getTemplate, buildAddress } from "@aether/shared";
+import { getTemplate, buildAddress } from "@mgg/shared";
 
 async function resolveLink(token: string) {
   const link = await db.wakeLink.findUnique({

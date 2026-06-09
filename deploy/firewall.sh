@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────
-#  Aether — host firewall (nftables) for DDoS mitigation on Ubuntu.
+#  MGG — host firewall (nftables) for DDoS mitigation on Ubuntu.
 #
 #    sudo bash deploy/firewall.sh apply     # normal protection
 #    sudo bash deploy/firewall.sh attack    # tightened limits (under attack)
-#    sudo bash deploy/firewall.sh flush      # remove Aether rules
+#    sudo bash deploy/firewall.sh flush      # remove MGG rules
 #
 #  Layers it adds (L3/L4):
 #    • drop conntrack-INVALID packets
@@ -41,13 +41,13 @@ else
 fi
 
 if [ "$CMD" = "flush" ]; then
-  nft delete table inet aether 2>/dev/null || true
-  echo "✓ Aether firewall rules removed."
+  nft delete table inet mgg 2>/dev/null || true
+  echo "✓ MGG firewall rules removed."
   exit 0
 fi
 
 nft -f - <<EOF
-table inet aether {
+table inet mgg {
   chain input {
     type filter hook input priority 0; policy drop;
 
@@ -84,7 +84,7 @@ table inet aether {
 }
 EOF
 
-echo "✓ Aether firewall applied (mode: $CMD)."
+echo "✓ MGG firewall applied (mode: $CMD)."
 echo "  TCP new-conn limit: $TCP_RATE (burst $TCP_BURST) · UDP: $UDP_RATE (burst $UDP_BURST)"
 echo "  Open: SSH $SSH_PORT, panel $PANEL_PORTS, daemon $DAEMON_PORT, sftp $SFTP_PORT, games >=1024 (rate-limited)"
-echo "  Make persistent:  nft list table inet aether > /etc/nftables.conf  (and enable nftables.service)"
+echo "  Make persistent:  nft list table inet mgg > /etc/nftables.conf  (and enable nftables.service)"

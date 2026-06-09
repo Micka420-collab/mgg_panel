@@ -1,8 +1,8 @@
 import { env } from "@/lib/env";
-import { SCOPES } from "@aether/shared";
+import { SCOPES } from "@mgg/shared";
 
 /**
- * Public, unauthenticated OpenAPI 3.1 description of the Aether `/api/v1`
+ * Public, unauthenticated OpenAPI 3.1 description of the MGG `/api/v1`
  * surface. Hand-written (not generated) so the prose, examples and security
  * model stay accurate. Consumed by Swagger UI / Scalar / "copy as curl"
  * tooling and by the launcher's codegen.
@@ -26,11 +26,11 @@ function buildDoc() {
   return {
     openapi: "3.1.0",
     info: {
-      title: "Aether Client API",
+      title: "MGG Client API",
       version: "1.0.0",
-      summary: "Programmatic access to Aether game-server hosting.",
+      summary: "Programmatic access to MGG game-server hosting.",
       description:
-        "The Aether **v1 Client API** lets launchers, automations and integrations manage the " +
+        "The MGG **v1 Client API** lets launchers, automations and integrations manage the " +
         "game servers a user can access. Authenticate with a bearer token — either an API key " +
         "(`aeth_…` / admin `aeths_…`) or a launcher session JWT obtained from the device-code flow.\n\n" +
         "### Authentication\n" +
@@ -44,9 +44,9 @@ function buildDoc() {
         "4. Refresh the short-lived access token with `POST /api/v1/auth/refresh`.\n\n" +
         "### Scopes\n" +
         SCOPE_LIST,
-      contact: { name: "Aether", url: `${env.appUrl}/docs/launcher` },
+      contact: { name: "MGG", url: `${env.appUrl}/docs/launcher` },
     },
-    servers: [{ url: env.appUrl, description: "This Aether panel" }],
+    servers: [{ url: env.appUrl, description: "This MGG panel" }],
     tags: [
       { name: "Auth", description: "Device-code login, token refresh and identity." },
       { name: "Servers", description: "Discover and inspect servers." },

@@ -1,9 +1,9 @@
 {
-  "name": "aether-launcher-example",
+  "name": "mgg-launcher-example",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Reference client showing how a custom Minecraft launcher integrates with the Aether API.",
+  "description": "Reference client showing how a custom Minecraft launcher integrates with the MGG API.",
   "scripts": {
     "start": "node index.mjs"
   },

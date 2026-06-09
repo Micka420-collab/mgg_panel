@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────
-#  Aether — one-line bootstrap installer.
+#  MGG — one-line bootstrap installer.
 #
-#  Installs Aether on a fresh Ubuntu (22.04 / 24.04) host with a single line:
+#  Installs MGG on a fresh Ubuntu (22.04 / 24.04) host with a single line:
 #
-#    curl -fsSL https://raw.githubusercontent.com/Micka420-collab/Aether_Panel/main/deploy/get.sh | sudo bash
+#    curl -fsSL https://raw.githubusercontent.com/Micka420-collab/mgg_panel/main/deploy/get.sh | sudo bash
 #
 #  Optional environment overrides (forwarded to deploy/install.sh):
 #    APP_DOMAIN=panel.example.com   NODE_PUBLIC_IP=1.2.3.4   APPLY_FIREWALL=1
@@ -15,9 +15,9 @@
 set -euo pipefail
 
 # ── Config (overridable via env) ───────────────────────────────────────────
-REPO_URL="${AETHER_REPO_URL:-https://github.com/Micka420-collab/Aether_Panel.git}"
-REPO_BRANCH="${AETHER_REPO_BRANCH:-main}"
-INSTALL_DIR="${AETHER_INSTALL_DIR:-/opt/aether}"
+REPO_URL="${MGG_REPO_URL:-https://github.com/Micka420-collab/mgg_panel.git}"
+REPO_BRANCH="${MGG_REPO_BRANCH:-main}"
+INSTALL_DIR="${MGG_INSTALL_DIR:-/opt/mgg}"
 
 # ── Pretty output ──────────────────────────────────────────────────────────
 if [ -t 1 ]; then
@@ -32,7 +32,7 @@ die()  { echo -e "${RED}✗ $*${NC}" >&2; exit 1; }
 
 echo -e "${CYAN}"
 echo "   ╔═══════════════════════════════════════╗"
-echo "   ║         Aether · bootstrap            ║"
+echo "   ║         MGG · bootstrap            ║"
 echo "   ╚═══════════════════════════════════════╝"
 echo -e "${NC}"
 
@@ -65,7 +65,7 @@ if [ -d "$INSTALL_DIR/.git" ]; then
   git -C "$INSTALL_DIR" reset --hard "origin/$REPO_BRANCH"
   ok "Repository updated to latest ${REPO_BRANCH}"
 elif [ -e "$INSTALL_DIR" ] && [ -n "$(ls -A "$INSTALL_DIR" 2>/dev/null)" ]; then
-  die "${INSTALL_DIR} exists but is not a git checkout and is not empty. Move it aside or set AETHER_INSTALL_DIR, then re-run."
+  die "${INSTALL_DIR} exists but is not a git checkout and is not empty. Move it aside or set MGG_INSTALL_DIR, then re-run."
 else
   say "Cloning ${REPO_URL} (branch ${REPO_BRANCH}) into ${INSTALL_DIR}…"
   mkdir -p "$(dirname "$INSTALL_DIR")"

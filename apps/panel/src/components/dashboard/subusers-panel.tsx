@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { Users2, Plus, Trash2, Loader2, Save, ChevronDown } from "lucide-react";
-import { SCOPES } from "@aether/shared";
+import { SCOPES } from "@mgg/shared";
 import { api } from "@/lib/client";
 import { cn } from "@/lib/util";
 
@@ -121,7 +121,7 @@ export function SubusersPanel({ id }: { id: string }) {
           <h3 className="flex items-center gap-2 font-display font-semibold text-white"><Users2 className="h-4 w-4 text-cyan" /> Sub-users</h3>
           <button onClick={() => setAdding((v) => !v)} className="btn-primary px-3 py-1.5 text-xs"><Plus className="h-3.5 w-3.5" /> Invite</button>
         </div>
-        <p className="mt-1 text-sm text-white/45">Give teammates scoped access to this server. They sign in with their own Aether account.</p>
+        <p className="mt-1 text-sm text-white/45">Give teammates scoped access to this server. They sign in with their own MGG account.</p>
 
         {error && <div className="mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 

@@ -16,19 +16,19 @@ export const config = {
   /** shared secret: HTTP Bearer (panel -> daemon) and HMAC for WS JWTs (browser -> daemon) */
   token: env("DAEMON_TOKEN", "dev-daemon-token-change-me"),
   /** host directory where each server's bind-mounted volume lives */
-  dataDir: env("DAEMON_DATA_DIR", isWindows ? `${os.tmpdir()}\\aether\\volumes` : "/var/lib/aether/volumes"),
-  backupDir: env("DAEMON_BACKUP_DIR", isWindows ? `${os.tmpdir()}\\aether\\backups` : "/var/lib/aether/backups"),
+  dataDir: env("DAEMON_DATA_DIR", isWindows ? `${os.tmpdir()}\\mgg\\volumes` : "/var/lib/mgg/volumes"),
+  backupDir: env("DAEMON_BACKUP_DIR", isWindows ? `${os.tmpdir()}\\mgg\\backups` : "/var/lib/mgg/backups"),
   dockerSocket: env("DOCKER_SOCKET", isWindows ? "//./pipe/docker_engine" : "/var/run/docker.sock"),
   publicIp: env("NODE_PUBLIC_IP", "127.0.0.1"),
   logLevel: env("LOG_LEVEL", "info"),
   /** container name prefix */
-  prefix: "aether",
+  prefix: "mgg",
   /** panel base URL the daemon calls back for SFTP auth */
   panelUrl: env("PANEL_URL", "http://localhost:3000"),
   /** SFTP listen port (0 disables the SFTP server) */
   sftpPort: Number(env("SFTP_PORT", "2022")),
   /** where the generated SSH host key is stored */
-  hostKeyPath: env("SFTP_HOST_KEY", isWindows ? `${os.tmpdir()}\\aether\\ssh_host_key` : "/var/lib/aether/ssh_host_key"),
+  hostKeyPath: env("SFTP_HOST_KEY", isWindows ? `${os.tmpdir()}\\mgg\\ssh_host_key` : "/var/lib/mgg/ssh_host_key"),
 } as const;
 
 // Fail closed in production: never run with a placeholder / weak node token.

@@ -1,9 +1,9 @@
 {
-  "name": "@aether/discord-bot",
+  "name": "@mgg/discord-bot",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Aether Discord control bot — manage your game servers from Discord via the Aether v1 API.",
+  "description": "MGG Discord control bot — manage your game servers from Discord via the MGG v1 API.",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js"

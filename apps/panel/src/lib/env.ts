@@ -58,7 +58,7 @@ export const env = {
 
   // Free-subdomain DNS (optional). When DOMAIN_BASE + a provider are set, users
   // can claim "<sub>.<DOMAIN_BASE>" and the panel writes A + SRV records.
-  domainBase: optional("DOMAIN_BASE"), // e.g. "aether.host"
+  domainBase: optional("DOMAIN_BASE"), // e.g. "mgg.host"
   dnsProvider: optional("DNS_PROVIDER") || "none", // "cloudflare" | "none"
   cloudflareToken: optional("CLOUDFLARE_API_TOKEN"),
   cloudflareZoneId: optional("CLOUDFLARE_ZONE_ID"),
@@ -68,7 +68,7 @@ export const env = {
   steamApiKey: optional("STEAM_API_KEY"),
 
   // DuckDNS (optional) — stable "<domain>.duckdns.org" that follows the home IP.
-  // DUCKDNS_DOMAIN is the label only (e.g. "aether"), not the full hostname.
+  // DUCKDNS_DOMAIN is the label only (e.g. "mgg"), not the full hostname.
   duckDnsDomain: optional("DUCKDNS_DOMAIN"),
   duckDnsToken: optional("DUCKDNS_TOKEN"),
 

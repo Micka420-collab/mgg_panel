@@ -1,8 +1,8 @@
 {
-  "name": "aether",
+  "name": "mgg",
   "version": "1.0.0",
   "private": true,
-  "description": "Aether — premium multi-game server hosting platform (Minecraft, Icarus & more)",
+  "description": "MGG — premium multi-game server hosting platform (Minecraft, Icarus & more)",
   "license": "MIT",
   "author": "Micka Delcato (Nextendo)",
   "contributors": [
@@ -14,16 +14,16 @@
     "apps/*"
   ],
   "scripts": {
-    "build:shared": "npm run build --workspace @aether/shared",
-    "dev:panel": "npm run dev --workspace @aether/panel",
-    "dev:daemon": "npm run dev --workspace @aether/daemon",
+    "build:shared": "npm run build --workspace @mgg/shared",
+    "dev:panel": "npm run dev --workspace @mgg/panel",
+    "dev:daemon": "npm run dev --workspace @mgg/daemon",
     "dev": "concurrently -n panel,daemon -c magenta,cyan \"npm:dev:panel\" \"npm:dev:daemon\"",
-    "build": "npm run build:shared && npm run build --workspace @aether/panel && npm run build --workspace @aether/daemon",
-    "db:generate": "npm run db:generate --workspace @aether/panel",
-    "db:migrate": "npm run db:migrate --workspace @aether/panel",
-    "db:seed": "npm run db:seed --workspace @aether/panel",
+    "build": "npm run build:shared && npm run build --workspace @mgg/panel && npm run build --workspace @mgg/daemon",
+    "db:generate": "npm run db:generate --workspace @mgg/panel",
+    "db:migrate": "npm run db:migrate --workspace @mgg/panel",
+    "db:seed": "npm run db:seed --workspace @mgg/panel",
     "lint": "npm run lint --workspaces --if-present",
-    "test": "npm run test --workspace @aether/shared && npm run test --workspace @aether/daemon",
+    "test": "npm run test --workspace @mgg/shared && npm run test --workspace @mgg/daemon",
     "typecheck": "npm run build:shared && npm run db:generate && tsc --noEmit -p apps/panel/tsconfig.json && tsc --noEmit -p apps/daemon/tsconfig.json"
   },
   "devDependencies": {

@@ -12,13 +12,13 @@ export async function sendDiscordWebhook(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        username: "Aether",
+        username: "MGG",
         embeds: [
           {
             title: alert.title,
             description: alert.description ?? undefined,
             color: COLORS[alert.level ?? "warning"],
-            footer: { text: "Aether monitor" },
+            footer: { text: "MGG monitor" },
             timestamp: alert.ts,
           },
         ],

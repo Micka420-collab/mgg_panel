@@ -37,7 +37,7 @@ export function Footer() {
           <p className="mt-4 max-w-xs text-sm text-white/50">
             Premium multi-game hosting with a control panel that out-classes the rest. Summon a server in seconds.
           </p>
-          <p className="mt-4 text-xs text-white/30">© {new Date().getFullYear()} Aether. All rights reserved.</p>
+          <p className="mt-4 text-xs text-white/30">© {new Date().getFullYear()} MGG. All rights reserved.</p>
         </div>
         {cols.map((c) => (
           <div key={c.title}>

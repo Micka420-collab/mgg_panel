@@ -16,7 +16,7 @@ import (
 type Route struct {
 	Listen      string `json:"listen"`      // ":25565"
 	Backend     string `json:"backend"`     // "127.0.0.1:25600" (the daemon-bound internal port)
-	ServerID    string `json:"serverId"`    // Aether server id
+	ServerID    string `json:"serverId"`    // MGG server id
 	IdleSeconds int    `json:"idleSeconds"` // stop after this long empty (0 = never)
 }
 
@@ -31,7 +31,7 @@ func (p *Proxy) statusJSON(protocol int, state string) string {
 	}
 	// Use the client's protocol so no version-mismatch warning is shown.
 	return fmt.Sprintf(
-		`{"version":{"name":"Aether","protocol":%d},"players":{"max":0,"online":0},"description":{"text":%q}}`,
+		`{"version":{"name":"MGG","protocol":%d},"players":{"max":0,"online":0},"description":{"text":%q}}`,
 		protocol, motd,
 	)
 }
@@ -169,7 +169,7 @@ func (p *Proxy) pipe(route Route, client net.Conn, br *bufio.Reader, hs *handsha
 	payload := []byte{}
 	payload = appendVarInt(payload, hs.protocol)
 	// note: we didn't retain address/port; reconstruct a minimal handshake
-	payload = appendString(payload, "aether")
+	payload = appendString(payload, "mgg")
 	payload = append(payload, 0x00, 0x00) // port 0 (backend ignores)
 	payload = appendVarInt(payload, hs.nextState)
 	if err := writePacket(backend, 0x00, payload); err != nil {

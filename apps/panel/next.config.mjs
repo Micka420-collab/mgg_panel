@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // @aether/shared ships TypeScript that Next transpiles for both server and client.
-  transpilePackages: ["@aether/shared"],
+  // @mgg/shared ships TypeScript that Next transpiles for both server and client.
+  transpilePackages: ["@mgg/shared"],
   eslint: { ignoreDuringBuilds: true },
   experimental: {
     // bcryptjs / prisma are server-only; keep them out of the client bundle.

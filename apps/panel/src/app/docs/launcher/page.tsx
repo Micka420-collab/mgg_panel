@@ -21,7 +21,7 @@ export default function LauncherDocs() {
     <div className="space-y-5 text-white/70">
       <h1 className="font-display text-4xl font-bold text-white">Launcher API</h1>
       <p className="text-lg text-white/55">
-        Connect your custom Minecraft launcher to Aether. Authenticate a user with a device code, list the servers
+        Connect your custom Minecraft launcher to MGG. Authenticate a user with a device code, list the servers
         they can access, fetch live connection info, and launch the game straight into the server.
       </p>
       <p className="text-sm text-white/50">
@@ -67,14 +67,14 @@ POST /api/v1/auth/refresh  { "refresh_token": "…" }`}</Code>
 
 GET /api/v1/client/servers/{id}/connection
 → {
-    "address": "play.aether.host",
-    "host": "play.aether.host",
+    "address": "play.mgg.host",
+    "host": "play.mgg.host",
     "port": 25565,
     "game": "minecraft",
     "state": "running",
     "players": { "online": 3, "max": 40 },
     "version": "1.21.4",
-    "motd": "Powered by Aether"
+    "motd": "Powered by MGG"
   }`}</Code>
 
       <h2 className="font-display text-2xl font-semibold text-white">3 · Power & live console</h2>

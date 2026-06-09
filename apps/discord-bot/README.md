@@ -1,7 +1,7 @@
-# Aether Discord control bot
+# MGG Discord control bot
 
-Control your Aether game servers from Discord with **global** slash commands.
-It talks to the public `/api/v1` using an **API key** you create in your Aether
+Control your MGG game servers from Discord with **global** slash commands.
+It talks to the public `/api/v1` using an **API key** you create in your MGG
 account (Account → API keys). Single-tenant: the bot acts as that one account,
 and the API key's scopes decide what it is allowed to do.
 
@@ -35,15 +35,15 @@ and the API key's scopes decide what it is allowed to do.
 |---------|----------|-------------|
 | `DISCORD_TOKEN` | yes | Discord bot token |
 | `DISCORD_CLIENT_ID` | yes | Discord application (client) id |
-| `AETHER_API_KEY` | yes | Aether API key (`aeth_…`) |
-| `AETHER_API_URL` | no | Aether panel base URL (default `http://localhost:3000`) |
+| `MGG_API_KEY` | yes | MGG API key (`aeth_…`) |
+| `MGG_API_URL` | no | MGG panel base URL (default `http://localhost:3000`) |
 
 ## Setup
 
 1. Create a Discord application + bot at <https://discord.com/developers>, copy
    the **bot token** and **application (client) id**. Invite it to your server
    with the `applications.commands` scope.
-2. In Aether, create an API key with the scopes for the commands you want to use
+2. In MGG, create an API key with the scopes for the commands you want to use
    (see the table above).
 3. Configure env and run:
 
@@ -51,8 +51,8 @@ and the API key's scopes decide what it is allowed to do.
 cd apps/discord-bot
 export DISCORD_TOKEN=...        # bot token
 export DISCORD_CLIENT_ID=...    # application id
-export AETHER_API_KEY=aeth_...  # your Aether API key
-export AETHER_API_URL=http://localhost:3000
+export MGG_API_KEY=aeth_...  # your MGG API key
+export MGG_API_URL=http://localhost:3000
 
 npm install
 npm run build      # compile src -> dist
@@ -62,7 +62,7 @@ npm start          # registers global commands on boot, then runs the bot
 Or build the Docker image (build context is this directory):
 
 ```bash
-docker build -t aether/discord-bot apps/discord-bot
+docker build -t mgg/discord-bot apps/discord-bot
 ```
 
 The bot **registers its global slash commands on every boot**, so updates roll

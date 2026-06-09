@@ -1,9 +1,9 @@
 /**
  * ════════════════════════════════════════════════════════════════════════════
- *  Aether Discord control bot
+ *  MGG Discord control bot
  * ════════════════════════════════════════════════════════════════════════════
  *
- *  A small, self-contained discord.js v14 bot that lets you control your Aether
+ *  A small, self-contained discord.js v14 bot that lets you control your MGG
  *  game servers from Discord with global slash commands:
  *
  *      /servers                 — list every server you can access
@@ -14,15 +14,15 @@
  *      /say      <server> <msg> — broadcast a message in-game (console "say")
  *      /backup   <server>       — create a backup
  *
- *  It authenticates to the public Aether API (`/api/v1`) with a single bearer
- *  **API key**, so the bot acts as one Aether account. The required scopes are
+ *  It authenticates to the public MGG API (`/api/v1`) with a single bearer
+ *  **API key**, so the bot acts as one MGG account. The required scopes are
  *  enforced by the key itself — the bot can only do what the key is allowed to.
  *
  *  Configuration (environment variables):
  *      DISCORD_TOKEN      — the Discord bot token              (required)
  *      DISCORD_CLIENT_ID  — the Discord application (client) id (required)
- *      AETHER_API_URL     — base URL of the Aether panel        (default http://localhost:3000)
- *      AETHER_API_KEY     — an Aether API key (Account → API keys, "aeth_…")  (required)
+ *      MGG_API_URL     — base URL of the MGG panel        (default http://localhost:3000)
+ *      MGG_API_KEY     — an MGG API key (Account → API keys, "aeth_…")  (required)
  *
  *  On boot the bot (re)registers its GLOBAL slash commands, then logs in.
  *  Run with:  npm start   (node src/index.js after `npm run build`)
@@ -46,16 +46,16 @@ import {
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN ?? "";
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID ?? "";
-const AETHER_API_URL = (process.env.AETHER_API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
-const AETHER_API_KEY = process.env.AETHER_API_KEY ?? "";
+const MGG_API_URL = (process.env.MGG_API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+const MGG_API_KEY = process.env.MGG_API_KEY ?? "";
 
-/** Brand accent (Aether "Sci-Fi Lab" cyan) used for neutral embeds. */
+/** Brand accent (MGG "Sci-Fi Lab" cyan) used for neutral embeds. */
 const ACCENT = 0x22b8d8;
 /** Map a server state to a traffic-light embed colour. */
 const stateColor = (s: string): number =>
   s === "running" ? 0x34d399 : s === "errored" ? 0xf85149 : s === "offline" ? 0x6b7280 : 0xfbbf24;
 
-// ─── Aether API client ──────────────────────────────────────────────────────
+// ─── MGG API client ──────────────────────────────────────────────────────
 
 /** Shape returned by `GET /api/v1/client` for each accessible server. */
 interface ServerSummary {
@@ -81,15 +81,15 @@ interface ConnectionInfo {
 }
 
 /**
- * Minimal JSON fetch helper against the Aether v1 API. Adds the bearer key,
+ * Minimal JSON fetch helper against the MGG v1 API. Adds the bearer key,
  * serialises the body, and surfaces the API's `{ error }` message on failure.
  * Returns `undefined` for 204 No Content responses (power/command endpoints).
  */
-async function aetherFetch<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
-  const res = await fetch(`${AETHER_API_URL}${path}`, {
+async function mggFetch<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+  const res = await fetch(`${MGG_API_URL}${path}`, {
     method: init.method ?? "GET",
     headers: {
-      Authorization: `Bearer ${AETHER_API_KEY}`,
+      Authorization: `Bearer ${MGG_API_KEY}`,
       Accept: "application/json",
       ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
     },
@@ -101,7 +101,7 @@ async function aetherFetch<T>(path: string, init: { method?: string; body?: unkn
   const text = await res.text();
   const data = text ? safeJson(text) : null;
   if (!res.ok) {
-    const message = (data && typeof data === "object" && "error" in data && (data as any).error) || `Aether API ${res.status}`;
+    const message = (data && typeof data === "object" && "error" in data && (data as any).error) || `MGG API ${res.status}`;
     throw new Error(String(message));
   }
   return data as T;
@@ -116,20 +116,20 @@ function safeJson(text: string): unknown {
   }
 }
 
-const aether = {
+const mgg = {
   /** List every server the key's account can access. */
-  listServers: () => aetherFetch<{ servers: ServerSummary[] }>("/api/v1/client").then((r) => r.servers),
+  listServers: () => mggFetch<{ servers: ServerSummary[] }>("/api/v1/client").then((r) => r.servers),
   /** Live connection/status info (address, state, players, version). */
-  connection: (id: string) => aetherFetch<ConnectionInfo>(`/api/v1/client/servers/${id}/connection`),
+  connection: (id: string) => mggFetch<ConnectionInfo>(`/api/v1/client/servers/${id}/connection`),
   /** Send a power signal: start | stop | restart | kill. */
   power: (id: string, signal: "start" | "stop" | "restart" | "kill") =>
-    aetherFetch<void>(`/api/v1/client/servers/${id}/power`, { method: "POST", body: { signal } }),
+    mggFetch<void>(`/api/v1/client/servers/${id}/power`, { method: "POST", body: { signal } }),
   /** Run a raw console command (the daemon delivers it via RCON). */
   command: (id: string, command: string) =>
-    aetherFetch<void>(`/api/v1/client/servers/${id}/command`, { method: "POST", body: { command } }),
+    mggFetch<void>(`/api/v1/client/servers/${id}/command`, { method: "POST", body: { command } }),
   /** Create a backup (optional friendly name). */
   backup: (id: string, name?: string) =>
-    aetherFetch<{ id: string; name: string; sizeBytes: number; completed: boolean }>(
+    mggFetch<{ id: string; name: string; sizeBytes: number; completed: boolean }>(
       `/api/v1/client/servers/${id}/backups`,
       { method: "POST", body: name ? { name } : {} },
     ),
@@ -141,7 +141,7 @@ const aether = {
  * Returns `null` if nothing matches.
  */
 async function resolveServer(ref: string): Promise<ServerSummary | null> {
-  const servers = await aether.listServers();
+  const servers = await mgg.listServers();
   const needle = ref.trim().toLowerCase();
   return (
     servers.find((s) => s.id === ref) ??
@@ -158,7 +158,7 @@ const withServer = (b: SlashCommandBuilder) =>
   b.addStringOption((o) => o.setName("server").setDescription("Server name or id").setRequired(true));
 
 const commands: RESTPostAPIApplicationCommandsJSONBody[] = [
-  new SlashCommandBuilder().setName("servers").setDescription("List your Aether servers"),
+  new SlashCommandBuilder().setName("servers").setDescription("List your MGG servers"),
   withServer(new SlashCommandBuilder().setName("status").setDescription("Show a server's status & address")),
   withServer(new SlashCommandBuilder().setName("start").setDescription("Start a server")),
   withServer(new SlashCommandBuilder().setName("stop").setDescription("Stop a server")),
@@ -188,14 +188,14 @@ async function handleInteraction(i: ChatInputCommandInteraction): Promise<void> 
 
   // /servers — no <server> argument.
   if (i.commandName === "servers") {
-    const servers = await aether.listServers();
+    const servers = await mgg.listServers();
     if (servers.length === 0) {
       await i.editReply("You have no servers on this account.");
       return;
     }
     const embed = new EmbedBuilder()
       .setColor(ACCENT)
-      .setTitle("Your Aether servers")
+      .setTitle("Your MGG servers")
       .setDescription(
         servers
           .map(
@@ -220,7 +220,7 @@ async function handleInteraction(i: ChatInputCommandInteraction): Promise<void> 
 
   switch (i.commandName) {
     case "status": {
-      const c = await aether.connection(srv.id);
+      const c = await mgg.connection(srv.id);
       const embed = new EmbedBuilder()
         .setColor(stateColor(c.state))
         .setTitle(srv.name)
@@ -237,7 +237,7 @@ async function handleInteraction(i: ChatInputCommandInteraction): Promise<void> 
     case "start":
     case "stop":
     case "restart": {
-      await aether.power(srv.id, i.commandName);
+      await mgg.power(srv.id, i.commandName);
       await i.editReply(`✅ Sent **${i.commandName}** to **${srv.name}**.`);
       return;
     }
@@ -245,13 +245,13 @@ async function handleInteraction(i: ChatInputCommandInteraction): Promise<void> 
     case "say": {
       const message = i.options.getString("message", true);
       // The daemon delivers console commands via RCON; "say" broadcasts in-game.
-      await aether.command(srv.id, `say ${message}`);
+      await mgg.command(srv.id, `say ${message}`);
       await i.editReply(`✅ Broadcast on **${srv.name}**: ${message}`);
       return;
     }
 
     case "backup": {
-      const b = await aether.backup(srv.id);
+      const b = await mgg.backup(srv.id);
       const mb = (b.sizeBytes / (1024 * 1024)).toFixed(1);
       await i.editReply(`✅ Created backup **${b.name}** on **${srv.name}** (${mb} MB).`);
       return;
@@ -269,10 +269,10 @@ function assertConfig(): void {
   const missing: string[] = [];
   if (!DISCORD_TOKEN) missing.push("DISCORD_TOKEN");
   if (!DISCORD_CLIENT_ID) missing.push("DISCORD_CLIENT_ID");
-  if (!AETHER_API_KEY) missing.push("AETHER_API_KEY");
+  if (!MGG_API_KEY) missing.push("MGG_API_KEY");
   if (missing.length) {
     console.error(`Missing required environment variable(s): ${missing.join(", ")}`);
-    console.error("Required: DISCORD_TOKEN, DISCORD_CLIENT_ID, AETHER_API_KEY (and optionally AETHER_API_URL).");
+    console.error("Required: DISCORD_TOKEN, DISCORD_CLIENT_ID, MGG_API_KEY (and optionally MGG_API_URL).");
     process.exit(1);
   }
 }
@@ -290,7 +290,7 @@ async function main(): Promise<void> {
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
   client.once(Events.ClientReady, (c) => {
-    console.log(`🤖 Aether bot online as ${c.user.tag} — talking to ${AETHER_API_URL}`);
+    console.log(`🤖 MGG bot online as ${c.user.tag} — talking to ${MGG_API_URL}`);
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {

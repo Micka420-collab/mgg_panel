@@ -35,8 +35,8 @@ export function userCode(): string {
 // label (so it never collides with session/JWT use). Ciphertext is versioned.
 const ENC_VERSION = "v1";
 function aesKey(): Buffer {
-  const salt = Buffer.from("aether-kdf-salt-v1");
-  const info = Buffer.from("aether-secret-encryption-v1");
+  const salt = Buffer.from("mgg-kdf-salt-v1");
+  const info = Buffer.from("mgg-secret-encryption-v1");
   return Buffer.from(crypto.hkdfSync("sha256", env.authSecret, salt, info, 32));
 }
 

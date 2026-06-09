@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ConsoleLine, ServerStats, ServerState, PowerAction, ConsoleServerMessage } from "@aether/shared";
+import type { ConsoleLine, ServerStats, ServerState, PowerAction, ConsoleServerMessage } from "@mgg/shared";
 import { api } from "./client";
 
 const MAX_LINES = 600;

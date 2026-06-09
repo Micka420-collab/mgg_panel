@@ -5,7 +5,7 @@ import { json, noContent, route } from "@/lib/http";
 import { getServerContext, assertScope } from "@/lib/access";
 import { DaemonClient } from "@/lib/daemon";
 import { buildServerSpec } from "@/lib/spec";
-import { getTemplate, buildAddress, validateVariable } from "@aether/shared";
+import { getTemplate, buildAddress, validateVariable } from "@mgg/shared";
 import { fqdnFor, isDnsConfigured } from "@/lib/dns";
 import { audit } from "@/lib/audit";
 

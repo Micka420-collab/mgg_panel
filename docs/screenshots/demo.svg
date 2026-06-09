@@ -22,16 +22,16 @@
   <circle cx="24" cy="20" r="6" fill="#F85149"/>
   <circle cx="46" cy="20" r="6" fill="#FBBF24"/>
   <circle cx="68" cy="20" r="6" fill="#34D399"/>
-  <text x="92" y="25" fill="#7a8699" font-size="12">aether — live console</text>
+  <text x="92" y="25" fill="#7a8699" font-size="12">mgg — live console</text>
 
   <!-- log lines -->
-  <text class="l l1" x="22" y="74"  fill="#58A6FF">aether › deploy minecraft-paper · node eu-west-1</text>
-  <text class="l l2" x="22" y="100" fill="#8FE3F2">[Aether] Pulling image itzg/minecraft-server:java21…</text>
-  <text class="l l3" x="22" y="126" fill="#8FE3F2">[Aether] Building container · 6 GB RAM · 300% CPU</text>
-  <text class="l l4" x="22" y="152" fill="#8FE3F2">[Aether] Starting server…</text>
+  <text class="l l1" x="22" y="74"  fill="#58A6FF">mgg › deploy minecraft-paper · node eu-west-1</text>
+  <text class="l l2" x="22" y="100" fill="#8FE3F2">[MGG] Pulling image itzg/minecraft-server:java21…</text>
+  <text class="l l3" x="22" y="126" fill="#8FE3F2">[MGG] Building container · 6 GB RAM · 300% CPU</text>
+  <text class="l l4" x="22" y="152" fill="#8FE3F2">[MGG] Starting server…</text>
   <text class="l l5" x="22" y="178" fill="#C9D1D9">[12:04:18] [Server thread/INFO]: Minecraft 1.21.4</text>
   <text class="l l6" x="22" y="204" fill="#C9D1D9">[12:04:24] [Server thread/INFO]: Done (5.812s)! For help, type "help"</text>
-  <text class="l l7" x="22" y="236" fill="#34D399">● RUNNING — play.aether.host · 12ms · 0/40 players</text>
+  <text class="l l7" x="22" y="236" fill="#34D399">● RUNNING — play.mgg.host · 12ms · 0/40 players</text>
 
   <rect class="cur" x="22" y="258" width="9" height="15" fill="#22B8D8"/>
 </svg>

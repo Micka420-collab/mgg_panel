@@ -10,7 +10,7 @@ import type { GameTemplate } from "./template.js";
  * (ESX, QBox/QBCore or a vanilla freeroam) with the Recipe Deployer.
  *
  * All persistent state (txAdmin profile, admins, deployed server-data/resources)
- * lives under a single directory, `/txData`, which Aether bind-mounts — matching
+ * lives under a single directory, `/txData`, which MGG bind-mounts — matching
  * the daemon's one-volume model. The server is driven entirely from txAdmin, so
  * there is no in-panel RCON console here; use the txAdmin live console instead.
  *
@@ -27,7 +27,7 @@ export const fivem: GameTemplate = {
     "Host a GTA V roleplay server on FiveM (FXServer). Boots txAdmin — the FiveM web admin panel — on first start, so setup is point-and-click: open txAdmin, enter your free cfx.re license key, then deploy a roleplay base (ESX, QBox/QBCore or vanilla) in one click. " +
     "Getting started after deploy: (1) open this server's live console and copy the one-time txAdmin PIN; (2) browse to http://YOUR_SERVER_IP:40120 and enter the PIN to create your admin account; (3) in txAdmin paste your cfx.re key (free at keymaster.fivem.net) and run the Recipe Deployer; (4) players connect in the FiveM client to YOUR_SERVER_IP:30120. " +
     "ESX/QBCore frameworks require a MySQL/MariaDB database — provide its details during the recipe step.",
-  author: "Aether",
+  author: "MGG",
   icon: "🚓",
   color: "#F0A500",
   category: "other",
@@ -89,6 +89,6 @@ export const fivem: GameTemplate = {
     image: "traskin/fxserver:recommended",
     entrypoint: "bash",
     script:
-      '#!/bin/bash\necho "[Aether] FiveM (FXServer) boots txAdmin on first start."\necho "[Aether] Finish setup at http://YOUR_SERVER_IP:40120 (PIN is printed in the console)."\n',
+      '#!/bin/bash\necho "[MGG] FiveM (FXServer) boots txAdmin on first start."\necho "[MGG] Finish setup at http://YOUR_SERVER_IP:40120 (PIN is printed in the console)."\n',
   },
 };

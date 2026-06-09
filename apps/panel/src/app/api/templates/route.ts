@@ -1,4 +1,4 @@
-import { TEMPLATES } from "@aether/shared";
+import { TEMPLATES } from "@mgg/shared";
 import { json, route } from "@/lib/http";
 
 /** Public catalog used by the create-server wizard and the marketing site. */

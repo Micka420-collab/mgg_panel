@@ -5,7 +5,7 @@ import { createWriteStream, createReadStream } from "node:fs";
 import type { Readable } from "node:stream";
 import crypto from "node:crypto";
 import path from "node:path";
-import type { BackupMeta, ServerBuildSpec } from "@aether/shared";
+import type { BackupMeta, ServerBuildSpec } from "@mgg/shared";
 import { config } from "./config.js";
 import { hostVolumePath, rconHost } from "./docker.js";
 import { sendRcon } from "./rcon.js";
@@ -131,8 +131,8 @@ export async function restoreBackup(serverId: string, backupId: string): Promise
 
     // Preserve the daemon's internal spec dir if the archive didn't include it,
     // so the server stays manageable after a restart.
-    if (!(await exists(path.join(tmp, ".aether"))) && (await exists(path.join(dest, ".aether")))) {
-      await fs.cp(path.join(dest, ".aether"), path.join(tmp, ".aether"), { recursive: true });
+    if (!(await exists(path.join(tmp, ".mgg"))) && (await exists(path.join(dest, ".mgg")))) {
+      await fs.cp(path.join(dest, ".mgg"), path.join(tmp, ".mgg"), { recursive: true });
     }
 
     // Swap the restored tree in. Same-filesystem renames are atomic and fast.
@@ -158,7 +158,7 @@ export async function deleteBackup(serverId: string, backupId: string): Promise<
  * restoreBackup (extract into a temp sibling, then atomic rename), but the
  * source and destination are different servers. Re-hydrates the archive from S3
  * if the local copy is gone. Preserves the TARGET's freshly-provisioned
- * `.aether/` spec dir if the archive doesn't carry one.
+ * `.mgg/` spec dir if the archive doesn't carry one.
  */
 export async function cloneFromBackup(
   sourceServerId: string,
@@ -196,8 +196,8 @@ export async function cloneFromBackup(
 
     // Keep the target's own daemon spec dir if the archive didn't include one,
     // so the clone stays manageable after a restart.
-    if (!(await exists(path.join(tmp, ".aether"))) && (await exists(path.join(dest, ".aether")))) {
-      await fs.cp(path.join(dest, ".aether"), path.join(tmp, ".aether"), { recursive: true });
+    if (!(await exists(path.join(tmp, ".mgg"))) && (await exists(path.join(dest, ".mgg")))) {
+      await fs.cp(path.join(dest, ".mgg"), path.join(tmp, ".mgg"), { recursive: true });
     }
 
     await fs.mkdir(dest, { recursive: true });

@@ -6,6 +6,8 @@
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="16" fill="#0B0F1A"/>
-  <path d="M32 12 L50 50 H40 L32 31 L24 50 H14 Z" fill="url(#g)"/>
-  <circle cx="32" cy="30" r="20" fill="none" stroke="url(#g)" stroke-width="2" opacity="0.45"/>
+  <!-- MGG monogram: a clean "M" stroke -->
+  <path d="M15 47 V19 L32 37 L49 19 V47" fill="none" stroke="url(#g)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- orbit accent -->
+  <circle cx="32" cy="31" r="20" fill="none" stroke="url(#g)" stroke-width="2" opacity="0.4"/>
 </svg>

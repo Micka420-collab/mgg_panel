@@ -17,7 +17,7 @@
   <!-- logo -->
   <rect x="24" y="26" width="26" height="26" rx="7" fill="#0E1422"/>
   <path d="M37 31 L46 50 H41 L37 40 L33 50 H28 Z" fill="url(#cv)"/>
-  <text x="60" y="44" fill="#fff" font-size="17" font-weight="600">Aether</text>
+  <text x="60" y="44" fill="#fff" font-size="17" font-weight="600">MGG</text>
   <!-- new server button -->
   <rect x="24" y="70" width="200" height="40" rx="11" fill="url(#cv)"/>
   <text x="124" y="95" fill="#fff" font-size="13.5" font-weight="600" text-anchor="middle">+  New server</text>
@@ -33,7 +33,7 @@
   <circle cx="48" cy="667" r="16" fill="url(#cv)"/>
   <text x="48" y="672" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">MD</text>
   <text x="74" y="662" fill="#fff" font-size="12.5" font-weight="600">micka</text>
-  <text x="74" y="679" fill="#7a8699" font-size="11">micka@aether.host</text>
+  <text x="74" y="679" fill="#7a8699" font-size="11">micka@mgg.host</text>
 
   <!-- main -->
   <text x="288" y="44" fill="#8b95a7" font-size="12.5">←  All servers</text>
@@ -47,7 +47,7 @@
   <rect x="560" y="88" width="96" height="24" rx="12" fill="#34D399" fill-opacity="0.12" stroke="#34D399" stroke-opacity="0.4"/>
   <circle cx="576" cy="100" r="4" fill="#34D399"/>
   <text x="588" y="104" fill="#34D399" font-size="12" font-weight="600">Running</text>
-  <text x="388" y="132" fill="#8FE3F2" font-size="13.5" font-family="ui-monospace, monospace">play.aether.host  ⧉</text>
+  <text x="388" y="132" fill="#8FE3F2" font-size="13.5" font-family="ui-monospace, monospace">play.mgg.host  ⧉</text>
   <!-- power buttons -->
   <g font-size="12.5" font-weight="600">
     <rect x="892" y="98" width="78" height="36" rx="10" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.1"/><text x="931" y="121" fill="#34D399" text-anchor="middle">▶ Start</text>

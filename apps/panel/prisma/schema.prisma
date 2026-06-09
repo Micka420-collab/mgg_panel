@@ -1,4 +1,4 @@
-// Aether — data model for the multi-game hosting platform.
+// MGG — data model for the multi-game hosting platform.
 // Control plane (panel) stores ALL metadata here; the daemon owns live execution.
 
 generator client {
@@ -197,7 +197,7 @@ model Server {
   nodeId String
   node   Node   @relation(fields: [nodeId], references: [id])
 
-  // references a template in @aether/shared (code registry) or a custom egg id
+  // references a template in @mgg/shared (code registry) or a custom egg id
   templateId  String
   game        String
   dockerImage String
@@ -223,7 +223,7 @@ model Server {
   autoStop      Boolean @default(true)
   idleTimeout   Int     @default(600) // seconds empty before sleep
   autoRestart   Boolean @default(false) // monitor restarts the server if it crashes
-  subdomain     String? @unique // e.g. "myserver" -> myserver.aether.host
+  subdomain     String? @unique // e.g. "myserver" -> myserver.mgg.host
 
   // Clone lineage: a cloned server remembers its origin so its files can be
   // pushed back to it (promote). onDelete SetNull so deleting an origin orphans
@@ -271,7 +271,7 @@ model Subuser {
   server   Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
   userId   String
   user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scopes   Json   @default("[]") // string[] of @aether/shared Scope values
+  scopes   Json   @default("[]") // string[] of @mgg/shared Scope values
 
   createdAt DateTime @default(now())
 

@@ -4,7 +4,7 @@ import {
   interpolate,
   type Allocation,
   type ServerBuildSpec,
-} from "@aether/shared";
+} from "@mgg/shared";
 import { env as appEnv } from "./env";
 
 function mapProtocol(p: DbAllocation["protocol"]): Allocation["protocol"] {
@@ -27,7 +27,7 @@ export function buildServerSpec(server: Server, allocations: DbAllocation[]): Se
       (portSpec.primary ? primary : undefined);
     if (alloc && portSpec.envVar) env[portSpec.envVar] = String(alloc.port);
   }
-  // Aether-standard injected vars.
+  // MGG-standard injected vars.
   if (primary) {
     env.SERVER_PORT = env.SERVER_PORT ?? String(primary.port);
     env.SERVER_IP = "0.0.0.0";

@@ -1,4 +1,4 @@
-# ── Aether panel (Next.js) ───────────────────────────────────────────────
+# ── MGG panel (Next.js) ───────────────────────────────────────────────
 FROM node:20-bookworm-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -15,8 +15,8 @@ COPY apps/panel ./apps/panel
 RUN npm install --include=dev --no-audit --no-fund
 
 RUN npm run build:shared \
- && npm run db:generate --workspace @aether/panel \
- && npm run build --workspace @aether/panel
+ && npm run db:generate --workspace @mgg/panel \
+ && npm run build --workspace @mgg/panel
 
 # ── Runtime ──────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim AS run

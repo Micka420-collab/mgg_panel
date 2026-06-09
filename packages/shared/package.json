@@ -1,7 +1,7 @@
 {
-  "name": "@aether/shared",
+  "name": "@mgg/shared",
   "version": "1.0.0",
-  "description": "Shared types and the multi-game template engine for Aether",
+  "description": "Shared types and the multi-game template engine for MGG",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

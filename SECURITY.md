@@ -8,7 +8,7 @@ on this repository. We aim to acknowledge reports within 72 hours.
 
 ## Operator responsibilities (self-hosted)
 
-Aether is self-hostable. When you deploy it, **you** are responsible for the
+MGG is self-hostable. When you deploy it, **you** are responsible for the
 runtime secrets and hardening:
 
 - Generate strong, unique values for `AUTH_SECRET`, `API_JWT_SECRET` and

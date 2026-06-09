@@ -1,6 +1,6 @@
 import "server-only";
 
-const UA = "Aether-Panel/1.0 (self-hosted game hosting)";
+const UA = "MGG-Panel/1.0 (self-hosted game hosting)";
 const API = "https://api.modrinth.com/v2";
 
 /** Map an itzg TYPE to a Modrinth loader facet value. */

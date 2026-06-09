@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="apps/panel/public/favicon.svg" width="96" alt="Aether logo" />
+<img src="apps/panel/public/favicon.svg" width="96" alt="MGG logo" />
 
-# Aether
+# MGG Panel
 
 ### Game servers, summoned in seconds.
 
@@ -20,7 +20,7 @@ protection baked in — and it all runs on *your* hardware, your rules, with no 
 
 <br/>
 
-[![CI](https://github.com/Micka420-collab/Aether_Panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Micka420-collab/Aether_Panel/actions/workflows/ci.yml)
+[![CI](https://github.com/Micka420-collab/mgg_panel/actions/workflows/ci.yml/badge.svg)](https://github.com/Micka420-collab/mgg_panel/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22B8D8.svg?style=flat-square)](LICENSE)
 ![Self-hosted](https://img.shields.io/badge/self--hosted-Ubuntu%20%2B%20Docker-7C5CFF?style=flat-square)
 ![Install](https://img.shields.io/badge/install-one%20command-34D399?style=flat-square)
@@ -39,14 +39,14 @@ protection baked in — and it all runs on *your* hardware, your rules, with no 
 
 <br/>
 
-<img src="docs/screenshots/demo.svg" width="760" alt="Aether console — deploying a server" />
+<img src="docs/screenshots/demo.svg" width="760" alt="MGG console — deploying a server" />
 
 <br/>
 
 ### One command. Your own game-hosting platform.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Micka420-collab/Aether_Panel/main/deploy/get.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Micka420-collab/mgg_panel/main/deploy/get.sh | sudo bash
 ```
 
 <br/>
@@ -62,10 +62,10 @@ curl -fsSL https://raw.githubusercontent.com/Micka420-collab/Aether_Panel/main/d
 **Ubuntu + Docker — literally one line:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Micka420-collab/Aether_Panel/main/deploy/get.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Micka420-collab/mgg_panel/main/deploy/get.sh | sudo bash
 ```
 
-That's it. The bootstrap clones the repo to `/opt/aether`, installs Docker, generates
+That's it. The bootstrap clones the repo to `/opt/mgg`, installs Docker, generates
 strong secrets, builds the images and brings up the whole stack —
 **panel + daemon + Postgres + Caddy + edge-proxy**. When it finishes it prints your
 panel URL; open it and register — the **first account becomes the admin**. ✨
@@ -79,7 +79,7 @@ curl -fsSL .../deploy/get.sh | sudo APP_DOMAIN=panel.example.com APPLY_FIREWALL=
 <summary><b>Prefer to clone first? (same result)</b></summary>
 
 ```bash
-git clone https://github.com/Micka420-collab/Aether_Panel.git aether && cd aether
+git clone https://github.com/Micka420-collab/mgg_panel.git mgg && cd mgg
 sudo bash deploy/install.sh        # add APPLY_FIREWALL=1 to harden the host too
 ```
 
@@ -96,7 +96,7 @@ make up          # start the stack
 make logs        # tail panel + daemon
 make ps          # status
 make update      # git pull + rebuild + restart
-make backup-db   # gzip a Postgres dump to /var/lib/aether/backups
+make backup-db   # gzip a Postgres dump to /var/lib/mgg/backups
 make down        # stop
 make help        # list everything (default)
 ```
@@ -112,8 +112,8 @@ npm run build:shared
 cp .env.example .env                            # then edit the secrets
 cp apps/panel/.env.example apps/panel/.env
 # start Postgres, then:
-npm run db:push  --workspace @aether/panel
-npm run db:seed  --workspace @aether/panel
+npm run db:push  --workspace @mgg/panel
+npm run db:seed  --workspace @mgg/panel
 npm run dev                                     # panel :3000 + daemon :8080
 npm test                                        # vitest (template engine + path jail)
 ```
@@ -127,7 +127,7 @@ The daemon needs a reachable Docker engine (`/var/run/docker.sock`).
 
 <div align="center">
 
-<img src="docs/screenshots/dashboard.svg" width="900" alt="Aether dashboard — live server console" />
+<img src="docs/screenshots/dashboard.svg" width="900" alt="MGG dashboard — live server console" />
 
 <br/><sub>Live console, real-time telemetry, files, mods, schedules, backups & more — in a dashboard that doesn't look like 2014.</sub>
 
@@ -179,7 +179,7 @@ back (the origin is auto-backed-up first) · **🚓 GTA V roleplay** via FiveM +
 
 ---
 
-## Why Aether?
+## Why MGG?
 
 Built to out-class Pterodactyl, Aternos, Shockbyte & GPORTAL on **three axes at once**:
 

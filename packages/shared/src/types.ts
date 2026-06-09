@@ -1,5 +1,5 @@
 /**
- * Aether — core domain types shared between the panel, the daemon and the
+ * MGG — core domain types shared between the panel, the daemon and the
  * public launcher API. Keep this dependency-free so every runtime can import it.
  */
 

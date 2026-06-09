@@ -5,7 +5,7 @@ import { json, route } from "@/lib/http";
 import { getServerContext, assertScope, assertNotSuspended } from "@/lib/access";
 import { buildServerSpec } from "@/lib/spec";
 import { DaemonClient } from "@/lib/daemon";
-import { requireTemplate } from "@aether/shared";
+import { requireTemplate } from "@mgg/shared";
 import { resolveGameVersion } from "@/lib/modrinth";
 import { enforceBackupRetention } from "@/lib/backups";
 import { audit } from "@/lib/audit";

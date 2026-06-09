@@ -6,7 +6,7 @@ import "server-only";
  * Two modes, picked at call time so the feature is useful with ZERO config:
  *  - If ANTHROPIC_API_KEY is set, we call the Anthropic Messages API
  *    (claude-haiku-4-5) over plain `fetch`, feeding it a system prompt that
- *    describes Aether + the live server context.
+ *    describes MGG + the live server context.
  *  - If the key is UNSET (or the API call fails), we fall back to a deterministic
  *    rule-based helper that pattern-matches the most common questions (start
  *    failures, adding mods/plugins, changing port/difficulty/MOTD, backups) using
@@ -121,11 +121,11 @@ export function buildSystemPrompt(ctx: AssistantContext): string {
     : "(console history not available — ask the user to check the Console tab)";
 
   return [
-    "You are the Aether Server Copilot, an expert assistant embedded in the Aether game-server hosting panel",
+    "You are the MGG Server Copilot, an expert assistant embedded in the MGG game-server hosting panel",
     "(a self-hostable Pterodactyl/Aternos-style control panel). You help the user operate ONE specific game server.",
     "Be concise, practical and friendly. Prefer concrete steps over theory. Use the live context below.",
     "",
-    "Aether facts you can rely on:",
+    "MGG facts you can rely on:",
     "- Minecraft servers run on the itzg/minecraft-server image; software is set by the TYPE env var (VANILLA, PAPER, PURPUR, FABRIC, FORGE, NEOFORGE...).",
     "- Plugins/mods on Minecraft are installed by the panel's Content tab (Modrinth-backed) or via MODRINTH_PROJECTS; a restart applies them.",
     "- Startup variables (difficulty, MOTD, max players, version, etc.) are edited in the Settings tab and apply on the next start/restart.",
@@ -328,7 +328,7 @@ function rulesReply(ctx: AssistantContext, messages: AssistantMessage[]): Assist
   if (has("port", "address", "ip", "connect", "join")) {
     out.push("Your connection address is shown at the top of this server's page (click it to copy).");
     if (mc) {
-      out.push("The port is assigned by Aether and lives in the **Network** tab — changing it there reallocates the listener. You can't move a Minecraft server to an arbitrary port from the console.");
+      out.push("The port is assigned by MGG and lives in the **Network** tab — changing it there reallocates the listener. You can't move a Minecraft server to an arbitrary port from the console.");
       out.push("Want Bedrock players (mobile/console) to join your Java server? Enable **crossplay** in the **Network** tab.");
     } else {
       out.push("Manage listener ports in the **Network** tab.");
@@ -341,7 +341,7 @@ function rulesReply(ctx: AssistantContext, messages: AssistantMessage[]): Assist
     if (mc) {
       const motd = findVar(ctx, "MOTD");
       out.push(`The server list message is the \`MOTD\` variable (currently \`${motd?.value ?? "A Minecraft Server"}\`). Edit it in **Settings** and restart to apply.`);
-      out.push("To rename the server **inside Aether** (not the in-game MOTD), use the **Settings** tab → name field.");
+      out.push("To rename the server **inside MGG** (not the in-game MOTD), use the **Settings** tab → name field.");
     } else {
       out.push("Set the MOTD/server message via its startup variable in **Settings**, then restart.");
     }
@@ -370,7 +370,7 @@ function rulesReply(ctx: AssistantContext, messages: AssistantMessage[]): Assist
 
   // 8) Generic greeting / catch-all
   out.push(
-    `Hi! I'm the Aether Copilot for **${ctx.serverName}** (${ctx.templateName ?? ctx.templateId}, currently **${ctx.state}**). I can help you with things like:`,
+    `Hi! I'm the MGG Copilot for **${ctx.serverName}** (${ctx.templateName ?? ctx.templateId}, currently **${ctx.state}**). I can help you with things like:`,
   );
   out.push("- Why won't my server start?");
   if (mc) {

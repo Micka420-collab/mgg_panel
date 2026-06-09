@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { requireUser, HttpError } from "@/lib/auth";
 import { json, route } from "@/lib/http";
 import { getServerContext } from "@/lib/access";
-import { getTemplate } from "@aether/shared";
+import { getTemplate } from "@mgg/shared";
 import { audit } from "@/lib/audit";
 
 /**
@@ -15,7 +15,7 @@ import { audit } from "@/lib/audit";
  * can deploy as a brand-new server in one click. This route lists blueprints
  * (public + your own) and publishes a new one from a server you own.
  *
- * It is a thin metadata layer over the existing Server model and the @aether/shared
+ * It is a thin metadata layer over the existing Server model and the @mgg/shared
  * template registry; deploying just re-runs the normal create-server flow.
  */
 

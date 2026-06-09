@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { json, route } from "@/lib/http";
 import { createServer } from "@/lib/provision";
-import { getTemplate, buildAddress, requireTemplate } from "@aether/shared";
+import { getTemplate, buildAddress, requireTemplate } from "@mgg/shared";
 import { DEFAULT_PLANS } from "@/lib/plans";
 import { reconcileStates } from "@/lib/server-state";
 

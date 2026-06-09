@@ -1,6 +1,6 @@
 import { SignJWT } from "jose";
 import type { Node } from "@prisma/client";
-import type { ServerBuildSpec, ServerState, ServerStats, FileEntry, BackupMeta } from "@aether/shared";
+import type { ServerBuildSpec, ServerState, ServerStats, FileEntry, BackupMeta } from "@mgg/shared";
 
 export type NodeLike = Pick<Node, "scheme" | "fqdn" | "daemonPort" | "tokenSecret" | "publicIp">;
 

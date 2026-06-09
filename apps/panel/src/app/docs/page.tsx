@@ -6,7 +6,7 @@ export default function DocsOverview() {
     <div className="space-y-6 text-white/70">
       <h1 className="font-display text-4xl font-bold text-white">Documentation</h1>
       <p className="text-lg text-white/55">
-        Aether is a multi-game server hosting platform: a stateless Next.js <strong className="text-white">panel</strong>{" "}
+        MGG is a multi-game server hosting platform: a stateless Next.js <strong className="text-white">panel</strong>{" "}
         (control plane) plus a per-node <strong className="text-white">daemon</strong> (data plane) that drives Docker.
         Minecraft and Icarus ship today; new games are added as data via the template engine.
       </p>
@@ -32,7 +32,7 @@ export default function DocsOverview() {
       <div className="glass p-6">
         <h2 className="font-display text-xl font-semibold text-white">Quick start (self-host)</h2>
         <pre className="console-surface mt-4 overflow-x-auto rounded-xl p-4 font-mono text-sm text-console-text">
-{`git clone <your-repo> aether && cd aether
+{`git clone <your-repo> mgg && cd mgg
 sudo bash deploy/install.sh
 # → open the printed URL, register (first account = admin)`}
         </pre>

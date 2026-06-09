@@ -1,4 +1,4 @@
-# ── Aether edge proxy (wake-on-join) ─────────────────────────────────────
+# ── MGG edge proxy (wake-on-join) ─────────────────────────────────────
 FROM golang:1.22-alpine AS build
 WORKDIR /src
 COPY go.mod ./

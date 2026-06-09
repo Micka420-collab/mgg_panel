@@ -7,7 +7,7 @@ import {
   type PowerAction,
   type ServerBuildSpec,
   type ServerStats,
-} from "@aether/shared";
+} from "@mgg/shared";
 import {
   attachStdin,
   buildContainer,
@@ -31,7 +31,7 @@ import { volumeSize } from "./files.js";
 import { logger } from "./logger.js";
 
 const CONSOLE_BUFFER = 250;
-const SPEC_FILE = ".aether/spec.json";
+const SPEC_FILE = ".mgg/spec.json";
 
 interface Runtime {
   spec: ServerBuildSpec;
@@ -87,7 +87,7 @@ class ServerManager extends EventEmitter {
           logger.info({ id }, "rehydrated running server");
         }
       } catch {
-        /* not an aether server dir */
+        /* not an mgg server dir */
       }
     }
   }
@@ -130,21 +130,21 @@ class ServerManager extends EventEmitter {
     rt.spec = spec;
     this.servers.set(spec.serverId, rt);
 
-    await fs.mkdir(path.join(hostVolumePath(spec.serverId), ".aether"), { recursive: true });
+    await fs.mkdir(path.join(hostVolumePath(spec.serverId), ".mgg"), { recursive: true });
     await fs.writeFile(path.join(hostVolumePath(spec.serverId), SPEC_FILE), JSON.stringify(spec, null, 2));
 
     if (rebuild) {
       this.setState(spec.serverId, ServerState.Installing);
-      this.pushConsole(spec.serverId, `[Aether] Pulling image ${spec.dockerImage}…`, "system");
+      this.pushConsole(spec.serverId, `[MGG] Pulling image ${spec.dockerImage}…`, "system");
       try {
         await pullImage(spec.dockerImage, (l) => this.emit(`install:${spec.serverId}`, l));
       } catch (e) {
         logger.warn({ e, image: spec.dockerImage }, "image pull failed (may already exist locally)");
       }
-      this.pushConsole(spec.serverId, "[Aether] Building container…", "system");
+      this.pushConsole(spec.serverId, "[MGG] Building container…", "system");
       await buildContainer(spec);
       this.setState(spec.serverId, ServerState.Offline);
-      this.pushConsole(spec.serverId, "[Aether] Ready. Press Start to boot your server.", "system");
+      this.pushConsole(spec.serverId, "[MGG] Ready. Press Start to boot your server.", "system");
     }
   }
 
@@ -159,7 +159,7 @@ class ServerManager extends EventEmitter {
         // build never completed), (re)build it now — pulling the image first,
         // since buildContainer only creates and would throw "No such image".
         if (!(await inspect(serverId))) {
-          this.pushConsole(serverId, "[Aether] Building container…", "system");
+          this.pushConsole(serverId, "[MGG] Building container…", "system");
           try {
             await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
           } catch (e) {
@@ -170,7 +170,7 @@ class ServerManager extends EventEmitter {
         rt.stopping = false;
         // Admission control at START time: refuse if the host doesn't have enough
         // free RAM for this server right now (prevents host OOM). Uses real
-        // MemAvailable, so it also accounts for containers started outside Aether
+        // MemAvailable, so it also accounts for containers started outside MGG
         // and the host's own processes — fits "run one heavy server at a time".
         {
           const reserveMb = Number(process.env.NODE_MEMORY_RESERVE_MB ?? 512);
@@ -184,14 +184,14 @@ class ServerManager extends EventEmitter {
           }
         }
         this.setState(serverId, ServerState.Starting);
-        this.pushConsole(serverId, "[Aether] Starting server…", "system");
+        this.pushConsole(serverId, "[MGG] Starting server…", "system");
         await startContainer(serverId);
         rt.startedAt = Date.now();
         this.beginStreaming(serverId);
         break;
       }
       case "restart":
-        this.pushConsole(serverId, "[Aether] Restarting…", "system");
+        this.pushConsole(serverId, "[MGG] Restarting…", "system");
         await this.gracefulStop(serverId);
         await startContainer(serverId).catch(async () => {
           // container may need rebuild if it was removed
@@ -204,12 +204,12 @@ class ServerManager extends EventEmitter {
         break;
       case "stop":
         this.setState(serverId, ServerState.Stopping);
-        this.pushConsole(serverId, "[Aether] Stopping server…", "system");
+        this.pushConsole(serverId, "[MGG] Stopping server…", "system");
         await this.gracefulStop(serverId);
         break;
       case "kill":
         rt.stopping = true; // intentional — the resulting die is clean, not a crash
-        this.pushConsole(serverId, "[Aether] Killing server (forced)…", "system");
+        this.pushConsole(serverId, "[MGG] Killing server (forced)…", "system");
         await killContainer(serverId);
         this.setState(serverId, ServerState.Offline);
         this.endStreaming(serverId);

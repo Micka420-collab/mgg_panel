@@ -29,7 +29,7 @@ export interface WebhookEnvelope {
 }
 
 /**
- * Compute the value of the `X-Aether-Signature` header for a payload.
+ * Compute the value of the `X-MGG-Signature` header for a payload.
  * Format: `sha256=<hex>` over the exact serialized request body, keyed by the
  * webhook secret. Mirrors the convention used by GitHub/Stripe-style webhooks.
  */
@@ -49,10 +49,10 @@ async function deliver(
   const body = JSON.stringify(envelope);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "User-Agent": "Aether-Webhooks/1",
-    "X-Aether-Event": envelope.event,
+    "User-Agent": "MGG-Webhooks/1",
+    "X-MGG-Event": envelope.event,
   };
-  if (target.secret) headers["X-Aether-Signature"] = signPayload(target.secret, body);
+  if (target.secret) headers["X-MGG-Signature"] = signPayload(target.secret, body);
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);

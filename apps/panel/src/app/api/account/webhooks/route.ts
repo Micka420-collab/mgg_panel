@@ -62,7 +62,7 @@ export const POST = route(async (req) => {
   }
 
   // A signing secret is generated server-side and shown once so receivers can
-  // verify the X-Aether-Signature header.
+  // verify the X-MGG-Signature header.
   const secret = randomToken(24);
 
   const created = await db.webhook.create({

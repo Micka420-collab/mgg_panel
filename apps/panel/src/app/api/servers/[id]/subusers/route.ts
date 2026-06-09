@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser, HttpError } from "@/lib/auth";
 import { json, route } from "@/lib/http";
 import { getServerContext } from "@/lib/access";
-import { ALL_SCOPES } from "@aether/shared";
+import { ALL_SCOPES } from "@mgg/shared";
 import { audit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ export const POST = route(async (req, ctx: { params: { id: string } }) => {
   const { email, scopes } = schema.parse(await req.json());
 
   const target = await db.user.findUnique({ where: { email: email.toLowerCase() } });
-  if (!target) throw new HttpError(404, "No Aether account with that email");
+  if (!target) throw new HttpError(404, "No MGG account with that email");
   if (target.id === c.server.ownerId) throw new HttpError(409, "The owner already has full access");
 
   const valid = scopes.filter((s) => (ALL_SCOPES as readonly string[]).includes(s));

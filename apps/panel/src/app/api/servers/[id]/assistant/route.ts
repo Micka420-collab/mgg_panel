@@ -4,8 +4,8 @@ import { json, route } from "@/lib/http";
 import { hit } from "@/lib/ratelimit";
 import { getServerContext, assertScope } from "@/lib/access";
 import { DaemonClient } from "@/lib/daemon";
-import { getTemplate } from "@aether/shared";
-import { hasScope } from "@aether/shared";
+import { getTemplate } from "@mgg/shared";
+import { hasScope } from "@mgg/shared";
 import {
   askAssistant,
   type AssistantContext,

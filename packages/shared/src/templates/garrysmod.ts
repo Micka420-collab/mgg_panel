@@ -6,7 +6,7 @@ import type { GameTemplate } from "./template.js";
  * SteamCMD inside ich777's gameserver image. Everything srcds needs — gamemode,
  * starting map, slot count, Workshop collection, GSLT and RCON — is passed on the
  * launch line through GAME_PARAMS. Add-ons, maps and saves live under
- * /serverdata/serverfiles, which Aether bind-mounts and persists.
+ * /serverdata/serverfiles, which MGG bind-mounts and persists.
  */
 export const garrysmod: GameTemplate = {
   id: "garrysmod-dedicated",
@@ -14,8 +14,8 @@ export const garrysmod: GameTemplate = {
   name: "Garry's Mod: Dedicated Server",
   tagline: "Sandbox, DarkRP, TTT, Prop Hunt — your physics playground",
   description:
-    "Host a Garry's Mod dedicated server with any gamemode (Sandbox, DarkRP, Trouble in Terrorist Town, Prop Hunt, ZombieSurvival...), Steam Workshop add-on collections and live updates. Runs the native Linux srcds binary, downloaded and kept current via SteamCMD — fully managed by Aether, no Steam client required.",
-  author: "Aether",
+    "Host a Garry's Mod dedicated server with any gamemode (Sandbox, DarkRP, Trouble in Terrorist Town, Prop Hunt, ZombieSurvival...), Steam Workshop add-on collections and live updates. Runs the native Linux srcds binary, downloaded and kept current via SteamCMD — fully managed by MGG, no Steam client required.",
+  author: "MGG",
   icon: "🔫",
   color: "#E8A33D",
   category: "sandbox",
@@ -24,7 +24,7 @@ export const garrysmod: GameTemplate = {
     "SteamCMD (ich777, Docker Hub)": "ich777/steamcmd:garrysmod",
   },
   defaultImage: "ghcr.io/ich777/steamcmd:garrysmod",
-  // The image entrypoint runs SteamCMD + srcds itself; Aether only supplies env.
+  // The image entrypoint runs SteamCMD + srcds itself; MGG only supplies env.
   startupCommand: "",
   // srcds shuts down cleanly on SIGTERM (the ich777 wrapper forwards it to srcds).
   stopCommand: "^SIGTERM",
@@ -121,6 +121,6 @@ export const garrysmod: GameTemplate = {
     image: "ghcr.io/ich777/steamcmd:garrysmod",
     entrypoint: "bash",
     script:
-      '#!/bin/bash\necho "[Aether] Garry\'s Mod will download via SteamCMD (AppID 4020) on first boot."\necho "[Aether] The initial download is a few GB and can take several minutes."\n',
+      '#!/bin/bash\necho "[MGG] Garry\'s Mod will download via SteamCMD (AppID 4020) on first boot."\necho "[MGG] The initial download is a few GB and can take several minutes."\n',
   },
 };

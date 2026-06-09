@@ -1,22 +1,22 @@
-# Aether — single-host deployment.
+# MGG — single-host deployment.
 #   docker compose up -d
 # Set the values in .env first (see .env.example). Most importantly:
 #   APP_URL, DEFAULT_NODE_FQDN (your public host), NODE_PUBLIC_IP, and the secrets.
 
-name: aether
+name: mgg
 
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-aether}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aether}
-      POSTGRES_DB: ${POSTGRES_DB:-aether}
+      POSTGRES_USER: ${POSTGRES_USER:-mgg}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mgg}
+      POSTGRES_DB: ${POSTGRES_DB:-mgg}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aether}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mgg}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-aether}:${POSTGRES_PASSWORD:-aether}@postgres:5432/${POSTGRES_DB:-aether}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mgg}:${POSTGRES_PASSWORD:-mgg}@postgres:5432/${POSTGRES_DB:-mgg}?schema=public
       APP_URL: ${APP_URL:-http://localhost:3000}
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
       API_JWT_SECRET: ${API_JWT_SECRET:?set API_JWT_SECRET in .env}
@@ -74,14 +74,14 @@ services:
     environment:
       DAEMON_PORT: "8080"
       DAEMON_TOKEN: ${DAEMON_TOKEN:?set DAEMON_TOKEN in .env}
-      DAEMON_DATA_DIR: /var/lib/aether/volumes
-      DAEMON_BACKUP_DIR: /var/lib/aether/backups
+      DAEMON_DATA_DIR: /var/lib/mgg/volumes
+      DAEMON_BACKUP_DIR: /var/lib/mgg/backups
       DOCKER_SOCKET: /var/run/docker.sock
       NODE_PUBLIC_IP: ${NODE_PUBLIC_IP:-127.0.0.1}
       # SFTP: validate logins against the panel and listen on 2022
       PANEL_URL: http://panel:3000
       SFTP_PORT: "2022"
-      SFTP_HOST_KEY: /var/lib/aether/ssh_host_key
+      SFTP_HOST_KEY: /var/lib/mgg/ssh_host_key
       # Off-site backups to any S3-compatible store (AWS S3, R2, B2, MinIO, Wasabi…).
       # Dormant until S3_ENDPOINT + bucket + keys are set — backups stay local-only.
       S3_ENDPOINT: ${S3_ENDPOINT:-}
@@ -95,8 +95,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # CRITICAL: same path inside the daemon and on the host, so the bind-mounts the
       # daemon passes to game containers resolve correctly on the host engine.
-      - /var/lib/aether/volumes:/var/lib/aether/volumes
-      - /var/lib/aether/backups:/var/lib/aether/backups
+      - /var/lib/mgg/volumes:/var/lib/mgg/volumes
+      - /var/lib/mgg/backups:/var/lib/mgg/backups
     ports:
       # Browsers connect here for the live console/stats WebSocket.
       # In production, front this with Caddy + TLS on a node.<domain> subdomain.
@@ -117,7 +117,7 @@ services:
       - daemon
     network_mode: host
     environment:
-      AETHER_DYNAMIC: "1"
+      MGG_DYNAMIC: "1"
       DAEMON_URL: http://127.0.0.1:8080
       DAEMON_TOKEN: ${DAEMON_TOKEN:?set DAEMON_TOKEN in .env}
       # Anti-DDoS guard (per-IP) — tune in .env if needed
@@ -158,8 +158,8 @@ services:
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN:-}
       DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
-      AETHER_API_URL: http://panel:3000
-      AETHER_API_KEY: ${AETHER_API_KEY:-}
+      MGG_API_URL: http://panel:3000
+      MGG_API_KEY: ${MGG_API_KEY:-}
 
 volumes:
   pgdata:

@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Aether design system — "Sci-Fi Lab" palette.
+ * MGG design system — "Sci-Fi Lab" palette.
  * Premium glassy dark theme: near-black base, elevated navy surfaces,
  * electric-cyan primary, violet edge accent, GitHub-style console surface.
  */

@@ -3,7 +3,7 @@ import cors from "cors";
 import os from "node:os";
 import crypto from "node:crypto";
 import { z } from "zod";
-import type { ServerBuildSpec } from "@aether/shared";
+import type { ServerBuildSpec } from "@mgg/shared";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
 import { manager } from "./server-manager.js";
@@ -48,7 +48,7 @@ export function createHttpApp() {
       });
 
   // ── health & system ───────────────────────────────────────────────────
-  app.get("/api/health", (_req, res) => res.json({ ok: true, name: "aether-daemon", version: "1.0.0" }));
+  app.get("/api/health", (_req, res) => res.json({ ok: true, name: "mgg-daemon", version: "1.0.0" }));
 
   app.get(
     "/api/system",
@@ -210,7 +210,7 @@ export function createHttpApp() {
 
   // Import an existing server from an uploaded archive (.zip / .tar.gz / .tgz / .tar).
   // The body is the raw archive stream (Content-Type is non-JSON, so express.json
-  // leaves it untouched). `clear=1` wipes the volume first (keeping .aether/).
+  // leaves it untouched). `clear=1` wipes the volume first (keeping .mgg/).
   app.post(
     "/api/servers/:id/import",
     wrap(async (req, res) => {
@@ -256,7 +256,7 @@ export function createHttpApp() {
 
   // Promote this (clone) server's files onto its origin (target): stop both, take a
   // reversible backup of the target, then overwrite the target's volume with this
-  // server's files. The target keeps its own ports/identity (.aether/ untouched).
+  // server's files. The target keeps its own ports/identity (.mgg/ untouched).
   const promoteSchema = z.object({
     targetId: z.string().min(1),
     backupId: z.string().min(1),

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { json, route } from "@/lib/http";
 import { verifyRefreshToken, issueSessionToken } from "@/lib/api-auth";
-import { ALL_SCOPES } from "@aether/shared";
+import { ALL_SCOPES } from "@mgg/shared";
 import { HttpError } from "@/lib/auth";
 
 const schema = z.object({ refresh_token: z.string().min(1) });
