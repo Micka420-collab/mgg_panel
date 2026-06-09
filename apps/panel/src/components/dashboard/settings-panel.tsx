@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Loader2, Trash2 } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog, toast } from "@/components/ui/confirm";
 import { UpgradeCard } from "./upgrade-card";
 import { CloneCard } from "./clone-card";
 import { PublishBlueprintCard } from "./publish-blueprint-card";
@@ -68,7 +69,15 @@ export function SettingsPanel({
   }
 
   async function destroy() {
-    if (!confirm(`Permanently delete "${detail.server.name}" and all its data? This cannot be undone.`)) return;
+    if (
+      !(await confirmDialog({
+        title: "Delete this server?",
+        description: `This permanently deletes "${detail.server.name}" and ALL its data — world, files and backups. This cannot be undone.`,
+        danger: true,
+        confirmLabel: "Delete server",
+      }))
+    )
+      return;
     try {
       await api(`/api/servers/${id}`, { method: "DELETE" });
       router.push("/dashboard");
@@ -170,7 +179,7 @@ function BehaviourCard({ id, server }: { id: string; server: { autoStop: boolean
     try {
       await api(`/api/servers/${id}`, { method: "PATCH", json: data });
     } catch (e: any) {
-      alert(e.message);
+      toast(e.message, "error");
     } finally {
       setSaving(false);
     }

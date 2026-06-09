@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ShieldCheck, KeyRound, Loader2, Plus, Trash2, Copy, Check, AlertTriangle, Lock } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog, toast } from "@/components/ui/confirm";
 import { relativeTime } from "@/lib/util";
 import { WebhooksPanel } from "@/components/dashboard/webhooks-panel";
 
@@ -233,13 +234,21 @@ function ApiKeys({ keys, reload, isAdmin }: { keys: ApiKey[]; reload: () => void
       setName("");
       reload();
     } catch (e: any) {
-      alert(e.message);
+      toast(e.message, "error");
     } finally {
       setBusy(false);
     }
   }
   async function revoke(id: string) {
-    if (!confirm("Revoke this key? Apps using it will stop working.")) return;
+    if (
+      !(await confirmDialog({
+        title: "Revoke this API key?",
+        description: "Any app or launcher using it will immediately stop working.",
+        danger: true,
+        confirmLabel: "Revoke",
+      }))
+    )
+      return;
     await api(`/api/account/api-keys/${id}`, { method: "DELETE" });
     reload();
   }

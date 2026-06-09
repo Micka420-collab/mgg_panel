@@ -18,7 +18,7 @@ LOG_SERVICES ?= panel daemon
 BACKUP_DIR ?= /var/lib/mgg/backups
 
 .DEFAULT_GOAL := help
-.PHONY: help install up down restart logs ps update build backup-db
+.PHONY: help install up down restart logs ps update build backup-db destroy
 
 help: ## Show this help (default)
 	@echo "MGG — available commands:"
@@ -66,3 +66,6 @@ backup-db: ## Dump the Postgres database to $(BACKUP_DIR)
 	echo "▸ Dumping database '$$db' as '$$user' → $$out"; \
 	$(COMPOSE) exec -T postgres pg_dump -U "$$user" -d "$$db" | gzip > "$$out"; \
 	echo "✓ Backup written: $$out"
+
+destroy: ## ⚠️  Permanently DELETE the whole MGG install + ALL data (asks to confirm)
+	@sudo bash deploy/uninstall.sh

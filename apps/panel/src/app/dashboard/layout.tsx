@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getAuth } from "@/lib/auth";
 import { DashboardShell } from "@/components/dashboard/shell";
+import { ConfirmProvider } from "@/components/ui/confirm";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <DashboardShell
       user={{ username: user!.username, email: user!.email, role: user!.role, avatarUrl: user!.avatarUrl }}
     >
-      {children}
+      <ConfirmProvider>{children}</ConfirmProvider>
     </DashboardShell>
   );
 }

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { CalendarClock, Plus, Play, Trash2, Loader2, Power, Terminal, Archive } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog } from "@/components/ui/confirm";
 import { cn } from "@/lib/util";
 
 interface Task {
@@ -71,7 +72,15 @@ export function SchedulesPanel({ id, canManage }: { id: string; canManage: boole
     load();
   }
   async function del(s: Schedule) {
-    if (!confirm(`Delete schedule "${s.name}"?`)) return;
+    if (
+      !(await confirmDialog({
+        title: "Delete this schedule?",
+        description: `"${s.name}" and its tasks will be removed.`,
+        danger: true,
+        confirmLabel: "Delete",
+      }))
+    )
+      return;
     await api(`/api/servers/${id}/schedules/${s.id}`, { method: "DELETE" }).catch((e) => setError(e.message));
     load();
   }

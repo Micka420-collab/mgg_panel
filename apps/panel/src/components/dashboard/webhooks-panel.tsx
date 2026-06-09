@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Webhook, Loader2, Plus, Trash2, Copy, Check, AlertTriangle, CircleDot } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog } from "@/components/ui/confirm";
 import { relativeTime } from "@/lib/util";
 
 /** Keep in sync with WEBHOOK_EVENTS in the route handler. */
@@ -64,7 +65,15 @@ export function WebhooksPanel() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this webhook? Events will stop being delivered.")) return;
+    if (
+      !(await confirmDialog({
+        title: "Delete this webhook?",
+        description: "Events will stop being delivered to it.",
+        danger: true,
+        confirmLabel: "Delete",
+      }))
+    )
+      return;
     try {
       await api(`/api/account/webhooks/${id}`, { method: "DELETE" });
       await load();

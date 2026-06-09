@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link2, Copy, Check, Loader2, Globe, X, CheckCircle2, ArrowRightLeft } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog, toast } from "@/components/ui/confirm";
 import { cn } from "@/lib/util";
 import { CrossplayCard } from "./crossplay-card";
 
@@ -52,7 +53,7 @@ export function NetworkPanel({ detail, isOwner, id, onChanged }: { detail: any; 
       const res = await api<{ url: string }>(`/api/servers/${id}/wake-link`, { method: "POST" });
       setWakeUrl(res.url);
     } catch (e: any) {
-      alert(e.message);
+      toast(e.message, "error");
     } finally {
       setBusy(false);
     }
@@ -213,7 +214,15 @@ function DomainCard({ id, isOwner }: { id: string; isOwner: boolean }) {
     }
   }
   async function release() {
-    if (!confirm("Release this domain? Players will need the raw IP again.")) return;
+    if (
+      !(await confirmDialog({
+        title: "Release this domain?",
+        description: "Players will need to reconnect using the raw IP address again.",
+        danger: true,
+        confirmLabel: "Release",
+      }))
+    )
+      return;
     setBusy(true);
     try {
       await api(`/api/servers/${id}/domain`, { method: "DELETE" });

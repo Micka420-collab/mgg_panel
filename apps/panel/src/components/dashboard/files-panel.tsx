@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import type { FileEntry } from "@mgg/shared";
 import { api } from "@/lib/client";
+import { confirmDialog } from "@/components/ui/confirm";
 import { formatBytes } from "@/lib/util";
 
 export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: boolean; canDelete: boolean }) {
@@ -57,7 +58,15 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
   }
 
   async function del(p: string) {
-    if (!confirm(`Delete ${p}? This cannot be undone.`)) return;
+    if (
+      !(await confirmDialog({
+        title: "Delete this item?",
+        description: `Delete ${p}? This cannot be undone.`,
+        danger: true,
+        confirmLabel: "Delete",
+      }))
+    )
+      return;
     await api(`/api/servers/${id}/files?path=${encodeURIComponent(p)}`, { method: "DELETE" }).catch((e) => setError(e.message));
     list(path);
   }

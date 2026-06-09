@@ -179,6 +179,19 @@ export class DaemonClient {
     );
   }
 
+  /** VM disk usage on this node: filesystem totals + per-server volume sizes. */
+  storage() {
+    return this.req<{
+      fs: { totalBytes: number; freeBytes: number; usedBytes: number };
+      servers: { id: string; bytes: number }[];
+    }>("GET", "/api/storage");
+  }
+
+  /** Wipe the ENTIRE installation off this node (stack + volumes + data). Irreversible. */
+  selfDestruct() {
+    return this.req<{ accepted: boolean }>("POST", "/api/self-destruct");
+  }
+
   /** Browser-facing WebSocket URL for live console/stats. */
   wsUrl(serverId: string): string {
     const wsScheme = this.node.scheme === "https" ? "wss" : "ws";

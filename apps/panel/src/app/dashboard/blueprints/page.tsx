@@ -5,6 +5,7 @@ import {
   Blocks, Search, Download, Rocket, Loader2, Trash2, Tag, X, Sparkles, User as UserIcon, Globe,
 } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog, toast } from "@/components/ui/confirm";
 
 interface Blueprint {
   id: string;
@@ -61,12 +62,20 @@ export default function BlueprintsPage() {
   }, [q, scope]);
 
   async function remove(b: Blueprint) {
-    if (!confirm(`Delete the blueprint "${b.title}"? This cannot be undone.`)) return;
+    if (
+      !(await confirmDialog({
+        title: "Delete this blueprint?",
+        description: `"${b.title}" will be permanently removed. This cannot be undone.`,
+        danger: true,
+        confirmLabel: "Delete",
+      }))
+    )
+      return;
     try {
       await api(`/api/blueprints/${b.id}`, { method: "DELETE" });
       setItems((list) => list.filter((x) => x.id !== b.id));
     } catch (e: any) {
-      alert(e.message);
+      toast(e.message, "error");
     }
   }
 

@@ -5,6 +5,7 @@ import {
   RefreshCw, Loader2, Send, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog } from "@/components/ui/confirm";
 import { cn } from "@/lib/util";
 
 interface PlayersResponse {
@@ -80,8 +81,12 @@ export function PlayersPanel({ id, canManage }: { id: string; canManage: boolean
     }
   }, [id, load]);
 
-  function runAction(action: Action, name: string) {
-    if ((action === "ban" || action === "kick") && !confirm(`${ACTION_VERB[action]} ${name}?`)) return;
+  async function runAction(action: Action, name: string) {
+    if (
+      (action === "ban" || action === "kick") &&
+      !(await confirmDialog({ title: `${ACTION_VERB[action]} ${name}?`, danger: true, confirmLabel: ACTION_VERB[action] }))
+    )
+      return;
     send(commandFor(action, name), `${action}:${name}`);
   }
 

@@ -10,6 +10,7 @@ import { manager } from "./server-manager.js";
 import { docker, hostAvailableMb, runningManagedMemoryMb } from "./docker.js";
 import * as files from "./files.js";
 import * as backups from "./backups.js";
+import { selfDestruct } from "./teardown.js";
 
 /** Constant-time bearer-token check (hash to equalise length, avoid timing leak). */
 function tokenMatches(presented: string): boolean {
@@ -292,6 +293,26 @@ export function createHttpApp() {
       res.setHeader("Content-Disposition", `attachment; filename="${safeFilename(req.params.backupId + ".tar.gz")}"`);
       const stream = await backups.downloadBackup(req.params.id!, req.params.backupId!);
       stream.on("error", () => res.destroy()).pipe(res);
+    }),
+  );
+
+  // ── storage (VM disk usage) ─────────────────────────────────────────────
+  app.get(
+    "/api/storage",
+    wrap(async (_req, res) => {
+      const [disk, servers] = await Promise.all([files.diskUsage(), files.perServerSizes()]);
+      res.json({ fs: disk, servers });
+    }),
+  );
+
+  // ── self-destruct: wipe the ENTIRE installation from the VM (irreversible) ──
+  app.post(
+    "/api/self-destruct",
+    wrap(async (_req, res) => {
+      // Respond first; a detached destroyer container wipes the whole stack a few
+      // seconds later (removing this daemon in the process).
+      res.status(202).json({ accepted: true });
+      selfDestruct().catch((e) => logger.error({ e }, "self-destruct failed to start"));
     }),
   );
 

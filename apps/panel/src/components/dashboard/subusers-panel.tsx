@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Users2, Plus, Trash2, Loader2, Save, ChevronDown } from "lucide-react";
 import { SCOPES } from "@mgg/shared";
 import { api } from "@/lib/client";
+import { confirmDialog } from "@/components/ui/confirm";
 import { cn } from "@/lib/util";
 
 interface Subuser {
@@ -109,7 +110,15 @@ export function SubusersPanel({ id }: { id: string }) {
     }
   }
   async function remove(uid: string) {
-    if (!confirm("Remove this sub-user?")) return;
+    if (
+      !(await confirmDialog({
+        title: "Remove this sub-user?",
+        description: "They will immediately lose access to this server.",
+        danger: true,
+        confirmLabel: "Remove",
+      }))
+    )
+      return;
     await api(`/api/servers/${id}/subusers/${uid}`, { method: "DELETE" }).catch((e) => setError(e.message));
     load();
   }

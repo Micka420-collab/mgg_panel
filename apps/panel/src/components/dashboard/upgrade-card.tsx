@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpCircle, Loader2, ShieldAlert, RefreshCw, CheckCircle2, AlertTriangle } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog } from "@/components/ui/confirm";
 
 interface UpgradeInfo {
   supported: boolean;
@@ -48,12 +49,11 @@ export function UpgradeCard({ id, canUpgrade }: { id: string; canUpgrade: boolea
     if (!info?.latest) return;
     const target = info.latest;
     if (
-      !confirm(
-        `Upgrade this server from ${info.current ?? "?"} to ${target}?\n\n` +
-          "A full backup will be taken automatically first. The new version " +
-          "applies on the next restart. Mods/plugins may need to be updated to " +
-          "match the new version.",
-      )
+      !(await confirmDialog({
+        title: `Upgrade to ${target}?`,
+        description: `Upgrade this server from ${info.current ?? "?"} to ${target}. A full backup is taken automatically first; the new version applies on the next restart. Mods/plugins may need updating to match.`,
+        confirmLabel: "Upgrade",
+      }))
     )
       return;
     setUpgrading(true);

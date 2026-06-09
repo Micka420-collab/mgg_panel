@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useServerSocket } from "@/lib/use-server-socket";
 import { api } from "@/lib/client";
+import { confirmDialog, toast } from "@/components/ui/confirm";
 import { cn, formatBytes, formatUptime } from "@/lib/util";
 import { StateBadge } from "./state-badge";
 import { ConsolePanel } from "./console-panel";
@@ -67,7 +68,7 @@ export function ServerDetail({ id }: { id: string }) {
     try {
       await api(`/api/servers/${id}/power`, { method: "POST", json: { action } });
     } catch (e: any) {
-      alert(e.message);
+      toast(e.message, "error");
     } finally {
       setBusy(null);
       load(); // refresh server fields after the action
@@ -83,14 +84,22 @@ export function ServerDetail({ id }: { id: string }) {
 
   async function pushToOrigin() {
     const target = s.clonedFrom?.name ?? "the origin server";
-    if (!confirm(`Push this clone's files onto "${target}"?\n\nThe origin will be STOPPED and a full backup taken first (reversible from its Backups tab), then its files overwritten with this clone's. The origin keeps its ports & variables. Continue?`)) return;
+    if (
+      !(await confirmDialog({
+        title: `Push to "${target}"?`,
+        description: `The origin will be STOPPED and a full backup taken first (reversible from its Backups tab), then its files overwritten with this clone's. The origin keeps its ports & variables.`,
+        danger: true,
+        confirmLabel: "Push to origin",
+      }))
+    )
+      return;
     setBusy("push");
     try {
       const r = await api<{ files: number; originName: string }>(`/api/servers/${id}/push`, { method: "POST" });
-      alert(`Pushed ${r.files} files to "${r.originName}". A safety backup was saved on it. It was left stopped — start it when you're ready.`);
+      toast(`Pushed ${r.files} files to "${r.originName}". A safety backup was saved on it — it was left stopped; start it when you're ready.`, "success");
       load();
     } catch (e: any) {
-      alert(e.message);
+      toast(e.message, "error");
     } finally {
       setBusy(null);
     }

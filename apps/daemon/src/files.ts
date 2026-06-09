@@ -320,6 +320,35 @@ export async function syncVolume(
   return { files };
 }
 
+/** Filesystem usage of the node's data volume — the VM disk that holds game data. */
+export async function diskUsage(): Promise<{ totalBytes: number; freeBytes: number; usedBytes: number }> {
+  const st = await fs.statfs(config.dataDir);
+  const totalBytes = Number(st.blocks) * st.bsize;
+  const freeBytes = Number(st.bfree) * st.bsize;
+  return { totalBytes, freeBytes, usedBytes: Math.max(0, totalBytes - freeBytes) };
+}
+
+/** Per-server volume sizes (bytes) by scanning the data dir — for the storage page. */
+export async function perServerSizes(): Promise<{ id: string; bytes: number }[]> {
+  let ids: string[] = [];
+  try {
+    ids = await fs.readdir(config.dataDir);
+  } catch {
+    return [];
+  }
+  const out: { id: string; bytes: number }[] = [];
+  for (const id of ids) {
+    if (!SERVER_ID_RE.test(id)) continue;
+    try {
+      const st = await fs.stat(path.join(config.dataDir, id));
+      if (st.isDirectory()) out.push({ id, bytes: await volumeSize(id) });
+    } catch {
+      /* skip unreadable entries */
+    }
+  }
+  return out;
+}
+
 /** Best-effort recursive disk usage of the server's volume, in bytes. */
 export async function volumeSize(serverId: string): Promise<number> {
   const root = hostVolumePath(serverId);

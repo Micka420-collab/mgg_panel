@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Archive, Plus, Loader2, RotateCcw, Trash2, Lock } from "lucide-react";
 import { api } from "@/lib/client";
+import { confirmDialog } from "@/components/ui/confirm";
 import { formatBytes, relativeTime } from "@/lib/util";
 
 interface Backup {
@@ -52,7 +53,15 @@ export function BackupsPanel({
   }
 
   async function restore(b: Backup) {
-    if (!confirm(`Restore "${b.name}"? This stops the server and overwrites the current world.`)) return;
+    if (
+      !(await confirmDialog({
+        title: "Restore this backup?",
+        description: `Restoring "${b.name}" stops the server and overwrites the current world with the backup.`,
+        danger: true,
+        confirmLabel: "Restore",
+      }))
+    )
+      return;
     setRestoring(b.id);
     setError(null);
     setMsg(null);
@@ -67,7 +76,15 @@ export function BackupsPanel({
     }
   }
   async function del(b: Backup) {
-    if (!confirm(`Delete backup "${b.name}"?`)) return;
+    if (
+      !(await confirmDialog({
+        title: "Delete this backup?",
+        description: `"${b.name}" will be permanently removed.`,
+        danger: true,
+        confirmLabel: "Delete",
+      }))
+    )
+      return;
     await api(`/api/servers/${id}/backups/${b.id}`, { method: "DELETE" }).catch((e) => setError(e.message));
     load();
   }
