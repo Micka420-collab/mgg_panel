@@ -4,6 +4,7 @@ import { icarus } from "./icarus.js";
 import { valheim, palworld, rust } from "./extra.js";
 import { garrysmod } from "./garrysmod.js";
 import { velocityProxy } from "./velocity.js";
+import { fivem } from "./fivem.js";
 
 export * from "./template.js";
 
@@ -12,6 +13,7 @@ export const TEMPLATES: GameTemplate[] = [
   minecraftJava,
   minecraftBedrock,
   icarus,
+  fivem,
   valheim,
   palworld,
   rust,
