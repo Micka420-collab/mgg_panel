@@ -254,6 +254,30 @@ export function createHttpApp() {
     }),
   );
 
+  // Promote this (clone) server's files onto its origin (target): stop both, take a
+  // reversible backup of the target, then overwrite the target's volume with this
+  // server's files. The target keeps its own ports/identity (.aether/ untouched).
+  const promoteSchema = z.object({
+    targetId: z.string().min(1),
+    backupId: z.string().min(1),
+    backupName: z.string().min(1),
+  });
+  app.post(
+    "/api/servers/:id/promote",
+    wrap(async (req, res) => {
+      const { targetId, backupId, backupName } = promoteSchema.parse(req.body);
+      const devId = req.params.id!;
+      // Stop both so the files are consistent while we copy (no-op if already off).
+      await manager.power(devId, "stop").catch(() => {});
+      await manager.power(targetId, "stop").catch(() => {});
+      // Reversible safety net: back up the target before overwriting it.
+      const targetSpec = manager.getSpec(targetId) ?? undefined;
+      const backup = await backups.createBackup(targetId, backupId, backupName, { spec: targetSpec });
+      const result = await files.syncVolume(devId, targetId, { clear: true });
+      res.json({ backup, files: result.files });
+    }),
+  );
+
   app.delete(
     "/api/servers/:id/backups/:backupId",
     wrap(async (req, res) => {

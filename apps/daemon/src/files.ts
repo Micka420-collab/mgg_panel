@@ -274,6 +274,52 @@ export async function importArchive(
   }
 }
 
+/**
+ * Copy one server's volume contents onto another's — the primitive behind
+ * "push to origin" (promote a clone's files back to its source). The internal
+ * `.aether/` spec dir is NEVER copied or removed, so the destination keeps its
+ * own identity (ports, spec). With `clear`, the destination is wiped first
+ * (except `.aether/`). Symlinks/special files are skipped. Caller should stop
+ * both containers and back up the destination first (the /promote route does).
+ */
+export async function syncVolume(
+  srcId: string,
+  dstId: string,
+  opts: { clear?: boolean } = {},
+): Promise<{ files: number }> {
+  if (!SERVER_ID_RE.test(srcId) || !SERVER_ID_RE.test(dstId)) throw new Error("invalid server id");
+  if (srcId === dstId) throw new Error("source and destination are the same server");
+  const src = path.resolve(hostVolumePath(srcId));
+  const dst = path.resolve(hostVolumePath(dstId));
+  await fs.access(src); // source volume must exist
+  await fs.mkdir(dst, { recursive: true });
+
+  if (opts.clear) {
+    for (const name of await fs.readdir(dst)) {
+      if (name === ".aether") continue;
+      await fs.rm(path.join(dst, name), { recursive: true, force: true });
+    }
+  }
+
+  let files = 0;
+  const walk = async (from: string, to: string): Promise<void> => {
+    await fs.mkdir(to, { recursive: true });
+    for (const e of await fs.readdir(from, { withFileTypes: true })) {
+      if (e.name === ".aether") continue; // never carry over the daemon's spec dir
+      const f = path.join(from, e.name);
+      const t = path.join(to, e.name);
+      if (e.isDirectory()) await walk(f, t);
+      else if (e.isFile()) {
+        await fs.copyFile(f, t);
+        files++;
+      }
+      // symlinks / special files are intentionally skipped
+    }
+  };
+  await walk(src, dst);
+  return { files };
+}
+
 /** Best-effort recursive disk usage of the server's volume, in bytes. */
 export async function volumeSize(serverId: string): Promise<number> {
   const root = hostVolumePath(serverId);

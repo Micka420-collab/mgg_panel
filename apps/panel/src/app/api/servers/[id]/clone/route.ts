@@ -84,7 +84,8 @@ export const POST = route(async (req, ctx: { params: { id: string } }) => {
   // then re-register the corrected spec WITHOUT rebuilding (applies on start).
   const fresh = await db.server.update({
     where: { id: clone.id },
-    data: { environment: srcEnv as object },
+    // Record the lineage so the clone can later push its files back to this origin.
+    data: { environment: srcEnv as object, clonedFromId: source.server.id },
     include: { allocations: true, node: true },
   });
   try {

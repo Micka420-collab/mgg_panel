@@ -167,6 +167,18 @@ export class DaemonClient {
     return this.req<void>("DELETE", `/api/servers/${serverId}/backups/${backupId}`);
   }
 
+  /**
+   * Promote clone `devId` onto its origin `targetId`: the node stops both, backs the
+   * target up (reversible), then overwrites the target's volume with the clone's files.
+   */
+  promote(devId: string, targetId: string, backupId: string, backupName: string) {
+    return this.req<{ backup: BackupMeta; files: number }>(
+      "POST",
+      `/api/servers/${devId}/promote`,
+      { targetId, backupId, backupName },
+    );
+  }
+
   /** Browser-facing WebSocket URL for live console/stats. */
   wsUrl(serverId: string): string {
     const wsScheme = this.node.scheme === "https" ? "wss" : "ws";

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Play, Square, RotateCw, Zap, Copy, Check, Cpu, MemoryStick, HardDrive, Users, Clock,
-  Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope,
+  Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope, ArrowUpCircle, GitBranch,
 } from "lucide-react";
 import { useServerSocket } from "@/lib/use-server-socket";
 import { api } from "@/lib/client";
@@ -81,6 +81,21 @@ export function ServerDetail({ id }: { id: string }) {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  async function pushToOrigin() {
+    const target = s.clonedFrom?.name ?? "the origin server";
+    if (!confirm(`Push this clone's files onto "${target}"?\n\nThe origin will be STOPPED and a full backup taken first (reversible from its Backups tab), then its files overwritten with this clone's. The origin keeps its ports & variables. Continue?`)) return;
+    setBusy("push");
+    try {
+      const r = await api<{ files: number; originName: string }>(`/api/servers/${id}/push`, { method: "POST" });
+      alert(`Pushed ${r.files} files to "${r.originName}". A safety backup was saved on it. It was left stopped — start it when you're ready.`);
+      load();
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const features: string[] = detail.features ?? [];
   const supportsContent = ["mods", "plugins", "modpacks", "workshop"].some((f) => features.includes(f));
 
@@ -127,11 +142,27 @@ export function ServerDetail({ id }: { id: string }) {
               <div className="flex items-center gap-3">
                 <h1 className="font-display text-2xl font-bold text-white">{s.name}</h1>
                 <StateBadge state={state} />
+                {s.clonedFrom && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 bg-violet/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet">
+                    <GitBranch className="h-3 w-3" /> Clone
+                  </span>
+                )}
               </div>
               <button onClick={copyAddress} className="mt-1 inline-flex items-center gap-2 font-mono text-sm text-cyan-light hover:text-cyan">
                 {s.address ?? "—"}
                 {copied ? <Check className="h-3.5 w-3.5 text-online" /> : <Copy className="h-3.5 w-3.5 opacity-60" />}
               </button>
+              {s.clonedFrom && (
+                <div className="mt-0.5 text-xs text-white/40">
+                  clone of{" "}
+                  <Link href={`/dashboard/servers/${s.clonedFrom.id}`} className="text-cyan-light hover:text-cyan">
+                    {s.clonedFrom.name}
+                  </Link>
+                </div>
+              )}
+              {!s.clonedFrom && s.cloneCount > 0 && (
+                <div className="mt-0.5 text-xs text-white/40">{s.cloneCount} clone{s.cloneCount > 1 ? "s" : ""}</div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -147,6 +178,19 @@ export function ServerDetail({ id }: { id: string }) {
             <button onClick={() => power("kill")} disabled={!can("control.stop") || state === "installing" || !!busy} className="btn-danger disabled:opacity-40" title="Force kill">
               <Zap className="h-4 w-4" />
             </button>
+            {detail.isOwner && s.clonedFrom && (
+              <>
+                <span className="mx-1 h-6 w-px bg-white/10" />
+                <button
+                  onClick={pushToOrigin}
+                  disabled={!!busy}
+                  className="btn-ghost text-violet disabled:opacity-40"
+                  title={`Push this clone's files onto ${s.clonedFrom.name}`}
+                >
+                  {busy === "push" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpCircle className="h-4 w-4" />} Push to origin
+                </button>
+              </>
+            )}
           </div>
         </div>
 

@@ -225,6 +225,13 @@ model Server {
   autoRestart   Boolean @default(false) // monitor restarts the server if it crashes
   subdomain     String? @unique // e.g. "myserver" -> myserver.aether.host
 
+  // Clone lineage: a cloned server remembers its origin so its files can be
+  // pushed back to it (promote). onDelete SetNull so deleting an origin orphans
+  // its clones instead of cascading them away.
+  clonedFromId String?
+  clonedFrom   Server?  @relation("ServerClones", fields: [clonedFromId], references: [id], onDelete: SetNull)
+  clones       Server[] @relation("ServerClones")
+
   allocations  Allocation[] @relation("ServerAllocations")
   backups      Backup[]
   schedules    Schedule[]

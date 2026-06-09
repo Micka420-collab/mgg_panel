@@ -14,6 +14,12 @@ export const GET = route(async (_req, ctx: { params: { id: string } }) => {
   const c = await getServerContext(user, ctx.params.id);
   const tpl = getTemplate(c.server.templateId);
 
+  // Clone lineage (for the "Push to origin" action on cloned servers).
+  const clonedFrom = c.server.clonedFromId
+    ? await db.server.findUnique({ where: { id: c.server.clonedFromId }, select: { id: true, name: true } })
+    : null;
+  const cloneCount = await db.server.count({ where: { clonedFromId: c.server.id } });
+
   let status: unknown = { state: c.server.state, stats: null, players: null };
   try {
     status = await new DaemonClient(c.node).status(c.server.id);
@@ -64,6 +70,8 @@ export const GET = route(async (_req, ctx: { params: { id: string } }) => {
           : primary
             ? buildAddress(primary.ip, primary.port, defaultPort)
             : null,
+      clonedFrom, // { id, name } | null — the origin this server was cloned from
+      cloneCount, // how many clones point at this server
       createdAt: c.server.createdAt,
     },
     node: { name: c.node.name, fqdn: c.node.fqdn, publicIp: c.node.publicIp },
