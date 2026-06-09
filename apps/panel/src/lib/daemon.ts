@@ -192,6 +192,11 @@ export class DaemonClient {
     return this.req<{ accepted: boolean }>("POST", "/api/self-destruct");
   }
 
+  /** Pull the latest code from GitHub and rebuild + restart the panel & daemon. */
+  selfUpdate() {
+    return this.req<{ accepted: boolean }>("POST", "/api/self-update");
+  }
+
   /** Browser-facing WebSocket URL for live console/stats. */
   wsUrl(serverId: string): string {
     const wsScheme = this.node.scheme === "https" ? "wss" : "ws";

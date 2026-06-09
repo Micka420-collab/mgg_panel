@@ -11,6 +11,7 @@ import { docker, hostAvailableMb, runningManagedMemoryMb } from "./docker.js";
 import * as files from "./files.js";
 import * as backups from "./backups.js";
 import { selfDestruct } from "./teardown.js";
+import { selfUpdate } from "./update.js";
 
 /** Constant-time bearer-token check (hash to equalise length, avoid timing leak). */
 function tokenMatches(presented: string): boolean {
@@ -313,6 +314,15 @@ export function createHttpApp() {
       // seconds later (removing this daemon in the process).
       res.status(202).json({ accepted: true });
       selfDestruct().catch((e) => logger.error({ e }, "self-destruct failed to start"));
+    }),
+  );
+
+  // ── self-update: pull from GitHub, rebuild + restart panel & daemon ──────
+  app.post(
+    "/api/self-update",
+    wrap(async (_req, res) => {
+      res.status(202).json({ accepted: true });
+      selfUpdate().catch((e) => logger.error({ e }, "self-update failed to start"));
     }),
   );
 

@@ -5,6 +5,7 @@ import { api } from "@/lib/client";
 import { cn, relativeTime } from "@/lib/util";
 import { DdnsCard } from "@/components/dashboard/ddns-card";
 import { AiKeyCard } from "@/components/dashboard/ai-key-card";
+import { UpdateCard } from "@/components/dashboard/update-card";
 
 interface AlertView {
   id: string;
@@ -79,6 +80,7 @@ export default function AdminPage() {
 
       {error && <div className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
+      <UpdateCard />
       <AiKeyCard />
       <DdnsCard />
 
