@@ -8,13 +8,14 @@
 
 **Hébergez vous-même votre plateforme de serveurs de jeu — une qui a enfin l'air, et le feeling, premium.**
 
-Lancez Minecraft, Icarus, Valheim, Palworld ou Rust en quelques secondes, puis pilotez-les
-depuis un panneau de contrôle épuré, tout en verre et bento. Un **copilote IA** répond à vos
-questions et corrige les problèmes à votre place, les serveurs **s'endorment quand personne ne
-joue** et se réveillent dès qu'un joueur se connecte, et les mods, modpacks, sauvegardes — voire
-le clonage complet d'un serveur — se font en un clic. Une **API propre** vous laisse brancher
-votre propre launcher, la protection DDoS multi-couches est intégrée — et tout tourne sur *votre*
-matériel, selon vos règles, sans abonnement par siège.
+Lancez Minecraft, **du GTA V roleplay (FiveM)**, Garry's Mod, Icarus, Valheim, Palworld ou Rust
+en quelques secondes, puis pilotez-les depuis un panneau de contrôle épuré, tout en verre et bento.
+Un **copilote IA** répond à vos questions et corrige les problèmes à votre place, les serveurs
+**s'endorment quand personne ne joue** et se réveillent dès qu'un joueur se connecte, et les mods,
+modpacks et sauvegardes se font en un clic. Vous pouvez même **cloner un serveur en copie de dev,
+bidouiller tranquillement, puis pousser vos changements en production** en un clic. Une **API propre**
+vous laisse brancher votre propre launcher, la protection DDoS multi-couches est intégrée — et tout
+tourne sur *votre* matériel, selon vos règles, sans abonnement par siège.
 
 [English](README.md) · **🌐 Français**
 
@@ -170,7 +171,9 @@ Le daemon a besoin d'un moteur Docker accessible (`/var/run/docker.sock`).
 
 </div>
 
-Et aussi : **🧬 Cloner & brancher** un serveur (config + monde, depuis une sauvegarde) ·
+Et aussi : **🧬 Cloner → dev → push en prod** — forkez un serveur, bidouillez la copie, puis
+poussez-la sur l'original (sauvegarde auto de l'original avant) · **🚓 GTA V roleplay** via FiveM + txAdmin ·
+**🔫 Garry's Mod** avec addons Steam Workshop ·
 **🔀 Réseaux Velocity** (gérez la liste des serveurs backend depuis le panel) ·
 **🎮 Crossplay** (Bedrock ↔ Java via Geyser/Floodgate) ·
 **🌍 Carte du monde** (rendu & téléchargement) · **☁️ Sauvegardes S3 off-site** ·
@@ -184,7 +187,7 @@ Conçu pour surpasser Pterodactyl, Aternos, Shockbyte & GPORTAL sur **trois axes
 
 | 🎛️ Expérience | 🧩 Étendue | 🛡️ Confiance |
 |---------------|-----------|--------------|
-| Install en une ligne, déploiement en un clic, un **copilote IA**, console & télémétrie live, sommeil réveil-à-la-connexion, un dashboard glass/bento. | Un moteur de *templates (eggs)* générique — Minecraft, Icarus, Valheim, Palworld, Rust & Velocity aujourd'hui ; n'importe quel jeu en **données, pas en code**. | TPS/RAM/CPU live, isolation durcie des conteneurs, protection DDoS multi-couches, sommeil équitable (pas de quota journalier), audité de façon adversariale. |
+| Install en une ligne, déploiement en un clic, un **copilote IA**, console & télémétrie live, sommeil réveil-à-la-connexion, un dashboard glass/bento. | Un moteur de *templates (eggs)* générique — Minecraft, GTA V (FiveM), Garry's Mod, Icarus, Valheim, Palworld, Rust & Velocity aujourd'hui ; n'importe quel jeu en **données, pas en code**. | TPS/RAM/CPU live, isolation durcie des conteneurs, protection DDoS multi-couches, sommeil équitable (pas de quota journalier), audité de façon adversariale. |
 
 ---
 
@@ -192,14 +195,14 @@ Conçu pour surpasser Pterodactyl, Aternos, Shockbyte & GPORTAL sur **trois axes
 
 | | |
 |---|---|
-| 🟩 **Multi-jeux** | Minecraft (Java + Bedrock : Paper, Purpur, Fabric, Forge, NeoForge, Vanilla, modpacks) · Icarus · Valheim · Palworld · Rust · proxy **Velocity** |
+| 🟩 **Multi-jeux** | Minecraft (Java + Bedrock : Paper, Purpur, Fabric, Forge, NeoForge, Vanilla, modpacks) · **GTA V — FiveM roleplay** (FXServer + txAdmin) · **Garry's Mod** (Source/SteamCMD + Workshop) · Icarus · Valheim · Palworld · Rust · proxy **Velocity** |
 | ✦ **Copilote IA** | Un assistant chat par serveur qui explique les erreurs et propose des correctifs en un clic — **connectez votre clé Anthropic depuis le dashboard** (Admin), ou en mode règles hors-ligne |
 | 🖥️ **Console live** | Console temps réel (type xterm) via WebSocket, saisie de commandes, contrôles d'alimentation |
 | 📊 **Télémétrie + historique** | CPU / RAM / disque / réseau / joueurs, en direct **et** tracés dans le temps (1h/24h/7j) |
 | 🌙 **Réveil-à-la-connexion** | Les serveurs dorment quand ils sont vides et se réveillent à la 1ère connexion — + un lien de réveil partageable sans login |
 | 📦 **Contenu en 1 clic** | Recherche & installation de mods/plugins/**modpacks** depuis **Modrinth** *et* **CurseForge** |
 | 🩺 **Mod Doctor** | Détecte conflits/doublons/incompatibilités de mods et les met en quarantaine de façon réversible |
-| 🧬 **Cloner & brancher** | Dupliquez la config d'un serveur — et au choix son monde, depuis n'importe quelle sauvegarde |
+| 🧬 **Cloner → dev → push** | Forkez un serveur (config + au choix son monde depuis une sauvegarde) en copie de dev, modifiez-la, puis **poussez vos changements sur l'original** — l'original est sauvegardé d'abord, donc réversible |
 | 🧩 **Blueprints** | Publiez une config une fois, déployez-la partout en un clic — une marketplace de serveurs |
 | 🔀 **Réseaux Velocity** | Lancez un proxy et gérez sa liste de serveurs backend depuis le panel |
 | 🎮 **Crossplay** | Joueurs Bedrock sur un serveur Java via Geyser/Floodgate, activable depuis l'UI |

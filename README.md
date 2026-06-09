@@ -8,12 +8,13 @@
 
 **Self-host your own game-hosting platform — one that finally looks and feels premium.**
 
-Spin up Minecraft, Icarus, Valheim, Palworld or Rust in seconds, then run them from a
-calm glass-and-bento control panel. An **AI copilot** answers your questions and fixes
-things for you, servers **sleep when nobody's online** and wake the moment a player joins,
-and mods, modpacks, backups and even whole-server clones are a single click away. There's
-a clean **API for your own launcher**, layered DDoS protection baked in — and it all runs
-on *your* hardware, your rules, with no per-seat monthly fees.
+Spin up Minecraft, **GTA V roleplay (FiveM)**, Garry's Mod, Icarus, Valheim, Palworld or
+Rust in seconds, then run them from a calm glass-and-bento control panel. An **AI copilot**
+answers your questions and fixes things for you, servers **sleep when nobody's online** and
+wake the moment a player joins, and mods, modpacks and backups are a single click away. You
+can even **clone a server into a dev copy, tinker safely, then push your changes back to
+production** in one click. There's a clean **API for your own launcher**, layered DDoS
+protection baked in — and it all runs on *your* hardware, your rules, with no per-seat monthly fees.
 
 **🌐 English** · [Français](README.fr.md)
 
@@ -169,8 +170,9 @@ The daemon needs a reachable Docker engine (`/var/run/docker.sock`).
 
 </div>
 
-Plus: **🧬 Clone & branch** a server (config + world, straight from a backup) ·
-**🔀 Velocity proxy networks** (manage your backend server list from the panel) ·
+Plus: **🧬 Clone → dev → push to prod** — fork a server, tinker on the copy, then push it
+back (the origin is auto-backed-up first) · **🚓 GTA V roleplay** via FiveM + txAdmin ·
+**🔫 Garry's Mod** with Steam Workshop addons · **🔀 Velocity proxy networks** (manage your backend server list from the panel) ·
 **🎮 Crossplay** (Bedrock ↔ Java via Geyser/Floodgate) ·
 **🌍 World map** render & download · **☁️ Off-site S3 backups** ·
 **💳 Stripe card top-ups** · **🔑 Change your password** & one-click **plan upgrades**.
@@ -183,7 +185,7 @@ Built to out-class Pterodactyl, Aternos, Shockbyte & GPORTAL on **three axes at 
 
 | 🎛️ UX | 🧩 Breadth | 🛡️ Trust |
 |-------|-----------|----------|
-| One-line install, one-click deploy, an **AI copilot**, live console & telemetry, wake-on-join sleeping, a glass/bento dashboard. | A generic *template (egg)* engine — Minecraft, Icarus, Valheim, Palworld, Rust & Velocity today; any game as **data, not code**. | Live TPS/RAM/CPU, hardened container isolation, layered DDoS protection, fair sleeping (no daily caps), adversarially audited. |
+| One-line install, one-click deploy, an **AI copilot**, live console & telemetry, wake-on-join sleeping, a glass/bento dashboard. | A generic *template (egg)* engine — Minecraft, GTA V (FiveM), Garry's Mod, Icarus, Valheim, Palworld, Rust & Velocity today; any game as **data, not code**. | Live TPS/RAM/CPU, hardened container isolation, layered DDoS protection, fair sleeping (no daily caps), adversarially audited. |
 
 ---
 
@@ -191,14 +193,14 @@ Built to out-class Pterodactyl, Aternos, Shockbyte & GPORTAL on **three axes at 
 
 | | |
 |---|---|
-| 🟩 **Multi-game** | Minecraft (Java + Bedrock: Paper, Purpur, Fabric, Forge, NeoForge, Vanilla, modpacks) · Icarus · Valheim · Palworld · Rust · **Velocity** proxy |
+| 🟩 **Multi-game** | Minecraft (Java + Bedrock: Paper, Purpur, Fabric, Forge, NeoForge, Vanilla, modpacks) · **GTA V — FiveM roleplay** (FXServer + txAdmin) · **Garry's Mod** (Source/SteamCMD + Workshop) · Icarus · Valheim · Palworld · Rust · **Velocity** proxy |
 | ✦ **AI Copilot** | A per-server chat assistant that explains failures and proposes one-click fixes — **connect your Anthropic key from the dashboard** (Admin), or run rule-based offline |
 | 🖥️ **Live console** | Real-time xterm-style console over WebSocket, command input, power controls |
 | 📊 **Telemetry + history** | CPU / RAM / disk / network / players, live **and** charted over time (1h/24h/7d) |
 | 🌙 **Wake-on-join** | Servers sleep when empty and wake on the first connection — plus a no-login shareable wake link |
 | 📦 **One-click content** | Search & install mods/plugins/**modpacks** from **Modrinth** *and* **CurseForge** |
 | 🩺 **Mod Doctor** | Detects mod conflicts/duplicates/mismatches and quarantines them reversibly |
-| 🧬 **Clone & branch** | Duplicate a server's config — and optionally its world, from any backup |
+| 🧬 **Clone → dev → push** | Fork a server (config + optionally its world from a backup) into a dev copy, edit it safely, then **push your changes back to the origin** — the origin is auto-backed-up first, so it's reversible |
 | 🧩 **Blueprints** | Publish a setup once, deploy it anywhere in one click — a server marketplace |
 | 🔀 **Velocity networks** | Run a proxy and manage its backend server list from the panel |
 | 🎮 **Crossplay** | Bedrock players on a Java server via Geyser/Floodgate, toggled from the UI |
@@ -266,7 +268,7 @@ image(s), startup/stop behaviour, ports, env variables (auto-rendered as a
 settings form), install script and capability flags (`rcon`, `wine`, `steamcmd`,
 `mods`, …). No daemon or panel changes needed.
 
-> See `minecraft.ts` (RCON), `icarus.ts` (SteamCMD-under-Wine) and `velocity.ts` (proxy) for examples.
+> See `minecraft.ts` (RCON), `fivem.ts` (txAdmin web setup), `garrysmod.ts` & `icarus.ts` (SteamCMD, Wine) and `velocity.ts` (proxy) for examples.
 
 ---
 
@@ -358,8 +360,9 @@ docker-compose.yml   one-host stack
 
 ## 🗺️ Roadmap
 
-Shipped recently: AI copilot · server clone/branch · Velocity networks · Mod Doctor ·
-blueprint marketplace · metrics history · Stripe top-ups · off-site S3 backups · crossplay.
+Shipped recently: GTA V roleplay (FiveM) · Garry's Mod + Workshop · **clone → dev → push to prod** ·
+AI copilot · Velocity networks · Mod Doctor · blueprint marketplace · metrics history ·
+Stripe top-ups · off-site S3 backups · crossplay.
 Next: Microsoft/Discord OAuth login · Pterodactyl egg import · multi-node scheduling ·
 Redis-backed rate-limit.
 
