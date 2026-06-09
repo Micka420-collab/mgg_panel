@@ -7,6 +7,8 @@ import { Logo } from "@/components/logo";
 import { AmbientBackground } from "@/components/ambient";
 import { cn } from "@/lib/util";
 import { api } from "@/lib/client";
+import { useT } from "@/i18n/client";
+import { LanguageSwitcher } from "./language-switcher";
 
 interface ShellUser {
   username: string;
@@ -19,15 +21,16 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { t } = useT();
 
   const nav = [
-    { href: "/dashboard", label: "Servers", icon: Server, exact: true },
-    { href: "/dashboard/blueprints", label: "Blueprints", icon: Blocks },
-    { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
-    { href: "/dashboard/account", label: "Account", icon: Settings },
-    { href: "/dashboard/storage", label: "Storage", icon: HardDrive },
-    ...(user.role === "ADMIN" ? [{ href: "/dashboard/admin", label: "Admin", icon: ShieldAlert }] : []),
-    { href: "/docs", label: "Docs", icon: BookOpen },
+    { href: "/dashboard", label: t("nav.servers"), icon: Server, exact: true },
+    { href: "/dashboard/blueprints", label: t("nav.blueprints"), icon: Blocks },
+    { href: "/dashboard/billing", label: t("nav.billing"), icon: CreditCard },
+    { href: "/dashboard/account", label: t("nav.account"), icon: Settings },
+    { href: "/dashboard/storage", label: t("nav.storage"), icon: HardDrive },
+    ...(user.role === "ADMIN" ? [{ href: "/dashboard/admin", label: t("nav.admin"), icon: ShieldAlert }] : []),
+    { href: "/docs", label: t("nav.docs"), icon: BookOpen },
   ];
 
   async function logout() {
@@ -53,7 +56,7 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
             <Logo />
           </div>
           <Link href="/dashboard/new" className="btn-primary mt-4" onClick={() => setOpen(false)}>
-            <Plus className="h-4 w-4" /> New server
+            <Plus className="h-4 w-4" /> {t("nav.newServer")}
           </Link>
           <nav className="mt-6 flex flex-1 flex-col gap-1">
             {nav.map((n) => (
@@ -73,7 +76,9 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
               </Link>
             ))}
           </nav>
-          <div className="mt-auto rounded-xl border border-white/10 bg-white/5 p-3">
+          <div className="mt-auto space-y-3">
+            <LanguageSwitcher />
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
             <div className="flex items-center gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-full bg-cyan-violet text-sm font-semibold text-white">
                 {user.username.slice(0, 2).toUpperCase()}
@@ -84,8 +89,9 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
               </div>
             </div>
             <button onClick={logout} className="btn-ghost mt-3 w-full justify-start text-sm">
-              <LogOut className="h-4 w-4" /> Sign out
+              <LogOut className="h-4 w-4" /> {t("nav.signOut")}
             </button>
+            </div>
           </div>
         </aside>
 

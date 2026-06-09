@@ -9,11 +9,13 @@ import { NodeResources } from "@/components/dashboard/node-resources";
 import { reconcileStates } from "@/lib/server-state";
 import { DaemonClient } from "@/lib/daemon";
 import { formatBytes } from "@/lib/util";
+import { getServerI18n } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardHome() {
   const user = await requireUser();
+  const { t } = getServerI18n();
   const servers = await db.server.findMany({
     where: { OR: [{ ownerId: user.id }, { subusers: { some: { userId: user.id } } }] },
     include: { allocations: true, node: true },
@@ -45,11 +47,16 @@ export default async function DashboardHome() {
       <AutoRefresh seconds={6} />
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold text-white">Your servers</h1>
-          <p className="mt-1 text-sm text-white/50">{servers.length} server{servers.length === 1 ? "" : "s"} · welcome back, {user.username}.</p>
+          <h1 className="font-display text-3xl font-bold text-white">{t("dashboard.title")}</h1>
+          <p className="mt-1 text-sm text-white/50">
+            {t(servers.length === 1 ? "dashboard.welcomeOne" : "dashboard.welcomeMany", {
+              count: servers.length,
+              name: user.username,
+            })}
+          </p>
         </div>
         <Link href="/dashboard/new" className="btn-primary hidden sm:inline-flex">
-          <Plus className="h-4 w-4" /> New server
+          <Plus className="h-4 w-4" /> {t("nav.newServer")}
         </Link>
       </div>
 
@@ -62,12 +69,10 @@ export default async function DashboardHome() {
           <div className="grid h-16 w-16 place-items-center rounded-2xl bg-cyan-violet/15 text-cyan">
             <ServerOff className="h-7 w-7" />
           </div>
-          <h2 className="mt-5 font-display text-xl font-semibold text-white">No servers yet</h2>
-          <p className="mt-2 max-w-sm text-sm text-white/50">
-            Deploy your first Minecraft, Icarus or other game server. It&apos;ll be online in under a minute.
-          </p>
+          <h2 className="mt-5 font-display text-xl font-semibold text-white">{t("dashboard.emptyTitle")}</h2>
+          <p className="mt-2 max-w-sm text-sm text-white/50">{t("dashboard.emptyText")}</p>
           <Link href="/dashboard/new" className="btn-primary mt-6">
-            <Plus className="h-4 w-4" /> Create a server
+            <Plus className="h-4 w-4" /> {t("dashboard.emptyCta")}
           </Link>
         </div>
       ) : (

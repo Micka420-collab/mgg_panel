@@ -1,16 +1,19 @@
+"use client";
 import { cn } from "@/lib/util";
+import { useT } from "@/i18n/client";
 
-const MAP: Record<string, { label: string; dot: string; text: string }> = {
-  running: { label: "Running", dot: "bg-online", text: "text-online" },
-  starting: { label: "Starting", dot: "bg-warn animate-pulse-dot", text: "text-warn" },
-  installing: { label: "Installing", dot: "bg-cyan animate-pulse-dot", text: "text-cyan-light" },
-  stopping: { label: "Stopping", dot: "bg-warn animate-pulse-dot", text: "text-warn" },
-  offline: { label: "Offline", dot: "bg-white/30", text: "text-white/50" },
-  errored: { label: "Errored", dot: "bg-danger", text: "text-danger" },
-  suspended: { label: "Suspended", dot: "bg-danger", text: "text-danger" },
+const MAP: Record<string, { key: string; dot: string; text: string }> = {
+  running: { key: "running", dot: "bg-online", text: "text-online" },
+  starting: { key: "starting", dot: "bg-warn animate-pulse-dot", text: "text-warn" },
+  installing: { key: "installing", dot: "bg-cyan animate-pulse-dot", text: "text-cyan-light" },
+  stopping: { key: "stopping", dot: "bg-warn animate-pulse-dot", text: "text-warn" },
+  offline: { key: "offline", dot: "bg-white/30", text: "text-white/50" },
+  errored: { key: "errored", dot: "bg-danger", text: "text-danger" },
+  suspended: { key: "suspended", dot: "bg-danger", text: "text-danger" },
 };
 
 export function StateBadge({ state, className }: { state: string; className?: string }) {
+  const { t } = useT();
   const s = MAP[state] ?? MAP.offline!;
   return (
     <span
@@ -21,7 +24,7 @@ export function StateBadge({ state, className }: { state: string; className?: st
       )}
     >
       <span className={cn("h-2 w-2 rounded-full", s.dot)} />
-      {s.label}
+      {t(`state.${s.key}`)}
     </span>
   );
 }

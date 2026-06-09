@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { api } from "@/lib/client";
+import { useT } from "@/i18n/client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useT();
   const [stage, setStage] = useState<"creds" | "2fa">("creds");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,10 +48,10 @@ export default function LoginPage() {
   return (
     <div className="glass-raised p-8">
       <h1 className="font-display text-2xl font-bold text-white">
-        {stage === "creds" ? "Welcome back" : "Two-factor authentication"}
+        {stage === "creds" ? t("auth.welcomeBack") : t("auth.twoFactorTitle")}
       </h1>
       <p className="mt-1 text-sm text-white/50">
-        {stage === "creds" ? "Sign in to your MGG control panel." : "Enter the 6-digit code from your authenticator."}
+        {stage === "creds" ? t("auth.signInSubtitle") : t("auth.twoFactorSubtitle")}
       </p>
 
       {error && <div className="mt-4 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
@@ -57,21 +59,21 @@ export default function LoginPage() {
       {stage === "creds" ? (
         <form onSubmit={submitCreds} className="mt-6 space-y-4">
           <div>
-            <label className="label">Email</label>
+            <label className="label">{t("auth.email")}</label>
             <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
           </div>
           <div>
-            <label className="label">Password</label>
+            <label className="label">{t("auth.password")}</label>
             <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <button className="btn-primary w-full py-3" disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("auth.signIn")}
           </button>
         </form>
       ) : (
         <form onSubmit={submit2fa} className="mt-6 space-y-4">
           <div>
-            <label className="label">Authentication code</label>
+            <label className="label">{t("auth.authCode")}</label>
             <input
               className="input text-center font-mono text-lg tracking-[0.4em]"
               inputMode="numeric"
@@ -84,15 +86,15 @@ export default function LoginPage() {
             />
           </div>
           <button className="btn-primary w-full py-3" disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (<><ShieldCheck className="h-4 w-4" /> Verify</>)}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (<><ShieldCheck className="h-4 w-4" /> {t("auth.verify")}</>)}
           </button>
         </form>
       )}
 
       <p className="mt-6 text-center text-sm text-white/50">
-        No account?{" "}
+        {t("auth.noAccount")}{" "}
         <Link href="/register" className="text-cyan-light hover:underline">
-          Create one
+          {t("auth.createOne")}
         </Link>
       </p>
     </div>
