@@ -155,18 +155,6 @@ class ServerManager extends EventEmitter {
         if (rt.state === ServerState.Running || rt.state === ServerState.Starting) return;
         if (rt.state === ServerState.Installing)
           throw new Error("Server is still installing — please wait for it to finish, then press Start.");
-        // If the container isn't there yet (e.g. the image was pruned, or a prior
-        // build never completed), (re)build it now — pulling the image first,
-        // since buildContainer only creates and would throw "No such image".
-        if (!(await inspect(serverId))) {
-          this.pushConsole(serverId, "[MGG] Building container…", "system");
-          try {
-            await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
-          } catch (e) {
-            logger.warn({ e, image: rt.spec.dockerImage }, "pull before start failed (may exist locally)");
-          }
-          await buildContainer(rt.spec);
-        }
         rt.stopping = false;
         // Admission control at START time: refuse if the host doesn't have enough
         // free RAM for this server right now (prevents host OOM). Uses real
@@ -183,7 +171,18 @@ class ServerManager extends EventEmitter {
             );
           }
         }
+        // MGG fix: ALWAYS rebuild the container from the current spec before
+        // starting, so panel settings (MOTD, variables, limits, image) actually
+        // apply — not only when the container was missing. The /data volume
+        // persists across rebuilds, so worlds/mods are kept.
         this.setState(serverId, ServerState.Starting);
+        this.pushConsole(serverId, "[MGG] Applying settings & building container…", "system");
+        try {
+          await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
+        } catch (e) {
+          logger.warn({ e, image: rt.spec.dockerImage }, "pull before start failed (may exist locally)");
+        }
+        await buildContainer(rt.spec);
         this.pushConsole(serverId, "[MGG] Starting server…", "system");
         await startContainer(serverId);
         rt.startedAt = Date.now();
@@ -193,11 +192,9 @@ class ServerManager extends EventEmitter {
       case "restart":
         this.pushConsole(serverId, "[MGG] Restarting…", "system");
         await this.gracefulStop(serverId);
-        await startContainer(serverId).catch(async () => {
-          // container may need rebuild if it was removed
-          await buildContainer(rt.spec);
-          await startContainer(serverId);
-        });
+        // MGG fix: rebuild from the current spec so settings changes apply on restart.
+        await buildContainer(rt.spec);
+        await startContainer(serverId);
         rt.startedAt = Date.now();
         this.setState(serverId, ServerState.Starting);
         this.beginStreaming(serverId);
