@@ -27,7 +27,12 @@ export const icarus: GameTemplate = {
   // Icarus has no RCON; the wrapper traps SIGTERM to save & shut down cleanly.
   stopCommand: "^SIGTERM",
   stopSignal: "SIGTERM",
-  startupDoneRegex: "Started Steam Server|Server is ready|Game state updated",
+  // The mornedhels image never prints "Started Steam Server"; the reliable
+  // "ready for players" signal is LogNet binding the SteamNetDriver to the game
+  // port (printed once, after the world/engine finish loading). Match that (plus
+  // the specific supervisord line for the game process) so the panel flips the
+  // server to "running" instead of being stuck on "starting" forever.
+  startupDoneRegex: "bound to port|icarus-server entered RUNNING state|Started Steam Server|Server is ready|Game state updated",
   docsUrl: "https://github.com/jammsen/docker-icarus-dedicated-server",
   dataPath: "/home/icarus",
   resources: { memoryMb: 8192, cpuPercent: 300, diskMb: 20480 },
