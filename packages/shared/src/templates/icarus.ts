@@ -37,9 +37,14 @@ export const icarus: GameTemplate = {
   dataPath: "/home/icarus",
   resources: { memoryMb: 8192, cpuPercent: 300, diskMb: 20480 },
   features: ["steamcmd", "wine", "query", "world-upload"],
+  // ⚠️ The mornedhels image reads SERVER_PORT (-PORT) and SERVER_QUERYPORT
+  // (-QueryPort) — NOT GAME_PORT/QUERY_PORT. The panel already injects
+  // SERVER_PORT = primary port, but the query port MUST be exported as
+  // SERVER_QUERYPORT or the server falls back to the default 27015 (unpublished)
+  // and never answers A2S → it stays invisible in the in-game browser.
   ports: [
-    { name: "Game", protocol: "udp", default: 17777, envVar: "GAME_PORT", primary: true },
-    { name: "Query", protocol: "udp", default: 27015, envVar: "QUERY_PORT", offsetFromPrimary: 9238 },
+    { name: "Game", protocol: "udp", default: 17777, envVar: "SERVER_PORT", primary: true },
+    { name: "Query", protocol: "udp", default: 27015, envVar: "SERVER_QUERYPORT", offsetFromPrimary: 9238 },
   ],
   variables: [
     {
