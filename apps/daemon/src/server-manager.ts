@@ -11,6 +11,8 @@ import {
 import {
   attachStdin,
   buildContainer,
+  containerSpecHash,
+  specHash,
   followLogs,
   hostVolumePath,
   inspect,
@@ -171,18 +173,23 @@ class ServerManager extends EventEmitter {
             );
           }
         }
-        // MGG fix: ALWAYS rebuild the container from the current spec before
-        // starting, so panel settings (MOTD, variables, limits, image) actually
-        // apply — not only when the container was missing. The /data volume
-        // persists across rebuilds, so worlds/mods are kept.
+        // MGG fix: rebuild the container ONLY when the spec changed (settings,
+        // variables, limits, image) or it doesn't exist yet — so panel changes
+        // apply on the next start, WITHOUT wiping images that keep their data in
+        // the container layer (e.g. the Icarus/Wine image) on every plain
+        // restart (which would re-download the game and lose worlds).
         this.setState(serverId, ServerState.Starting);
-        this.pushConsole(serverId, "[MGG] Applying settings & building container…", "system");
-        try {
-          await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
-        } catch (e) {
-          logger.warn({ e, image: rt.spec.dockerImage }, "pull before start failed (may exist locally)");
+        const needsRebuild =
+          !(await inspect(serverId)) || (await containerSpecHash(serverId)) !== specHash(rt.spec);
+        if (needsRebuild) {
+          this.pushConsole(serverId, "[MGG] Applying settings & building container…", "system");
+          try {
+            await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
+          } catch (e) {
+            logger.warn({ e, image: rt.spec.dockerImage }, "pull before start failed (may exist locally)");
+          }
+          await buildContainer(rt.spec);
         }
-        await buildContainer(rt.spec);
         this.pushConsole(serverId, "[MGG] Starting server…", "system");
         await startContainer(serverId);
         rt.startedAt = Date.now();
@@ -192,8 +199,11 @@ class ServerManager extends EventEmitter {
       case "restart":
         this.pushConsole(serverId, "[MGG] Restarting…", "system");
         await this.gracefulStop(serverId);
-        // MGG fix: rebuild from the current spec so settings changes apply on restart.
-        await buildContainer(rt.spec);
+        // MGG fix: rebuild only if the spec changed; otherwise just restart so
+        // container-layer data (e.g. the Icarus game & saves) is preserved.
+        if (!(await inspect(serverId)) || (await containerSpecHash(serverId)) !== specHash(rt.spec)) {
+          await buildContainer(rt.spec);
+        }
         await startContainer(serverId);
         rt.startedAt = Date.now();
         this.setState(serverId, ServerState.Starting);
