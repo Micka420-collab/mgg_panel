@@ -29,7 +29,7 @@ export const icarus: GameTemplate = {
   stopSignal: "SIGTERM",
   startupDoneRegex: "Started Steam Server|Server is ready|Game state updated",
   docsUrl: "https://github.com/jammsen/docker-icarus-dedicated-server",
-  dataPath: "/home/steam/icarus-dedicated",
+  dataPath: "/home/icarus",
   resources: { memoryMb: 8192, cpuPercent: 300, diskMb: 20480 },
   features: ["steamcmd", "wine", "query", "world-upload"],
   ports: [
