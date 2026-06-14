@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ChevronRight, Trash2, Wifi, WifiOff } from "lucide-react";
+import { ChevronRight, Gamepad2, Trash2, Wifi, WifiOff } from "lucide-react";
 import type { ServerSocket } from "@/lib/use-server-socket";
 import { cn } from "@/lib/util";
 
@@ -13,7 +13,7 @@ function lineClass(line: string, stream: string): string {
   return "text-console-text";
 }
 
-export function ConsolePanel({ socket, canCommand }: { socket: ServerSocket; canCommand: boolean }) {
+export function ConsolePanel({ socket, canCommand, joinUrl }: { socket: ServerSocket; canCommand: boolean; joinUrl?: string }) {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);
@@ -74,9 +74,22 @@ export function ConsolePanel({ socket, canCommand }: { socket: ServerSocket; can
             <><WifiOff className="h-3.5 w-3.5 text-warn" /> Reconnecting…</>
           )}
         </div>
-        <button onClick={socket.clear} className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white">
-          <Trash2 className="h-3.5 w-3.5" /> Clear
-        </button>
+        <div className="flex items-center gap-3">
+          {joinUrl && (
+            <a
+              href={joinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Se connecter via Steam et rejoindre le serveur"
+              className="flex items-center gap-1.5 rounded-md bg-[#1b2838] px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-[#2a475e]"
+            >
+              <Gamepad2 className="h-3.5 w-3.5" /> Rejoindre via Steam
+            </a>
+          )}
+          <button onClick={socket.clear} className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white">
+            <Trash2 className="h-3.5 w-3.5" /> Clear
+          </button>
+        </div>
       </div>
       <div
         ref={scrollRef}

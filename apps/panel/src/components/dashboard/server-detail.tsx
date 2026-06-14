@@ -234,7 +234,17 @@ export function ServerDetail({ id }: { id: string }) {
       </div>
 
       <div className="mt-5">
-        {tab === "console" && <ConsolePanel socket={socket} canCommand={can("control.command")} />}
+        {tab === "console" && (
+          <ConsolePanel
+            socket={socket}
+            canCommand={can("control.command")}
+            joinUrl={
+              s.game === "icarus" || s.templateId === "icarus-dedicated"
+                ? `http://${(s.address ?? "82.67.63.61").split(":")[0]}:8095`
+                : undefined
+            }
+          />
+        )}
         {tab === "assistant" && <AssistantPanel id={id} detail={detail} />}
         {tab === "players" && <PlayersPanel id={id} canManage={can("players.manage")} />}
         {tab === "files" && <FilesPanel id={id} canWrite={can("file.write")} canDelete={can("file.delete")} />}
