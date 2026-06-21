@@ -120,6 +120,16 @@ export function createHttpApp() {
     }),
   );
 
+  const restartWarnSchema = z.object({ seconds: z.number().int().min(1).max(600).optional() });
+  app.post(
+    "/api/servers/:id/restart-warn",
+    wrap(async (req, res) => {
+      const { seconds } = restartWarnSchema.parse(req.body ?? {});
+      await manager.restartWithWarning(req.params.id!, seconds ?? 30);
+      res.status(204).end();
+    }),
+  );
+
   const cmdSchema = z.object({ command: z.string().min(1).max(2000) });
   app.post(
     "/api/servers/:id/command",

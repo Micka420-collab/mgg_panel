@@ -57,6 +57,9 @@ export class DaemonClient {
   power(serverId: string, action: string) {
     return this.req<void>("POST", `/api/servers/${serverId}/power`, { action });
   }
+  restartWithWarning(serverId: string, seconds: number) {
+    return this.req<void>("POST", `/api/servers/${serverId}/restart-warn`, { seconds });
+  }
   command(serverId: string, command: string) {
     return this.req<void>("POST", `/api/servers/${serverId}/command`, { command });
   }

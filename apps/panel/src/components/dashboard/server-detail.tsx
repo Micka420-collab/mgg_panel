@@ -64,9 +64,25 @@ export function ServerDetail({ id }: { id: string }) {
   const transitioning = state === "installing" || state === "starting" || state === "stopping";
 
   async function power(action: string) {
+    // Redémarrage avec joueurs en ligne → proposer un préavis (décompte in-game).
+    let warnSeconds: number | undefined;
+    if (action === "restart" && (stats?.players?.online ?? 0) > 0) {
+      const ok = await confirmDialog({
+        title: `${stats!.players!.online} joueur(s) en ligne`,
+        description:
+          "Un compte à rebours de 30 s sera diffusé en jeu, puis le serveur redémarrera. Continuer ?",
+        confirmLabel: "Prévenir et redémarrer (30 s)",
+      });
+      if (!ok) return; // annulé → pas de redémarrage
+      warnSeconds = 30;
+    }
     setBusy(action);
     try {
-      await api(`/api/servers/${id}/power`, { method: "POST", json: { action } });
+      await api(`/api/servers/${id}/power`, {
+        method: "POST",
+        json: { action, ...(warnSeconds ? { warnSeconds } : {}) },
+      });
+      if (warnSeconds) toast(`Compte à rebours de ${warnSeconds}s diffusé aux joueurs…`, "success");
     } catch (e: any) {
       toast(e.message, "error");
     } finally {

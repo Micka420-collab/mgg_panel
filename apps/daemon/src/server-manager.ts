@@ -251,6 +251,35 @@ class ServerManager extends EventEmitter {
     this.endStreaming(serverId);
   }
 
+  /** Redémarrage avec préavis : diffuse un compte à rebours in-game (RCON `say`)
+   *  puis redémarre. Sans RCON / serveur arrêté → redémarre tout de suite (impossible
+   *  de prévenir). Retourne immédiatement ; le décompte + restart tournent en fond. */
+  async restartWithWarning(serverId: string, seconds: number): Promise<void> {
+    const rt = this.requireRuntime(serverId);
+    const warn = Math.max(1, Math.min(600, Math.floor(seconds) || 30));
+    if (!rt.spec.rcon || rt.state !== ServerState.Running) {
+      await this.power(serverId, "restart");
+      return;
+    }
+    const host = await rconHost(serverId);
+    const { port, password } = rt.spec.rcon;
+    const say = (m: string) => sendRcon(host, port, password, `say ${m}`).catch(() => undefined);
+    void (async () => {
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+      let left = warn;
+      await say(`§e[MGG] Redemarrage du serveur dans ${left}s.`);
+      for (const mark of [60, 30, 15, 10, 5, 4, 3, 2, 1]) {
+        if (mark >= left) continue;
+        await sleep((left - mark) * 1000);
+        left = mark;
+        await say(`§eRedemarrage dans ${mark}s...`);
+      }
+      await sleep(left * 1000);
+      await say("§cRedemarrage en cours...");
+      await this.power(serverId, "restart").catch((e) => logger.warn({ e, serverId }, "warned restart failed"));
+    })();
+  }
+
   async sendCommand(serverId: string, command: string): Promise<void> {
     const rt = this.requireRuntime(serverId);
     if (rt.state !== ServerState.Running) throw new Error("server is not running");
