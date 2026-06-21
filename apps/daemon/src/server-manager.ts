@@ -47,6 +47,8 @@ interface Runtime {
   playerTimer?: NodeJS.Timeout;
   diskTimer?: NodeJS.Timeout;
   players?: { online: number; max: number; sample: string[] };
+  /** last measured query round-trip latency in ms (RCON/A2S) */
+  latencyMs?: number;
   /** intent flag: we asked the container to stop, so a `die` event is clean (Offline), not a crash (Errored). */
   stopping?: boolean;
 }
@@ -351,6 +353,7 @@ class ServerManager extends EventEmitter {
         uptimeSeconds: rt.startedAt ? Math.floor((Date.now() - rt.startedAt) / 1000) : 0,
         diskBytes: rt.lastStats?.diskBytes ?? 0,
         players: rt.players ? { online: rt.players.online, max: rt.players.max, sample: rt.players.sample } : undefined,
+        latencyMs: rt.latencyMs,
       };
       rt.lastStats = stats;
       this.emit(`stats:${serverId}`, stats);
@@ -358,22 +361,34 @@ class ServerManager extends EventEmitter {
       .then((stop) => (rt.stopStats = stop))
       .catch((e) => logger.warn({ e, serverId }, "stats stream failed"));
 
-    // periodic player query - RCON (Minecraft) or A2S (Source/Steam query games)
+    // periodic player query + latency - RCON (Minecraft) or A2S (Source/Steam query games)
     if (rt.spec.rcon) {
       rt.playerTimer = setInterval(async () => {
         if (rt.state !== ServerState.Running) return;
+        const t0 = Date.now();
         const players = await queryPlayers(await rconHost(serverId), rt.spec.rcon!.port, rt.spec.rcon!.password);
-        if (players) rt.players = players;
+        if (players) {
+          rt.players = players;
+          rt.latencyMs = Date.now() - t0;
+        }
       }, 15000);
     } else if (rt.spec.features.includes("query")) {
-      // Source-engine games (Garry's Mod, ...) have no RCON list; read the live
-      // player count straight off the game port with an A2S_INFO query.
-      const primary = rt.spec.allocations.find((a) => a.primary) ?? rt.spec.allocations[0];
-      if (primary) {
+      // A2S_INFO over UDP. ⚠️ Certains jeux (Icarus) répondent sur un port "Query"
+      // DISTINCT du port de jeu → interroger l'allocation Query si elle existe,
+      // sinon le port de jeu (Source-engine comme Garry's Mod = même port).
+      const qAlloc =
+        rt.spec.allocations.find((a) => /query/i.test(a.role)) ??
+        rt.spec.allocations.find((a) => a.primary) ??
+        rt.spec.allocations[0];
+      if (qAlloc) {
         rt.playerTimer = setInterval(async () => {
           if (rt.state !== ServerState.Running) return;
-          const players = await queryA2S(await rconHost(serverId), primary.port);
-          if (players) rt.players = players;
+          const t0 = Date.now();
+          const players = await queryA2S(await rconHost(serverId), qAlloc.port);
+          if (players) {
+            rt.players = players;
+            rt.latencyMs = Date.now() - t0;
+          }
         }, 15000);
       }
     }

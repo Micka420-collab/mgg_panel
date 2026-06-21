@@ -132,6 +132,8 @@ export function ServerDetail({ id }: { id: string }) {
     { icon: HardDrive, label: "Disk", value: stats ? formatBytes(stats.diskBytes, 0) : "—", sub: `of ${formatBytes(s.diskMb * 1024 * 1024, 0)}` },
     { icon: Users, label: "Players", value: stats?.players ? `${stats.players.online}/${stats.players.max}` : "—", sub: "online" },
     { icon: Clock, label: "Uptime", value: stats ? formatUptime(stats.uptimeSeconds) : "—", sub: "" },
+    { icon: Activity, label: "Latence", value: stats?.latencyMs != null ? `${stats.latencyMs} ms` : "—", sub: "requête serveur" },
+    { icon: Network, label: "Réseau", value: stats ? `↓ ${formatBytes(stats.networkRxBytes, 0)}` : "—", sub: stats ? `↑ ${formatBytes(stats.networkTxBytes, 0)}` : "" },
   ];
 
   return (

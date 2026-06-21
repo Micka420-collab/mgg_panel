@@ -33,6 +33,8 @@ export interface ServerStats {
   uptimeSeconds: number;
   /** Player count if the template can report it (e.g. via query/RCON). */
   players?: { online: number; max: number; sample?: string[] };
+  /** Round-trip latency (ms) of the last player/health query (RCON or A2S), if measured. */
+  latencyMs?: number;
 }
 
 /** A line streamed from the server console. */
