@@ -25,7 +25,9 @@ export interface IcarusPlayer {
 export type IcarusEvent =
   | { type: "join"; player: IcarusPlayer; online: number; max: number }
   | { type: "leave"; steamId: string; name: string; sessionMs: number; online: number; max: number }
-  | { type: "crash"; line: string };
+  | { type: "crash"; line: string }
+  /** A flood of physics/replication errors (NaN coords) = the whole server lags. */
+  | { type: "lagstorm"; rate: number; sustainedSec: number };
 
 // Player finished connecting — gives SteamID64 (17 digits) + display name.
 //   LogConnectedPlayers: Display: ServerTryCompletePlayerInitialisation -
@@ -37,6 +39,10 @@ const JOIN_RE =
 const LEAVE_RE = /UNetConnection::Close:.*RemoteAddr:\s*(\d{17}):/;
 // Fatal signatures Unreal writes just before the process dies.
 const CRASH_RE = /(LowLevelFatalError|Fatal error:|=== Critical error|Assertion failed:|appError)/;
+// Runaway per-frame errors that flood the log and tank performance — almost
+// always a player/actor stuck at NaN coordinates (fell out of world / glitch).
+const SPAM_RE = /nan\(ind\)|Trying to set transform with bad data|is outside world bounds/;
+const STORM_RATE = 200; // spam lines/sec sustained ≈ "the whole server is lagging"
 
 /** Strip Steam display-name garbage: Unicode TAG block, zero-width, bidi, controls. */
 function cleanName(raw: string): string {
@@ -56,6 +62,10 @@ export class IcarusLogTracker {
   private partial = "";
   private timer?: NodeJS.Timeout;
   private stopped = false;
+  // lag-storm detection
+  private spamSincePoll = 0;
+  private stormStartMs = 0;
+  private lastLagNotifyMs = 0;
 
   constructor(
     private readonly logPath: string,
@@ -138,9 +148,31 @@ export class IcarusLogTracker {
       this.offset = 0;
       this.partial = "";
     }
+    this.spamSincePoll = 0;
     if (size > this.offset) {
       await this.readRange(this.offset, size, false, false);
       this.offset = size;
+    }
+    this.evaluateLagStorm();
+  }
+
+  /** Watchdog: if bad-data/NaN log lines flood in, surface a lag-storm event. */
+  private evaluateLagStorm(): void {
+    const rate = this.spamSincePoll / (POLL_MS / 1000);
+    const now = Date.now();
+    if (rate >= STORM_RATE) {
+      if (!this.stormStartMs) this.stormStartMs = now;
+      // throttle notifications to once per 30s while the storm lasts
+      if (now - this.lastLagNotifyMs > 30_000) {
+        this.lastLagNotifyMs = now;
+        this.onEvent({
+          type: "lagstorm",
+          rate: Math.round(rate),
+          sustainedSec: Math.round((now - this.stormStartMs) / 1000),
+        });
+      }
+    } else {
+      this.stormStartMs = 0;
     }
   }
 
@@ -174,6 +206,7 @@ export class IcarusLogTracker {
   }
 
   private processLine(line: string, silent: boolean): void {
+    if (!silent && SPAM_RE.test(line)) this.spamSincePoll++;
     let m = JOIN_RE.exec(line);
     if (m) {
       const steamId = m[1]!;

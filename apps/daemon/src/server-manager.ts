@@ -68,6 +68,8 @@ interface Runtime {
  */
 class ServerManager extends EventEmitter {
   private servers = new Map<string, Runtime>();
+  /** last automatic lag-storm restart per server (cooldown guard). */
+  private icarusAutoRestart = new Map<string, number>();
 
   async init(): Promise<void> {
     await this.rehydrate();
@@ -373,6 +375,32 @@ class ServerManager extends EventEmitter {
     } else if (e.type === "crash") {
       this.pushConsole(serverId, `!! Crash détecté: ${e.line}`, "stderr");
       void this.notifyDiscord(`:boom: **Crash détecté sur Icarus** : \`${e.line.slice(0, 200)}\``);
+    } else if (e.type === "lagstorm") {
+      this.pushConsole(
+        serverId,
+        `!! Lag détecté: ${e.rate} erreurs/s (coordonnées NaN d'un perso) depuis ${e.sustainedSec}s`,
+        "stderr",
+      );
+      void this.notifyDiscord(
+        `:rotating_light: **Lag détecté sur Icarus** — ${e.rate} erreurs/s (perso aux coordonnées invalides) depuis ${e.sustainedSec}s.`,
+      );
+      // Auto-mitigation: when the storm is severe AND sustained, restart the
+      // server (the only server-side lever — Icarus has no RCON to kick one
+      // player). Guarded by a config flag + a cooldown so it never loops.
+      const env = rt.spec.environment;
+      const autofix = !/^(0|false|off|no)$/i.test(env["ICARUS_LAG_AUTOFIX"] ?? "1");
+      const afterSec = parseInt(env["ICARUS_LAG_AUTOFIX_SECONDS"] ?? "", 10) || 120;
+      const last = this.icarusAutoRestart.get(serverId) ?? 0;
+      if (autofix && e.sustainedSec >= afterSec && Date.now() - last > 30 * 60_000) {
+        this.icarusAutoRestart.set(serverId, Date.now());
+        this.pushConsole(serverId, `>> Auto-correction: redémarrage (lag NaN soutenu ${e.sustainedSec}s)`, "stdout");
+        void this.notifyDiscord(
+          `:wrench: **Auto-correction Icarus** : redémarrage automatique (lag NaN soutenu ${e.sustainedSec}s, joueurs éjectés).`,
+        );
+        void this.power(serverId, "restart").catch((err) =>
+          logger.warn({ err, serverId }, "icarus lag auto-restart failed"),
+        );
+      }
     }
   }
 
