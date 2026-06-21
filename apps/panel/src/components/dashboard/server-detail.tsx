@@ -233,6 +233,21 @@ export function ServerDetail({ id }: { id: string }) {
             </div>
           ))}
         </div>
+
+        {/* live roster — real player names (Icarus via log, Minecraft via RCON) */}
+        {stats?.players?.sample && stats.players.sample.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-white/40">Joueurs connectés :</span>
+            {stats.players.sample.map((name, i) => (
+              <span
+                key={`${name}-${i}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-online/30 bg-online/10 px-2.5 py-1 text-xs font-medium text-online"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-online" /> {name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* tabs */}

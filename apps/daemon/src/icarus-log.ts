@@ -1,0 +1,200 @@
+import fs from "node:fs";
+import fsp from "node:fs/promises";
+import { logger } from "./logger.js";
+
+/**
+ * Icarus has NO RCON: the dedicated server (Unreal Engine 4.27) exposes no
+ * remote command interface at all. The ONLY way to know who is actually
+ * connected — with real names and SteamIDs — is to read the server log. A2S
+ * (the UDP query) yields a bare player count, nothing more.
+ *
+ * This module tails `Icarus.log` and reconstructs the live roster, surfacing
+ * join / leave / crash events the daemon turns into console lines, panel
+ * player names and (optionally) Discord notifications.
+ */
+
+export interface IcarusPlayer {
+  steamId: string;
+  name: string;
+  /** epoch ms when we first observed this player connect (best-effort). */
+  since: number;
+}
+
+export type IcarusEvent =
+  | { type: "join"; player: IcarusPlayer; online: number; max: number }
+  | { type: "leave"; steamId: string; name: string; sessionMs: number; online: number; max: number }
+  | { type: "crash"; line: string };
+
+// Player finished connecting — gives SteamID64 (17 digits) + display name.
+//   LogConnectedPlayers: Display: ServerTryCompletePlayerInitialisation -
+//     PlayerCharacterID: 76561198729653724_2 | PlayerName: Exctoris
+const JOIN_RE =
+  /ServerTryCompletePlayerInitialisation - PlayerCharacterID:\s*(\d{17})_\d+\s*\|\s*PlayerName:\s*(.+?)\s*$/;
+// Connection torn down — one line per real disconnect, carries the SteamID64.
+//   LogNet: UNetConnection::Close: [UNetConnection] RemoteAddr: 76561198318712490:17779, ...
+const LEAVE_RE = /UNetConnection::Close:.*RemoteAddr:\s*(\d{17}):/;
+// Fatal signatures Unreal writes just before the process dies.
+const CRASH_RE = /(LowLevelFatalError|Fatal error:|=== Critical error|Assertion failed:|appError)/;
+
+/** Strip Steam display-name garbage: Unicode TAG block, zero-width, bidi, controls. */
+function cleanName(raw: string): string {
+  return raw
+    .replace(/[\u{E0000}-\u{E007F}]/gu, "")
+    .replace(/[ ­​-‏‪-‮⁠-⁯﻿]/g, "")
+    .trim();
+}
+
+const SEED_CAP = 120 * 1024 * 1024; // read at most the last 120 MB to rebuild the current roster
+const POLL_MS = 4000;
+
+export class IcarusLogTracker {
+  private players = new Map<string, IcarusPlayer>();
+  private offset = 0;
+  private ino = 0;
+  private partial = "";
+  private timer?: NodeJS.Timeout;
+  private stopped = false;
+
+  constructor(
+    private readonly logPath: string,
+    private maxPlayers: number,
+    private readonly onEvent: (e: IcarusEvent) => void,
+  ) {}
+
+  async start(): Promise<void> {
+    await this.seed();
+    this.timer = setInterval(() => {
+      this.poll().catch((e) => logger.debug({ e, logPath: this.logPath }, "icarus log poll failed"));
+    }, POLL_MS);
+  }
+
+  stop(): void {
+    this.stopped = true;
+    if (this.timer) clearInterval(this.timer);
+    this.timer = undefined;
+  }
+
+  setMaxPlayers(n: number): void {
+    if (n > 0) this.maxPlayers = n;
+  }
+
+  snapshot(): { online: number; max: number; sample: string[] } {
+    return {
+      online: this.players.size,
+      max: this.maxPlayers,
+      sample: [...this.players.values()].map((p) => p.name),
+    };
+  }
+
+  /** Detailed roster (oldest connection first) for richer panel views. */
+  roster(): IcarusPlayer[] {
+    return [...this.players.values()].sort((a, b) => a.since - b.since);
+  }
+
+  // ── internals ──────────────────────────────────────────────────────────
+
+  /** On attach, rebuild the current roster from the tail of the live log. */
+  private async seed(): Promise<void> {
+    try {
+      const st = await fsp.stat(this.logPath);
+      this.ino = Number(st.ino);
+      const start = st.size > SEED_CAP ? st.size - SEED_CAP : 0;
+      await this.readRange(start, st.size, start > 0, true);
+      this.offset = st.size;
+    } catch {
+      this.offset = 0;
+      this.ino = 0;
+    }
+  }
+
+  private async poll(): Promise<void> {
+    if (this.stopped) return;
+    let size = 0;
+    let ino = 0;
+    try {
+      const st = await fsp.stat(this.logPath);
+      size = st.size;
+      ino = Number(st.ino);
+    } catch {
+      return; // log not present yet (server still booting / restarting)
+    }
+    if (ino !== this.ino || size < this.offset) {
+      // Rotation or truncation: Icarus renamed the log to a timestamped backup
+      // on restart → everyone disconnected. Reset the roster and re-anchor.
+      this.players.clear();
+      this.ino = ino;
+      this.offset = 0;
+      this.partial = "";
+    }
+    if (size > this.offset) {
+      await this.readRange(this.offset, size, false, false);
+      this.offset = size;
+    }
+  }
+
+  private readRange(start: number, end: number, dropFirstLine: boolean, silent: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (end <= start) return resolve();
+      // `end` is inclusive in createReadStream → read bytes [start, end).
+      const stream = fs.createReadStream(this.logPath, { start, end: end - 1, encoding: "utf8" });
+      let buf = silent ? "" : this.partial;
+      if (silent) this.partial = "";
+      let first = dropFirstLine;
+      stream.on("data", (chunk) => {
+        buf += chunk as string;
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl);
+          buf = buf.slice(nl + 1);
+          if (first) {
+            first = false; // discard the partial first line when seeding mid-file
+            continue;
+          }
+          this.processLine(line.replace(/\r$/, ""), silent);
+        }
+      });
+      stream.on("end", () => {
+        this.partial = buf;
+        resolve();
+      });
+      stream.on("error", reject);
+    });
+  }
+
+  private processLine(line: string, silent: boolean): void {
+    let m = JOIN_RE.exec(line);
+    if (m) {
+      const steamId = m[1]!;
+      const name = cleanName(m[2]!) || `Joueur ${steamId.slice(-4)}`;
+      const existing = this.players.get(steamId);
+      const player: IcarusPlayer = { steamId, name, since: existing?.since ?? Date.now() };
+      this.players.set(steamId, player);
+      if (!silent && !existing) {
+        this.onEvent({ type: "join", player, online: this.players.size, max: this.maxPlayers });
+      }
+      return;
+    }
+    m = LEAVE_RE.exec(line);
+    if (m) {
+      const steamId = m[1]!;
+      const p = this.players.get(steamId);
+      if (p) {
+        this.players.delete(steamId);
+        if (!silent) {
+          this.onEvent({
+            type: "leave",
+            steamId,
+            name: p.name,
+            sessionMs: Date.now() - p.since,
+            online: this.players.size,
+            max: this.maxPlayers,
+          });
+        }
+      }
+      return;
+    }
+    if (!silent && CRASH_RE.test(line)) {
+      this.onEvent({ type: "crash", line: line.slice(0, 300) });
+    }
+  }
+}

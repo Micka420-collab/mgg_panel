@@ -77,6 +77,9 @@ services:
       DAEMON_DATA_DIR: /var/lib/mgg/volumes
       DAEMON_BACKUP_DIR: /var/lib/mgg/backups
       DOCKER_SOCKET: /var/run/docker.sock
+      # Icarus has no RCON → the daemon tails its log for the live roster and can
+      # post join/leave/crash events to a Discord webhook (optional, dormant if unset).
+      ICARUS_DISCORD_WEBHOOK: ${ICARUS_DISCORD_WEBHOOK:-}
       NODE_PUBLIC_IP: ${NODE_PUBLIC_IP:-127.0.0.1}
       # SFTP: validate logins against the panel and listen on 2022
       PANEL_URL: http://panel:3000

@@ -31,6 +31,7 @@ import { sendRcon, queryPlayers } from "./rcon.js";
 import { queryA2S } from "./a2s.js";
 import { volumeSize } from "./files.js";
 import { logger } from "./logger.js";
+import { IcarusLogTracker, type IcarusEvent } from "./icarus-log.js";
 
 const CONSOLE_BUFFER = 250;
 const SPEC_FILE = ".mgg/spec.json";
@@ -47,6 +48,8 @@ interface Runtime {
   playerTimer?: NodeJS.Timeout;
   diskTimer?: NodeJS.Timeout;
   players?: { online: number; max: number; sample: string[] };
+  /** Icarus has no RCON → a log tailer is the only source of the live roster. */
+  icarusLog?: IcarusLogTracker;
   /** last measured query round-trip latency in ms (RCON/A2S) */
   latencyMs?: number;
   /** intent flag: we asked the container to stop, so a `die` event is clean (Offline), not a crash (Errored). */
@@ -350,6 +353,51 @@ class ServerManager extends EventEmitter {
     this.emit(`console:${serverId}`, [entry]);
   }
 
+  /** Is this an Icarus server? (Icarus has no RCON — we read its log instead.) */
+  private isIcarus(rt: Runtime): boolean {
+    return /icarus/i.test(rt.spec.dockerImage) || /icarus/i.test(rt.spec.templateId);
+  }
+
+  /** Turn an Icarus log event into a console line + optional Discord notification. */
+  private handleIcarusEvent(serverId: string, e: IcarusEvent): void {
+    const rt = this.servers.get(serverId);
+    if (!rt?.icarusLog) return;
+    rt.players = rt.icarusLog.snapshot();
+    if (e.type === "join") {
+      this.pushConsole(serverId, `>> ${e.player.name} a rejoint le serveur (${e.online}/${e.max})`, "stdout");
+      void this.notifyDiscord(`:wave: **${e.player.name}** a rejoint **Icarus** — ${e.online}/${e.max} en ligne`);
+    } else if (e.type === "leave") {
+      const mins = Math.max(1, Math.round(e.sessionMs / 60000));
+      this.pushConsole(serverId, `<< ${e.name} a quitté le serveur (${e.online}/${e.max}, session ~${mins} min)`, "stdout");
+      void this.notifyDiscord(`:door: **${e.name}** a quitté **Icarus** — ${e.online}/${e.max} en ligne (session ~${mins} min)`);
+    } else if (e.type === "crash") {
+      this.pushConsole(serverId, `!! Crash détecté: ${e.line}`, "stderr");
+      void this.notifyDiscord(`:boom: **Crash détecté sur Icarus** : \`${e.line.slice(0, 200)}\``);
+    }
+  }
+
+  /**
+   * Best-effort Discord notification via a webhook URL in the env. Dormant
+   * until ICARUS_DISCORD_WEBHOOK (or the generic ALERT_WEBHOOK) is set — then
+   * join/leave/crash events post to the channel automatically.
+   */
+  private async notifyDiscord(content: string): Promise<void> {
+    const url = process.env.ICARUS_DISCORD_WEBHOOK || process.env.ALERT_WEBHOOK;
+    if (!url) return;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, username: "MGG · Icarus" }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timer));
+    } catch {
+      /* best-effort: never let a notification break the manager */
+    }
+  }
+
   private beginStreaming(serverId: string) {
     const rt = this.servers.get(serverId);
     if (!rt) return;
@@ -391,7 +439,30 @@ class ServerManager extends EventEmitter {
       .catch((e) => logger.warn({ e, serverId }, "stats stream failed"));
 
     // periodic player query + latency - RCON (Minecraft) or A2S (Source/Steam query games)
-    if (rt.spec.rcon) {
+    // Icarus has NO RCON and A2S only yields a count → tail its log for the real
+    // roster (names + SteamIDs) and surface join/leave/crash events.
+    if (this.isIcarus(rt)) {
+      const logPath = path.join(hostVolumePath(serverId), "drive_c/icarus/Saved/Logs/Icarus.log");
+      const max = parseInt(rt.spec.environment["SERVER_MAX_PLAYERS"] ?? "", 10) || 8;
+      const tracker = new IcarusLogTracker(logPath, max, (e) => this.handleIcarusEvent(serverId, e));
+      rt.icarusLog = tracker;
+      tracker.start().catch((e) => logger.warn({ e, serverId }, "icarus log tracker failed to start"));
+      // Icarus answers A2S on a distinct Query port — keep a latency ping there.
+      const qAlloc =
+        rt.spec.allocations.find((a) => /query/i.test(a.role)) ??
+        rt.spec.allocations.find((a) => a.primary) ??
+        rt.spec.allocations[0];
+      // mirror the tracker's roster into rt.players + measure latency
+      rt.playerTimer = setInterval(async () => {
+        if (rt.state !== ServerState.Running) return;
+        if (rt.icarusLog) rt.players = rt.icarusLog.snapshot();
+        if (qAlloc) {
+          const t0 = Date.now();
+          const r = await queryA2S(await rconHost(serverId), qAlloc.port).catch(() => null);
+          if (r) rt.latencyMs = Date.now() - t0;
+        }
+      }, 5000);
+    } else if (rt.spec.rcon) {
       rt.playerTimer = setInterval(async () => {
         if (rt.state !== ServerState.Running) return;
         const t0 = Date.now();
@@ -438,6 +509,8 @@ class ServerManager extends EventEmitter {
     if (rt.diskTimer) clearInterval(rt.diskTimer);
     rt.playerTimer = undefined;
     rt.diskTimer = undefined;
+    rt.icarusLog?.stop();
+    rt.icarusLog = undefined;
     if (clearStdin && rt.stdin) {
       try {
         rt.stdin.end();
