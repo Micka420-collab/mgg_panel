@@ -74,7 +74,7 @@ export function SettingsPanel({
           })
         ) {
           await api(`/api/servers/${id}/power`, { method: "POST", json: { action: "restart" } });
-          toast("Serveur en redémarrage — les changements s'appliquent.", "ok");
+          toast("Serveur en redémarrage — les changements s'appliquent.", "success");
         }
       }
     } catch (e: any) {
