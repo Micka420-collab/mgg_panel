@@ -34,6 +34,7 @@ export function SettingsPanel({
 }) {
   const router = useRouter();
   const [name, setName] = useState(detail.server.name as string);
+  const [description, setDescription] = useState((detail.server.description as string) || "");
   const [vars, setVars] = useState<Record<string, string>>(
     Object.fromEntries((detail.variables as Var[]).map((v) => [v.key, v.value])),
   );
@@ -55,12 +56,27 @@ export function SettingsPanel({
     setError(null);
     setMsg(null);
     try {
-      await api(`/api/servers/${id}`, {
+      const res = await api<{ restartNeeded?: boolean }>(`/api/servers/${id}`, {
         method: "PATCH",
-        json: { ...(canRename ? { name } : {}), ...(canStartup ? { variables: vars } : {}) },
+        json: { ...(canRename ? { name, description } : {}), ...(canStartup ? { variables: vars } : {}) },
       });
-      setMsg("Saved. Changes apply on the next (re)start.");
+      setMsg("Réglages enregistrés.");
       onSaved();
+      // Les changements de spec (variables/comportement) n'agissent qu'après reconstruction
+      // du conteneur → on propose de redémarrer maintenant pour appliquer immédiatement.
+      if (res?.restartNeeded) {
+        if (
+          await confirmDialog({
+            title: "Appliquer maintenant ?",
+            description:
+              "Ces réglages nécessitent un redémarrage du serveur pour prendre effet. Redémarrer maintenant ? (sinon ils s'appliqueront au prochain démarrage)",
+            confirmLabel: "Redémarrer et appliquer",
+          })
+        ) {
+          await api(`/api/servers/${id}/power`, { method: "POST", json: { action: "restart" } });
+          toast("Serveur en redémarrage — les changements s'appliquent.", "ok");
+        }
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -94,9 +110,21 @@ export function SettingsPanel({
       {canRename && (
         <div className="glass p-5">
           <h3 className="font-display font-semibold text-white">General</h3>
-          <div className="mt-4 max-w-md">
-            <label className="label">Server name</label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+          <div className="mt-4 max-w-md space-y-4">
+            <div>
+              <label className="label">Server name</label>
+              <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+            </div>
+            <div>
+              <label className="label">Description</label>
+              <textarea
+                className="input min-h-[72px]"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={300}
+                placeholder="Description du serveur (optionnel)"
+              />
+            </div>
           </div>
         </div>
       )}

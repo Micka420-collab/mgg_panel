@@ -145,7 +145,10 @@ export const PATCH = route(async (req, ctx: { params: { id: string } }) => {
   }
 
   await audit("server.update", { userId: user.id, serverId: c.server.id, metadata: { rebuild } });
-  return json({ ok: true });
+  // restartNeeded: les changements affectant le spec (variables / autoStop) ne prennent effet
+  // qu'apres reconstruction du conteneur → l'UI peut proposer un redemarrage immediat
+  // au lieu de laisser l'utilisateur croire que rien ne s'applique.
+  return json({ ok: true, restartNeeded: rebuild });
 });
 
 export const DELETE = route(async (_req, ctx: { params: { id: string } }) => {
