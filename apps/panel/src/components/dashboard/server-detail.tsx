@@ -15,6 +15,7 @@ import { FilesPanel } from "./files-panel";
 import { SettingsPanel } from "./settings-panel";
 import { BackupsPanel } from "./backups-panel";
 import { NetworkPanel } from "./network-panel";
+import { PlaytimeCard } from "./playtime-card";
 import { ModsPanel } from "./mods-panel";
 import { WorkshopPanel } from "./workshop-panel";
 import { SchedulesPanel } from "./schedules-panel";
@@ -261,6 +262,9 @@ export function ServerDetail({ id }: { id: string }) {
           </div>
         )}
       </div>
+
+      {/* playtime leaderboard (renders only when there's data) */}
+      <PlaytimeCard serverId={s.id} />
 
       {/* tabs */}
       <div className="mt-5 flex gap-1 overflow-x-auto border-b border-white/10 pb-px">

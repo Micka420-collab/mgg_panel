@@ -372,6 +372,7 @@ class ServerManager extends EventEmitter {
       const mins = Math.max(1, Math.round(e.sessionMs / 60000));
       this.pushConsole(serverId, `<< ${e.name} a quitté le serveur (${e.online}/${e.max}, session ~${mins} min)`, "stdout");
       void this.notifyDiscord(`:door: **${e.name}** a quitté **Icarus** — ${e.online}/${e.max} en ligne (session ~${mins} min)`);
+      void this.reportPlaytime(serverId, e.steamId, e.name, Math.round(e.sessionMs / 1000));
     } else if (e.type === "crash") {
       this.pushConsole(serverId, `!! Crash détecté: ${e.line}`, "stderr");
       void this.notifyDiscord(`:boom: **Crash détecté sur Icarus** : \`${e.line.slice(0, 200)}\``);
@@ -453,6 +454,26 @@ class ServerManager extends EventEmitter {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
         body: JSON.stringify({ serverId, severity, category, message }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timer));
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  /** Report a finished play session to the panel (accumulates the leaderboard). */
+  private async reportPlaytime(serverId: string, steamId: string, name: string, seconds: number): Promise<void> {
+    if (seconds <= 0) return;
+    const url = process.env.PANEL_URL;
+    const token = process.env.DAEMON_TOKEN;
+    if (!url || !token) return;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      await fetch(`${url}/api/internal/playtime`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ serverId, steamId, name, seconds }),
         signal: controller.signal,
       }).finally(() => clearTimeout(timer));
     } catch {

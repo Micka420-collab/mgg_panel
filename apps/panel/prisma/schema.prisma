@@ -138,6 +138,20 @@ model Alert {
   @@index([resolved])
 }
 
+model PlaytimeStat {
+  id           String   @id @default(cuid())
+  serverId     String
+  steamId      String
+  name         String
+  totalSeconds Int      @default(0)
+  sessions     Int      @default(0)
+  lastSeenAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([serverId, steamId])
+  @@index([serverId])
+}
+
 model Allocation {
   id       String   @id @default(cuid())
   nodeId   String
