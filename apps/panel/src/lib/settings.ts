@@ -10,6 +10,26 @@ import { encrypt, decrypt } from "./crypto";
 
 /** Well-known setting keys. */
 export const SETTING_ANTHROPIC_KEY = "anthropic_api_key";
+export const SETTING_OPENROUTER_KEY = "openrouter_api_key";
+/** Which AI backend the Copilot uses: "anthropic" | "openrouter". */
+export const SETTING_AI_PROVIDER = "ai_provider";
+/** Model id for the active provider (e.g. claude-haiku-4-5-… or deepseek/deepseek-chat). */
+export const SETTING_AI_MODEL = "ai_model";
+
+export type AiProvider = "anthropic" | "openrouter";
+
+export interface AiConfig {
+  provider: AiProvider;
+  /** Active API key for the chosen provider, or null if none is configured. */
+  key: string | null;
+  /** Model id to call. */
+  model: string;
+  /** Where the active key comes from. */
+  source: "db" | "env" | null;
+}
+
+export const DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
+export const DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-chat";
 
 /** Read + decrypt a secret setting. Returns null if absent or undecryptable. */
 export async function getSecretSetting(key: string): Promise<string | null> {
@@ -53,4 +73,42 @@ export async function getAnthropicKey(): Promise<{ key: string | null; source: "
   const envKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (envKey) return { key: envKey, source: "env" };
   return { key: null, source: null };
+}
+
+async function getOpenRouterKey(): Promise<{ key: string | null; source: "db" | "env" | null }> {
+  const dbKey = (await getSecretSetting(SETTING_OPENROUTER_KEY))?.trim();
+  if (dbKey) return { key: dbKey, source: "db" };
+  const envKey = process.env.OPENROUTER_API_KEY?.trim();
+  if (envKey) return { key: envKey, source: "env" };
+  return { key: null, source: null };
+}
+
+/**
+ * Resolve the full AI Copilot configuration: which provider to use, its key and
+ * model. The provider can be pinned explicitly (DB setting or AI_PROVIDER env);
+ * otherwise we auto-pick whichever provider actually has a key (Anthropic first).
+ * This lets an operator run the Copilot on OpenRouter (DeepSeek, Llama, etc.) —
+ * not only Anthropic — without redeploying.
+ */
+export async function getAiConfig(): Promise<AiConfig> {
+  const explicit = (
+    (await getSecretSetting(SETTING_AI_PROVIDER))?.trim() || process.env.AI_PROVIDER?.trim()
+  )?.toLowerCase();
+  const model = (await getSecretSetting(SETTING_AI_MODEL))?.trim() || process.env.AI_MODEL?.trim();
+
+  const anthropic = await getAnthropicKey();
+  const openrouter = await getOpenRouterKey();
+
+  let provider: AiProvider;
+  if (explicit === "openrouter" || explicit === "anthropic") {
+    provider = explicit;
+  } else {
+    // Not pinned → prefer whichever provider has a key (Anthropic wins ties).
+    provider = !anthropic.key && openrouter.key ? "openrouter" : "anthropic";
+  }
+
+  if (provider === "openrouter") {
+    return { provider, key: openrouter.key, model: model || DEFAULT_OPENROUTER_MODEL, source: openrouter.source };
+  }
+  return { provider: "anthropic", key: anthropic.key, model: model || DEFAULT_ANTHROPIC_MODEL, source: anthropic.source };
 }

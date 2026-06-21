@@ -13,7 +13,7 @@ import {
   type AssistantVariable,
 } from "@/lib/assistant";
 import { runCopilotAgent } from "@/lib/copilot-agent";
-import { getAnthropicKey } from "@/lib/settings";
+import { getAiConfig } from "@/lib/settings";
 
 /**
  * AI Server Copilot endpoint.
@@ -97,21 +97,34 @@ export const POST = route(async (req, ctx: { params: { id: string } }) => {
     canCommand,
   };
 
-  // A key set from the admin dashboard takes precedence over the env var.
-  const { key } = await getAnthropicKey();
+  // Resolve the active AI backend (provider + key + model) from the dashboard /
+  // env. The dashboard takes precedence so an operator can switch providers
+  // without redeploying.
+  const ai = await getAiConfig();
 
-  // With a key, run the AGENTIC Copilot: it can take real actions (power,
-  // settings, mods, create servers) — strictly within THIS user's permissions,
-  // re-checked per tool. Without a key, fall back to the read-only rule helper.
-  const result = key
-    ? await runCopilotAgent({
-        user,
-        currentServerId: c.server.id,
-        ctx: assistantCtx,
-        messages: messages as AssistantMessage[],
-        apiKey: key,
-      })
-    : await askAssistant(assistantCtx, messages as AssistantMessage[], null);
+  // With an Anthropic key, run the AGENTIC Copilot: it can take real actions
+  // (power, settings, mods, create servers) — strictly within THIS user's
+  // permissions, re-checked per tool. OpenRouter models use the chat assistant
+  // (answers + one-click command chips; no autonomous tool execution). With no
+  // key, fall back to the read-only rule helper.
+  let result;
+  if (ai.key && ai.provider === "anthropic") {
+    result = await runCopilotAgent({
+      user,
+      currentServerId: c.server.id,
+      ctx: assistantCtx,
+      messages: messages as AssistantMessage[],
+      apiKey: ai.key,
+    });
+  } else if (ai.key && ai.provider === "openrouter") {
+    result = await askAssistant(assistantCtx, messages as AssistantMessage[], {
+      provider: "openrouter",
+      key: ai.key,
+      model: ai.model,
+    });
+  } else {
+    result = await askAssistant(assistantCtx, messages as AssistantMessage[], null);
+  }
 
   return json(result);
 });
