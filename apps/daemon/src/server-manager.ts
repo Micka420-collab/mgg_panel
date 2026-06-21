@@ -375,6 +375,11 @@ class ServerManager extends EventEmitter {
     } else if (e.type === "crash") {
       this.pushConsole(serverId, `!! Crash détecté: ${e.line}`, "stderr");
       void this.notifyDiscord(`:boom: **Crash détecté sur Icarus** : \`${e.line.slice(0, 200)}\``);
+      void this.reportSecurity(serverId, "critical", "crash", e.line.slice(0, 200));
+    } else if (e.type === "security") {
+      this.pushConsole(serverId, `!! Sécurité [${e.category}]: ${e.message}`, "stderr");
+      void this.notifyDiscord(`:shield: **Sécurité Icarus** [${e.category}] : ${e.message}`);
+      void this.reportSecurity(serverId, e.severity, e.category, e.message);
     } else if (e.type === "lagstorm") {
       this.pushConsole(
         serverId,
@@ -384,6 +389,7 @@ class ServerManager extends EventEmitter {
       void this.notifyDiscord(
         `:rotating_light: **Lag détecté sur Icarus** — ${e.rate} erreurs/s (perso aux coordonnées invalides) depuis ${e.sustainedSec}s.`,
       );
+      void this.reportSecurity(serverId, "warning", "lagstorm", `Lag NaN ${e.rate} erreurs/s depuis ${e.sustainedSec}s`);
       // Auto-mitigation: when the storm is severe AND sustained, restart the
       // server (the only server-side lever — Icarus has no RCON to kick one
       // player). Guarded by a config flag + a cooldown so it never loops.
@@ -423,6 +429,34 @@ class ServerManager extends EventEmitter {
       }).finally(() => clearTimeout(timer));
     } catch {
       /* best-effort: never let a notification break the manager */
+    }
+  }
+
+  /**
+   * Report a security event to the panel so it surfaces in the dashboard
+   * Security feed (stored as an Alert). Best-effort, authenticated with the
+   * node bearer token the panel already shares.
+   */
+  private async reportSecurity(
+    serverId: string,
+    severity: "info" | "warning" | "critical",
+    category: string,
+    message: string,
+  ): Promise<void> {
+    const url = process.env.PANEL_URL;
+    const token = process.env.DAEMON_TOKEN;
+    if (!url || !token) return;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      await fetch(`${url}/api/internal/security`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ serverId, severity, category, message }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timer));
+    } catch {
+      /* best-effort */
     }
   }
 

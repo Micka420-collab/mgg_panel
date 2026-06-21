@@ -27,7 +27,9 @@ export type IcarusEvent =
   | { type: "leave"; steamId: string; name: string; sessionMs: number; online: number; max: number }
   | { type: "crash"; line: string }
   /** A flood of physics/replication errors (NaN coords) = the whole server lags. */
-  | { type: "lagstorm"; rate: number; sustainedSec: number };
+  | { type: "lagstorm"; rate: number; sustainedSec: number }
+  /** A security-relevant anomaly (reconnect spam, etc.) for the dashboard feed. */
+  | { type: "security"; category: string; severity: "warning" | "critical"; message: string };
 
 // Player finished connecting — gives SteamID64 (17 digits) + display name.
 //   LogConnectedPlayers: Display: ServerTryCompletePlayerInitialisation -
@@ -66,6 +68,8 @@ export class IcarusLogTracker {
   private spamSincePoll = 0;
   private stormStartMs = 0;
   private lastLagNotifyMs = 0;
+  // reconnect-spam detection (security): recent join timestamps per SteamID
+  private joinTimes = new Map<string, number[]>();
 
   constructor(
     private readonly logPath: string,
@@ -221,6 +225,19 @@ export class IcarusLogTracker {
       this.players.set(steamId, player);
       if (!silent && !existing) {
         this.onEvent({ type: "join", player, online: this.players.size, max: this.maxPlayers });
+        // reconnect-spam: same SteamID connecting repeatedly in a short window
+        const now = Date.now();
+        const times = (this.joinTimes.get(steamId) ?? []).filter((t) => now - t < 120_000);
+        times.push(now);
+        this.joinTimes.set(steamId, times.slice(-6));
+        if (times.length >= 4) {
+          this.onEvent({
+            type: "security",
+            category: "reconnect-spam",
+            severity: "warning",
+            message: `${name} (${steamId}) s'est reconnecté ${times.length}× en 2 min`,
+          });
+        }
       }
       return;
     }
