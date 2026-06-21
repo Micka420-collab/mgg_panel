@@ -106,7 +106,12 @@ export function createHttpApp() {
     wrap(async (req, res) => {
       const snap = manager.getSnapshot(req.params.id!);
       if (!snap) return res.status(404).json({ error: "not registered" });
-      res.json({ state: snap.state, stats: snap.stats, players: snap.players });
+      // Optionally include a console tail (?console=N) so the AI Copilot can read
+      // recent logs. Omitted by default to keep frequent status polls light.
+      const n = Number.parseInt(String(req.query.console ?? ""), 10);
+      const body: Record<string, unknown> = { state: snap.state, stats: snap.stats, players: snap.players };
+      if (Number.isFinite(n) && n > 0) body.console = (snap.console ?? []).slice(-Math.min(n, 200));
+      res.json(body);
     }),
   );
 

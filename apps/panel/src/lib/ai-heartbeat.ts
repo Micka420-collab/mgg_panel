@@ -65,9 +65,14 @@ type ServerRow = Awaited<ReturnType<typeof runningServers>>[number];
 
 async function analyzeServer(s: ServerRow, ai: Awaited<ReturnType<typeof getAiConfig>>): Promise<void> {
   const client = new DaemonClient(s.node);
-  let status: { state: string; stats: any; players: any } | null = null;
+  let status: { state: string; stats: any; players: any; console?: any[] } | null = null;
   try {
-    status = (await client.status(s.id)) as { state: string; stats: any; players: any };
+    status = (await client.status(s.id, { console: 40 })) as {
+      state: string;
+      stats: any;
+      players: any;
+      console?: any[];
+    };
   } catch {
     return; // node/daemon unreachable — skip this round
   }
@@ -89,7 +94,12 @@ async function analyzeServer(s: ServerRow, ai: Awaited<ReturnType<typeof getAiCo
     state,
     features: tpl?.features ?? [],
     variables: [],
-    consoleTail: undefined,
+    consoleTail: Array.isArray(status?.console)
+      ? status.console
+          .map((l: any) => (typeof l === "string" ? l : l?.line))
+          .filter((x: any) => !!x && String(x).trim().length > 0)
+          .slice(-25)
+      : undefined,
     canCommand: false,
   };
 

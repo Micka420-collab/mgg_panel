@@ -1,6 +1,6 @@
 import { SignJWT } from "jose";
 import type { Node } from "@prisma/client";
-import type { ServerBuildSpec, ServerState, ServerStats, FileEntry, BackupMeta } from "@mgg/shared";
+import type { ServerBuildSpec, ServerState, ServerStats, FileEntry, BackupMeta, ConsoleLine } from "@mgg/shared";
 
 export type NodeLike = Pick<Node, "scheme" | "fqdn" | "daemonPort" | "tokenSecret" | "publicIp">;
 
@@ -48,10 +48,12 @@ export class DaemonClient {
   registerServer(spec: ServerBuildSpec, rebuild = true) {
     return this.req<{ accepted: boolean }>("POST", `/api/servers${rebuild ? "" : "?rebuild=0"}`, spec);
   }
-  status(serverId: string) {
-    return this.req<{ state: ServerState; stats: ServerStats | null; players: unknown }>(
+  /** opts.console = N → include the last N console lines (for the AI Copilot). */
+  status(serverId: string, opts?: { console?: number }) {
+    const q = opts?.console ? `?console=${opts.console}` : "";
+    return this.req<{ state: ServerState; stats: ServerStats | null; players: unknown; console?: ConsoleLine[] }>(
       "GET",
-      `/api/servers/${serverId}`,
+      `/api/servers/${serverId}${q}`,
     );
   }
   power(serverId: string, action: string) {
