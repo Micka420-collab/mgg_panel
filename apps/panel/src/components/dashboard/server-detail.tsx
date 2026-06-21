@@ -159,7 +159,7 @@ export function ServerDetail({ id }: { id: string }) {
       </Link>
 
       {/* header */}
-      <div className="glass-raised p-5">
+      <div className="glass-raised control-glow p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-black/30 text-3xl">

@@ -57,6 +57,41 @@ body {
     }
   }
 
+  /* Lit control panel — a soft cyan/violet halo bleeding out behind the surface,
+     plus a faint hairline-lit top edge. Used on the main control panel header
+     and a few key cards for a "panel that glows" feel. */
+  .control-glow {
+    position: relative;
+    isolation: isolate;
+  }
+  .control-glow::after {
+    content: "";
+    position: absolute;
+    inset: -34px -24px -10px;
+    z-index: -1;
+    border-radius: 32px;
+    background:
+      radial-gradient(68% 130% at 28% 0%, rgba(0, 180, 216, 0.22), transparent 62%),
+      radial-gradient(58% 130% at 92% 8%, rgba(109, 92, 255, 0.18), transparent 62%);
+    filter: blur(38px);
+    pointer-events: none;
+  }
+  /* A lighter accent glow for secondary spots (cards, tiles). */
+  .glow-accent {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow-accent::after {
+    content: "";
+    position: absolute;
+    inset: -20px;
+    z-index: -1;
+    border-radius: 28px;
+    background: radial-gradient(60% 120% at 50% 0%, rgba(0, 180, 216, 0.14), transparent 65%);
+    filter: blur(30px);
+    pointer-events: none;
+  }
+
   /* Hairline divider */
   .hr {
     @apply h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent;
