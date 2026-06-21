@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Play, Square, RotateCw, Zap, Copy, Check, Cpu, MemoryStick, HardDrive, Users, Clock,
-  Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope, ArrowUpCircle, GitBranch,
+  Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope, ArrowUpCircle, GitBranch, ShieldCheck,
 } from "lucide-react";
 import { useServerSocket } from "@/lib/use-server-socket";
 import { api } from "@/lib/client";
@@ -159,7 +159,7 @@ export function ServerDetail({ id }: { id: string }) {
       </Link>
 
       {/* header */}
-      <div className="glass-raised control-glow p-5">
+      <div className="glass-raised lit-panel p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-black/30 text-3xl">
@@ -234,18 +234,30 @@ export function ServerDetail({ id }: { id: string }) {
           ))}
         </div>
 
-        {/* live roster — real player names (Icarus via log, Minecraft via RCON) */}
+        {/* live roster — real player names (Icarus via log, Minecraft via RCON).
+            Admins (configured SteamIDs) are highlighted in amber. */}
         {stats?.players?.sample && stats.players.sample.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="text-xs text-white/40">Joueurs connectés :</span>
-            {stats.players.sample.map((name, i) => (
-              <span
-                key={`${name}-${i}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-online/30 bg-online/10 px-2.5 py-1 text-xs font-medium text-online"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-online" /> {name}
-              </span>
-            ))}
+            {stats.players.sample.map((name, i) => {
+              const isAdmin = (stats.players?.admins ?? []).includes(name);
+              return (
+                <span
+                  key={`${name}-${i}`}
+                  title={isAdmin ? "Admin" : undefined}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+                    isAdmin
+                      ? "border-warn/40 bg-warn/10 text-warn"
+                      : "border-online/30 bg-online/10 text-online",
+                  )}
+                >
+                  <span className={cn("h-1.5 w-1.5 rounded-full", isAdmin ? "bg-warn" : "bg-online")} />
+                  {name}
+                  {isAdmin && <ShieldCheck className="h-3 w-3" />}
+                </span>
+              );
+            })}
           </div>
         )}
       </div>

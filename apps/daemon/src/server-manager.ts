@@ -47,7 +47,7 @@ interface Runtime {
   stdin?: NodeJS.ReadWriteStream;
   playerTimer?: NodeJS.Timeout;
   diskTimer?: NodeJS.Timeout;
-  players?: { online: number; max: number; sample: string[] };
+  players?: { online: number; max: number; sample: string[]; admins?: string[] };
   /** Icarus has no RCON → a log tailer is the only source of the live roster. */
   icarusLog?: IcarusLogTracker;
   /** last measured query round-trip latency in ms (RCON/A2S) */
@@ -429,7 +429,9 @@ class ServerManager extends EventEmitter {
             : 0,
         uptimeSeconds: rt.startedAt ? Math.floor((Date.now() - rt.startedAt) / 1000) : 0,
         diskBytes: rt.lastStats?.diskBytes ?? 0,
-        players: rt.players ? { online: rt.players.online, max: rt.players.max, sample: rt.players.sample } : undefined,
+        players: rt.players
+          ? { online: rt.players.online, max: rt.players.max, sample: rt.players.sample, admins: rt.players.admins }
+          : undefined,
         latencyMs: rt.latencyMs,
       };
       rt.lastStats = stats;
@@ -444,7 +446,13 @@ class ServerManager extends EventEmitter {
     if (this.isIcarus(rt)) {
       const logPath = path.join(hostVolumePath(serverId), "drive_c/icarus/Saved/Logs/Icarus.log");
       const max = parseInt(rt.spec.environment["SERVER_MAX_PLAYERS"] ?? "", 10) || 8;
-      const tracker = new IcarusLogTracker(logPath, max, (e) => this.handleIcarusEvent(serverId, e));
+      const adminIds = new Set(
+        (rt.spec.environment["ICARUS_ADMIN_STEAMIDS"] ?? "")
+          .split(/[,;\s]+/)
+          .map((s) => s.trim())
+          .filter((s) => /^\d{17}$/.test(s)),
+      );
+      const tracker = new IcarusLogTracker(logPath, max, (e) => this.handleIcarusEvent(serverId, e), adminIds);
       rt.icarusLog = tracker;
       tracker.start().catch((e) => logger.warn({ e, serverId }, "icarus log tracker failed to start"));
       // Icarus answers A2S on a distinct Query port — keep a latency ping there.

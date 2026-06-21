@@ -92,6 +92,18 @@ export const icarus: GameTemplate = {
       group: "Access",
     },
     {
+      key: "ICARUS_ADMIN_STEAMIDS",
+      name: "Admins (SteamID64)",
+      description:
+        "Liste de SteamID64 (séparés par des virgules) considérés comme admins. Ces joueurs apparaissent en doré dans « Joueurs connectés ». Icarus ne loguant pas qui est admin, c'est cette liste qui fait foi.",
+      default: "",
+      userViewable: true,
+      userEditable: true,
+      type: "string",
+      rules: "string",
+      group: "Access",
+    },
+    {
       key: "SERVER_RESUME_PROSPECT",
       name: "Reprendre le prospect au démarrage",
       description:

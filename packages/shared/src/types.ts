@@ -32,7 +32,7 @@ export interface ServerStats {
   /** Seconds the container has been running, if any. */
   uptimeSeconds: number;
   /** Player count if the template can report it (e.g. via query/RCON). */
-  players?: { online: number; max: number; sample?: string[] };
+  players?: { online: number; max: number; sample?: string[]; admins?: string[] };
   /** Round-trip latency (ms) of the last player/health query (RCON or A2S), if measured. */
   latencyMs?: number;
 }

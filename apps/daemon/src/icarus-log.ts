@@ -18,6 +18,8 @@ export interface IcarusPlayer {
   name: string;
   /** epoch ms when we first observed this player connect (best-effort). */
   since: number;
+  /** true if this player's SteamID is in the configured admin list. */
+  admin: boolean;
 }
 
 export type IcarusEvent =
@@ -59,7 +61,15 @@ export class IcarusLogTracker {
     private readonly logPath: string,
     private maxPlayers: number,
     private readonly onEvent: (e: IcarusEvent) => void,
+    /** SteamID64s treated as admins (shown in a different colour in the panel). */
+    private adminIds: Set<string> = new Set(),
   ) {}
+
+  setAdminIds(ids: Set<string>): void {
+    this.adminIds = ids;
+    // re-tag the current roster so a config change takes effect without a rejoin
+    for (const p of this.players.values()) p.admin = ids.has(p.steamId);
+  }
 
   async start(): Promise<void> {
     await this.seed();
@@ -78,11 +88,13 @@ export class IcarusLogTracker {
     if (n > 0) this.maxPlayers = n;
   }
 
-  snapshot(): { online: number; max: number; sample: string[] } {
+  snapshot(): { online: number; max: number; sample: string[]; admins: string[] } {
+    const players = [...this.players.values()];
     return {
       online: this.players.size,
       max: this.maxPlayers,
-      sample: [...this.players.values()].map((p) => p.name),
+      sample: players.map((p) => p.name),
+      admins: players.filter((p) => p.admin).map((p) => p.name),
     };
   }
 
@@ -167,7 +179,12 @@ export class IcarusLogTracker {
       const steamId = m[1]!;
       const name = cleanName(m[2]!) || `Joueur ${steamId.slice(-4)}`;
       const existing = this.players.get(steamId);
-      const player: IcarusPlayer = { steamId, name, since: existing?.since ?? Date.now() };
+      const player: IcarusPlayer = {
+        steamId,
+        name,
+        since: existing?.since ?? Date.now(),
+        admin: this.adminIds.has(steamId),
+      };
       this.players.set(steamId, player);
       if (!silent && !existing) {
         this.onEvent({ type: "join", player, online: this.players.size, max: this.maxPlayers });
