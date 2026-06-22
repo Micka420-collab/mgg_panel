@@ -8,6 +8,9 @@ import { teamFortress2, counterStrike2 } from "./source.js";
 import { teamspeak, mumble } from "./voice.js";
 import { velocityProxy, bungeeProxy } from "./velocity.js";
 import { fivem } from "./fivem.js";
+import { mysql, mariadb, postgres, redis } from "./database.js";
+import { nginxStatic, wordpress } from "./webhosting.js";
+import { n8n, uptimeKuma, vaultwarden, nextcloud } from "./apps.js";
 
 export * from "./template.js";
 
@@ -28,7 +31,43 @@ export const TEMPLATES: GameTemplate[] = [
   counterStrike2,
   teamspeak,
   mumble,
+  // ── Hébergement : bases de données ──
+  mysql,
+  mariadb,
+  postgres,
+  redis,
+  // ── Hébergement : web ──
+  nginxStatic,
+  wordpress,
+  // ── Hébergement : apps / SaaS ──
+  n8n,
+  uptimeKuma,
+  vaultwarden,
+  nextcloud,
 ];
+
+/** Display metadata for each catalog category (labels, icons, order, grouping). */
+export interface CategoryMeta {
+  key: GameTemplate["category"];
+  label: string;
+  icon: string;
+  /** high-level group shown as a section in the catalog */
+  group: "Jeux" | "Hébergement";
+  order: number;
+}
+export const CATEGORIES: CategoryMeta[] = [
+  { key: "minecraft", label: "Minecraft", icon: "🟩", group: "Jeux", order: 0 },
+  { key: "survival", label: "Survie", icon: "🌍", group: "Jeux", order: 1 },
+  { key: "sandbox", label: "Bac à sable", icon: "🧱", group: "Jeux", order: 2 },
+  { key: "shooter", label: "FPS / Shooter", icon: "🎯", group: "Jeux", order: 3 },
+  { key: "other", label: "Autres jeux & voix", icon: "🎮", group: "Jeux", order: 4 },
+  { key: "database", label: "Bases de données", icon: "🗄️", group: "Hébergement", order: 5 },
+  { key: "web", label: "Hébergement web", icon: "🌐", group: "Hébergement", order: 6 },
+  { key: "app", label: "Apps & SaaS", icon: "🚀", group: "Hébergement", order: 7 },
+];
+export function categoryMeta(key: string): CategoryMeta {
+  return CATEGORIES.find((c) => c.key === key) ?? { key: "other", label: "Autres", icon: "📦", group: "Jeux", order: 99 };
+}
 
 const TEMPLATE_MAP = new Map(TEMPLATES.map((t) => [t.id, t]));
 

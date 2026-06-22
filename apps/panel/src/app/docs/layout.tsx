@@ -5,6 +5,7 @@ import { Footer } from "@/components/marketing/footer";
 
 const sections = [
   { href: "/docs", label: "Overview" },
+  { href: "/docs/hosting", label: "Hébergement" },
   { href: "/docs/launcher", label: "Launcher API" },
   { href: "/docs/api", label: "REST API" },
 ];

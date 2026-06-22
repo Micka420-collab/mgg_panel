@@ -69,7 +69,7 @@ export interface GameTemplate {
   icon: string;
   /** accent colour for cards / theming, hex */
   color: string;
-  category: "minecraft" | "survival" | "sandbox" | "shooter" | "other";
+  category: "minecraft" | "survival" | "sandbox" | "shooter" | "other" | "database" | "web" | "app";
 
   /** selectable docker images: label -> image ref (e.g. java versions) */
   dockerImages: Record<string, string>;
@@ -121,4 +121,6 @@ export type TemplateFeature =
   | "wine" // runs a Windows binary under Wine/Proton
   | "auto-pause" // can sleep when empty (lazymc-style)
   | "world-upload" // supports uploading an existing world/save
-  | "workshop"; // Steam Workshop addons & maps (Garry's Mod / Source)
+  | "workshop" // Steam Workshop addons & maps (Garry's Mod / Source)
+  | "database" // a managed database server (show connection details)
+  | "web"; // serves HTTP — the panel can surface a "Visit site" link / domain

@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Rocket, Check, Upload, PackageOpen, Sparkles } from "lucide-react";
+import { Loader2, Rocket, Check, Upload, PackageOpen, Sparkles, Server, Gamepad2 } from "lucide-react";
 import { api } from "@/lib/client";
+import { CATEGORIES } from "@mgg/shared";
 import { cn } from "@/lib/util";
 import { DEFAULT_PLANS } from "@/lib/plans";
 import { ModpackPicker } from "@/components/dashboard/modpack-picker";
@@ -14,6 +15,7 @@ interface TemplateView {
   tagline: string;
   icon: string;
   color: string;
+  category: string;
   features: string[];
   images: string[];
   defaultImage: string | null;
@@ -125,35 +127,60 @@ export default function NewServerPage() {
       {error && <div className="mt-4 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        {/* game picker */}
+        {/* service picker, grouped by category (Jeux / Hébergement) */}
         <div>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/40">1 · Choose a game</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {templates.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => pick(t)}
-                className={cn(
-                  "relative overflow-hidden rounded-2xl border p-4 text-left transition",
-                  selected?.id === t.id ? "border-cyan/60 bg-white/[0.08]" : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]",
-                )}
-              >
-                {selected?.id === t.id && (
-                  <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full bg-cyan text-white">
-                    <Check className="h-3 w-3" />
-                  </span>
-                )}
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-black/30 text-xl">{t.icon}</span>
-                  <div>
-                    <div className="font-medium text-white">{t.name}</div>
-                    <div className="text-xs text-white/40">{t.tagline}</div>
-                  </div>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/40">1 · Choisis un service</h2>
+          {templates.length === 0 && <Loader2 className="h-5 w-5 animate-spin text-cyan" />}
+          {(["Jeux", "Hébergement"] as const).map((groupName) => {
+            const cats = CATEGORIES.filter((c) => c.group === groupName && templates.some((t) => t.category === c.key));
+            if (cats.length === 0) return null;
+            return (
+              <div key={groupName} className="mb-7">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white/85">
+                  {groupName === "Hébergement" ? <Server className="h-4 w-4 text-violet" /> : <Gamepad2 className="h-4 w-4 text-cyan" />}
+                  {groupName}
+                  {groupName === "Hébergement" && (
+                    <span className="rounded-full bg-violet/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet">
+                      Bases de données · Web · Apps
+                    </span>
+                  )}
                 </div>
-              </button>
-            ))}
-            {templates.length === 0 && <Loader2 className="h-5 w-5 animate-spin text-cyan" />}
-          </div>
+                {cats.map((c) => {
+                  const items = templates.filter((t) => t.category === c.key);
+                  return (
+                    <div key={c.key} className="mb-4">
+                      <div className="mb-2 text-xs font-medium uppercase tracking-wide text-white/35">{c.icon} {c.label}</div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {items.map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => pick(t)}
+                            className={cn(
+                              "relative overflow-hidden rounded-2xl border p-4 text-left transition",
+                              selected?.id === t.id ? "border-cyan/60 bg-white/[0.08]" : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]",
+                            )}
+                          >
+                            {selected?.id === t.id && (
+                              <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full bg-cyan text-white">
+                                <Check className="h-3 w-3" />
+                              </span>
+                            )}
+                            <div className="flex items-center gap-3">
+                              <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-black/30 text-xl">{t.icon}</span>
+                              <div>
+                                <div className="font-medium text-white">{t.name}</div>
+                                <div className="text-xs text-white/40">{t.tagline}</div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
 
         {/* config */}

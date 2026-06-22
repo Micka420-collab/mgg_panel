@@ -12,8 +12,9 @@ import {
   Sparkles,
   ArrowRight,
   Zap,
+  Database,
 } from "lucide-react";
-import { TEMPLATES } from "@mgg/shared";
+import { TEMPLATES, categoryMeta } from "@mgg/shared";
 import { AmbientBackground } from "@/components/ambient";
 import { MarketingNav } from "@/components/marketing/nav";
 import { Footer } from "@/components/marketing/footer";
@@ -33,7 +34,8 @@ const FEATURES = [
 ];
 
 const FAQ = [
-  { q: "Which games can I host?", a: "Minecraft (Java & Bedrock — Paper, Purpur, Fabric, Forge, NeoForge, modpacks) and Icarus ship today. Valheim, Palworld and Rust are included too, and the template engine makes adding any game pure data." },
+  { q: "Which games can I host?", a: "Minecraft (Java & Bedrock — Paper, Spigot, Sponge, Fabric, Forge, NeoForge, modpacks, BungeeCord/Waterfall/Velocity proxies), Icarus, Valheim, Palworld, Rust, Terraria, Garry's Mod, Team Fortress 2, CS2, plus TeamSpeak & Mumble voice servers. The template engine makes adding any game pure data." },
+  { q: "Can I host more than games (databases, websites, apps)?", a: "Yes — MGG is a complete hosting tool. From the same catalog you deploy databases (MySQL, MariaDB, PostgreSQL, Redis), websites (Nginx static, WordPress) and 1-click self-hosted apps (n8n, Uptime Kuma, Vaultwarden, Nextcloud) — each with the same console, file manager, backups and RAM manager as a game server. Point a Minecraft plugin at a MySQL you spun up, or host your community's website right next to the server." },
   { q: "Can I connect my own Minecraft launcher?", a: "Yes — that's a first-class feature. MGG exposes a device-code OAuth flow and a versioned REST + WebSocket API so your launcher can authenticate users, list their servers, fetch live connection info (ip:port), and start/stop/join with one call." },
   { q: "How does sleeping save me money?", a: "Idle servers stop and free node resources, then wake on the first join. You get unlimited play without paying for an always-on box — and we never bill crashed or errored runtime." },
   { q: "Is my data safe?", a: "Every server runs in an isolated container with strict CPU/RAM/PID limits. Backups are world-flushed before archiving, can be locked against deletion, and pushed to S3. Accounts support TOTP 2FA and scoped API keys." },
@@ -41,7 +43,8 @@ const FAQ = [
 ];
 
 export default function LandingPage() {
-  const games = TEMPLATES;
+  const games = TEMPLATES.filter((t) => categoryMeta(t.category).group === "Jeux");
+  const hosting = TEMPLATES.filter((t) => categoryMeta(t.category).group === "Hébergement");
   return (
     <>
       <AmbientBackground dense />
@@ -65,8 +68,9 @@ export default function LandingPage() {
             </Reveal>
             <Reveal delay={0.1}>
               <p className="mt-6 max-w-xl text-lg text-white/60">
-                Deploy Minecraft, Icarus and more on premium Ryzen + NVMe hardware. A control panel that out-classes
-                the rest, wake-on-join sleeping, one-click mods, and a clean API for your custom launcher.
+                Game servers, databases, websites and 1-click apps — one complete hosting tool on premium Ryzen + NVMe
+                hardware. Wake-on-join sleeping, one-click mods, a built-in RAM manager, and a clean API for your
+                custom launcher.
               </p>
             </Reveal>
             <Reveal delay={0.15}>
@@ -150,6 +154,45 @@ export default function LandingPage() {
                       <span key={f} className="chip text-[10px]">{f}</span>
                     ))}
                   </div>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Hosting catalog (databases · web · apps) ─────────── */}
+      <section id="hosting" className="px-6 pt-28">
+        <div className="mx-auto max-w-6xl">
+          <Reveal>
+            <span className="kicker"><Database className="h-3.5 w-3.5" /> Hébergement complet</span>
+            <h2 className="mt-5 font-display text-4xl font-bold text-white">Pas que des jeux.</h2>
+            <p className="mt-3 max-w-2xl text-white/55">
+              Bases de données, sites web et apps en 1 clic — la base SQL de tes plugins, le site de ta communauté, ou
+              tes propres SaaS auto-hébergés. Même gestion que les jeux : console, fichiers, sauvegardes, RAM.
+            </p>
+          </Reveal>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {hosting.map((g, i) => (
+              <Reveal key={g.id} delay={(i % 3) * 0.06}>
+                <Link
+                  href="/register"
+                  className="group relative block h-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition hover:border-white/20 hover:bg-white/[0.07]"
+                >
+                  <div
+                    className="absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl opacity-40 transition group-hover:opacity-70"
+                    style={{ background: g.color }}
+                  />
+                  <div className="relative flex items-center gap-3">
+                    <span className="grid h-12 w-12 place-items-center rounded-xl border border-white/10 bg-black/30 text-2xl">
+                      {g.icon}
+                    </span>
+                    <div>
+                      <h3 className="font-display text-lg font-semibold text-white">{g.name}</h3>
+                      <p className="text-xs text-white/45">{g.tagline}</p>
+                    </div>
+                  </div>
+                  <p className="relative mt-4 text-sm text-white/55 line-clamp-3">{g.description}</p>
                 </Link>
               </Reveal>
             ))}
