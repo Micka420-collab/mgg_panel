@@ -75,3 +75,6 @@ Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) 
 
 ### Lot 12 — Accessibilité (réveil 6h19)
 - `aria-label` sur les boutons icône-only (copier l'adresse, kill, effacer recherche console, retour-bas console) — lecteurs d'écran + clavier. Système vérifié sain au réveil (panel 200, Icarus up NaN=0, disque 48%).
+
+### Lot 13 — Garde anti-perte dans l'éditeur de fichiers
+- L'éditeur de fichiers (`files-panel.tsx`) affiche un indicateur **« ● non enregistré »** et **demande confirmation avant de fermer** (clic fond ou ×) si des modifications ne sont pas sauvées. Évite de perdre une édition de config par erreur.

@@ -13,7 +13,7 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<{ path: string; content: string } | null>(null);
+  const [editing, setEditing] = useState<{ path: string; content: string; original: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
 
@@ -38,7 +38,7 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
   async function openFile(p: string) {
     try {
       const res = await api<{ content: string }>(`/api/servers/${id}/files/content?path=${encodeURIComponent(p)}`);
-      setEditing({ path: p, content: res.content });
+      setEditing({ path: p, content: res.content, original: res.content });
     } catch (e: any) {
       setError(e.message);
     }
@@ -55,6 +55,21 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
     } finally {
       setSaving(false);
     }
+  }
+
+  async function closeEditor() {
+    if (editing && editing.content !== editing.original) {
+      if (
+        !(await confirmDialog({
+          title: "Fermer sans enregistrer ?",
+          description: "Les modifications non enregistrées seront perdues.",
+          danger: true,
+          confirmLabel: "Fermer",
+        }))
+      )
+        return;
+    }
+    setEditing(null);
   }
 
   async function del(p: string) {
@@ -173,17 +188,20 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
 
       {/* editor modal */}
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={closeEditor}>
           <div className="glass-raised flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-              <span className="font-mono text-sm text-white/70">{editing.path}</span>
+              <span className="font-mono text-sm text-white/70">
+                {editing.path}
+                {editing.content !== editing.original && <span className="ml-2 not-italic text-warn">● non enregistré</span>}
+              </span>
               <div className="flex items-center gap-2">
                 {canWrite && (
                   <button onClick={save} disabled={saving} className="btn-primary px-3 py-1.5 text-xs">
                     {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save
                   </button>
                 )}
-                <button onClick={() => setEditing(null)} className="btn-ghost px-2 py-1.5"><X className="h-4 w-4" /></button>
+                <button onClick={closeEditor} aria-label="Fermer l'éditeur" className="btn-ghost px-2 py-1.5"><X className="h-4 w-4" /></button>
               </div>
             </div>
             <textarea
