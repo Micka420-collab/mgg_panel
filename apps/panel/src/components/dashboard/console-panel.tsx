@@ -11,6 +11,8 @@ import {
   Download,
   ArrowDownToLine,
   X,
+  Plus,
+  Zap,
 } from "lucide-react";
 import type { ServerSocket } from "@/lib/use-server-socket";
 import { cn } from "@/lib/util";
@@ -60,7 +62,17 @@ function highlight(text: string, q: string): React.ReactNode {
 
 type FilterMode = "all" | "warn" | "error";
 
-export function ConsolePanel({ socket, canCommand, joinUrl }: { socket: ServerSocket; canCommand: boolean; joinUrl?: string }) {
+export function ConsolePanel({
+  socket,
+  serverId,
+  canCommand,
+  joinUrl,
+}: {
+  socket: ServerSocket;
+  serverId: string;
+  canCommand: boolean;
+  joinUrl?: string;
+}) {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);
@@ -68,8 +80,44 @@ export function ConsolePanel({ socket, canCommand, joinUrl }: { socket: ServerSo
   const [filter, setFilter] = useState<FilterMode>("all");
   const [autoscroll, setAutoscroll] = useState(true);
   const [atBottomState, setAtBottomState] = useState(true);
+  const [macros, setMacros] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
+
+  // Saved command macros (quick-action buttons), persisted per server.
+  const macroKey = `mgg:macros:${serverId}`;
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(macroKey);
+      if (raw) setMacros(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverId]);
+
+  function persistMacros(next: string[]) {
+    setMacros(next);
+    try {
+      localStorage.setItem(macroKey, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  }
+  function addMacro() {
+    const cmd = input.trim();
+    if (!cmd || macros.includes(cmd) || macros.length >= 12) return;
+    persistMacros([...macros, cmd]);
+  }
+  function removeMacro(cmd: string) {
+    persistMacros(macros.filter((m) => m !== cmd));
+  }
+  function runMacro(cmd: string) {
+    if (!canCommand) return;
+    socket.sendCommand(cmd);
+    setHistory((h) => [...h, cmd]);
+    atBottom.current = true;
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -276,6 +324,35 @@ export function ConsolePanel({ socket, canCommand, joinUrl }: { socket: ServerSo
         )}
       </div>
 
+      {canCommand && (
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-white/10 bg-white/[0.015] px-3 py-2">
+          <span className="flex items-center gap-1 text-[11px] text-white/35">
+            <Zap className="h-3 w-3" /> Macros
+          </span>
+          {macros.map((m) => (
+            <span key={m} className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/30 py-1 pl-2 pr-1 text-xs">
+              <button onClick={() => runMacro(m)} className="max-w-[180px] truncate font-mono text-cyan-light hover:text-cyan" title={`Exécuter : ${m}`}>
+                {m}
+              </button>
+              <button onClick={() => removeMacro(m)} className="text-white/25 hover:text-danger" title="Retirer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+          {input.trim() && !macros.includes(input.trim()) && macros.length < 12 && (
+            <button
+              onClick={addMacro}
+              title="Enregistrer la commande en cours comme macro"
+              className="inline-flex items-center gap-1 rounded-md border border-dashed border-white/15 px-2 py-1 text-xs text-white/45 transition hover:border-cyan/40 hover:text-cyan-light"
+            >
+              <Plus className="h-3 w-3" /> Enregistrer
+            </button>
+          )}
+          {macros.length === 0 && !input.trim() && (
+            <span className="text-[11px] text-white/25">tape une commande puis « Enregistrer » pour créer un raccourci</span>
+          )}
+        </div>
+      )}
       <form onSubmit={submit} className="flex items-center gap-2 border-t border-white/10 bg-console-bg px-3 py-2.5">
         <ChevronRight className="h-4 w-4 text-cyan" />
         <input

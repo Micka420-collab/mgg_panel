@@ -26,3 +26,6 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 ### Lot 3 — Score de santé + skeletons
 - **Score de santé** serveur (`server-detail.tsx`) : badge vert « Bonne santé » / ambre « Charge élevée » / rouge « Critique » dans l'en-tête, calculé en direct depuis CPU / RAM / latence. Vue d'un coup d'œil que les autres panels n'ont pas.
 - **Skeletons de chargement** sur les tuiles de stats (shimmer au lieu de « — » pendant le chargement).
+
+### Lot 4 — Macros de commandes (console)
+- **Barre de macros** dans la console (`console-panel.tsx`) : enregistre tes commandes favorites en boutons cliquables (ex. « say Redémarrage dans 5 min », « list », « weather clear »), persistées par serveur (localStorage). 1 clic = exécution. Atout power-user que les autres panels n'ont pas.

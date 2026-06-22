@@ -334,6 +334,7 @@ export function ServerDetail({ id }: { id: string }) {
         {tab === "console" && (
           <ConsolePanel
             socket={socket}
+            serverId={id}
             canCommand={can("control.command")}
             joinUrl={
               s.game === "icarus" || s.templateId === "icarus-dedicated"
