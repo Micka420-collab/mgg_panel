@@ -6,6 +6,7 @@ import {
 import type { FileEntry } from "@mgg/shared";
 import { api } from "@/lib/client";
 import { confirmDialog } from "@/components/ui/confirm";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatBytes } from "@/lib/util";
 
 export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: boolean; canDelete: boolean }) {
@@ -182,7 +183,7 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
               </div>
             </div>
           ))}
-          {entries.length === 0 && <div className="px-4 py-10 text-center text-sm text-white/30">Empty folder</div>}
+          {entries.length === 0 && <EmptyState icon={Folder} title="Dossier vide" />}
         </div>
       )}
 

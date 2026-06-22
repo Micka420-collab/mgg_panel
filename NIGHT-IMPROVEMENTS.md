@@ -78,3 +78,6 @@ Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) 
 
 ### Lot 13 — Garde anti-perte dans l'éditeur de fichiers
 - L'éditeur de fichiers (`files-panel.tsx`) affiche un indicateur **« ● non enregistré »** et **demande confirmation avant de fermer** (clic fond ou ×) si des modifications ne sont pas sauvées. Évite de perdre une édition de config par erreur.
+
+### Lot 14 — Cohérence des états vides
+- Composant `EmptyState` appliqué aux panneaux **Joueurs** (hors ligne / aucun joueur) et **Fichiers** (dossier vide) → tous les états vides du panel sont désormais soignés et homogènes.
