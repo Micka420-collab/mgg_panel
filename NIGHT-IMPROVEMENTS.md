@@ -48,3 +48,27 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 
 ### Lot 10 — États vides soignés
 - **Composant `EmptyState`** réutilisable (icône + titre + texte) appliqué aux panneaux **Sauvegardes** et **Planifications** : « rien ici » devient un état soigné et localisé au lieu d'un texte gris brut. Le genre de détail qui fait pro.
+
+### Lot 11 — Titre d'onglet dynamique
+- Le **nom du serveur** s'affiche dans l'onglet du navigateur (`ServerName · MGG`) quand on est sur sa page — pratique avec plusieurs serveurs ouverts en parallèle (`server-detail.tsx`).
+
+---
+
+## 🌅 Récap pour 6h
+**11 améliorations déployées en autonomie, chacune vérifiée (panel HTTP 200) avant de passer à la suivante. Aucune coupure du serveur Icarus (builds panel-only). Disque sous contrôle.**
+
+1. Console pro — recherche+surlignage, filtre gravité, copie, .txt, compteur, retour-bas
+2. Palette de commandes ⌘K (saut rapide serveur/page) — *aucun panel concurrent n'a ça*
+3. Score de santé serveur (vert/ambre/rouge) + skeletons de chargement
+4. Macros de commandes (boutons favoris par serveur)
+5. Favoris dashboard (⭐ épingler en haut)
+6. Bouton fermer sur les toasts + fil d'ariane
+7. Badge live d'alertes non résolues (menu Admin)
+8. Suggestions de commandes (autocomplétion par préfixe)
+9. Barres d'usage CPU/RAM/Disque sur les tuiles
+10. États vides soignés (composant `EmptyState`)
+11. Titre d'onglet dynamique
+
+**Incident géré** : disque VM saturé à 100% (images Docker de mes builds) → purgé à 48%, + `docker image prune` désormais automatique après chaque build. C'était probablement la cause du prospect Icarus qui ne se chargeait pas.
+
+Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) : accessibilité aria-labels, responsive mobile fin, diff de config dans l'éditeur de fichiers, sparklines sur les cartes du dashboard.

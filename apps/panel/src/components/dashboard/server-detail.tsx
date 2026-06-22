@@ -46,6 +46,15 @@ export function ServerDetail({ id }: { id: string }) {
     sessionStorage.setItem(`mgg:tab:${id}`, tab);
   }, [id, tab]);
 
+  // Show the server name in the browser tab (handy with several tabs open).
+  useEffect(() => {
+    const name = detail?.server?.name;
+    if (name) document.title = `${name} · MGG`;
+    return () => {
+      document.title = "MGG";
+    };
+  }, [detail?.server?.name]);
+
   const load = () => api(`/api/servers/${id}`).then(setDetail).catch(() => {});
   useEffect(() => {
     load();
