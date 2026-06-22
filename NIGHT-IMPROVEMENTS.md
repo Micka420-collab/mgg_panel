@@ -29,3 +29,6 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 
 ### Lot 4 — Macros de commandes (console)
 - **Barre de macros** dans la console (`console-panel.tsx`) : enregistre tes commandes favorites en boutons cliquables (ex. « say Redémarrage dans 5 min », « list », « weather clear »), persistées par serveur (localStorage). 1 clic = exécution. Atout power-user que les autres panels n'ont pas.
+
+### Lot 5 — Favoris dashboard
+- **`server-grid.tsx`** : sur le tableau de bord, ⭐ épingle un serveur en favori → il remonte en haut de la liste (persisté localStorage). Étoile au survol des cartes. Utile dès qu'on gère plusieurs serveurs. Page dashboard refactorisée (cartes extraites en composant client).
