@@ -19,3 +19,10 @@ déploiement, revenir en arrière si casse. Lots d'améliorations → 1 build te
 ### Lot 2 — Palette de commandes (Cmd/Ctrl+K)
 - **`command-palette.tsx`** : palette globale (⌘K / Ctrl+K) pour sauter vers n'importe quel serveur ou page instantanément (recherche floue, navigation clavier ↑↓ + Entrée, Échap). Aucun panel concurrent (Pterodactyl/Pelican) n'a ça.
 - Bouton « Rechercher ⌘K » ajouté dans la sidebar (`shell.tsx`) pour la découvrabilité.
+
+### ⚠️ Incident disque (résolu)
+Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'images orphelines + 22 GB de cache). Purgé → **48% (50 GB libres)**. Probablement la cause du prospect Icarus qui ne se chargeait pas (disque plein = save impossible). **Correctif permanent** : `docker image prune -f` intégré après chaque build nocturne.
+
+### Lot 3 — Score de santé + skeletons
+- **Score de santé** serveur (`server-detail.tsx`) : badge vert « Bonne santé » / ambre « Charge élevée » / rouge « Critique » dans l'en-tête, calculé en direct depuis CPU / RAM / latence. Vue d'un coup d'œil que les autres panels n'ont pas.
+- **Skeletons de chargement** sur les tuiles de stats (shimmer au lieu de « — » pendant le chargement).

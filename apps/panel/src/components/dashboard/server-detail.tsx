@@ -152,6 +152,20 @@ export function ServerDetail({ id }: { id: string }) {
     { key: "subusers", label: "Sub-users", icon: Users2, show: detail.isOwner },
   ];
 
+  // One-glance health: green (healthy) / amber (under load) / red (critical),
+  // derived from CPU-of-limit, RAM pressure and query latency while running.
+  const health = (() => {
+    if (state !== "running" || !stats) return null;
+    const cpu = stats.cpuPercentOfLimit ?? 0;
+    const memPct = stats.memoryLimitBytes ? (stats.memoryBytes / stats.memoryLimitBytes) * 100 : 0;
+    const lat = stats.latencyMs ?? 0;
+    let level: "good" | "warn" | "bad" = "good";
+    if (cpu > 90 || memPct > 95 || lat > 300) level = "bad";
+    else if (cpu > 75 || memPct > 85 || (lat > 150 && lat > 0)) level = "warn";
+    const label = level === "good" ? "Bonne santé" : level === "warn" ? "Charge élevée" : "Critique";
+    return { level, label };
+  })();
+
   const tiles = [
     { icon: Cpu, label: "CPU", value: stats ? `${stats.cpuPercentOfLimit}%` : "—", sub: stats ? `${stats.cpuPercent.toFixed(0)}% raw` : "" },
     { icon: MemoryStick, label: "Memory", value: stats ? formatBytes(stats.memoryBytes, 0) : "—", sub: `of ${formatBytes(s.memoryMb * 1024 * 1024, 0)}` },
@@ -179,6 +193,27 @@ export function ServerDetail({ id }: { id: string }) {
               <div className="flex items-center gap-3">
                 <h1 className="font-display text-2xl font-bold text-white">{s.name}</h1>
                 <StateBadge state={state} />
+                {health && (
+                  <span
+                    title="Santé estimée à partir du CPU, de la RAM et de la latence"
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+                      health.level === "good"
+                        ? "border-online/30 bg-online/10 text-online"
+                        : health.level === "warn"
+                          ? "border-warn/30 bg-warn/10 text-warn"
+                          : "border-danger/30 bg-danger/10 text-danger",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 rounded-full",
+                        health.level === "good" ? "bg-online" : health.level === "warn" ? "bg-warn" : "bg-danger",
+                      )}
+                    />
+                    {health.label}
+                  </span>
+                )}
                 {s.clonedFrom && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 bg-violet/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet">
                     <GitBranch className="h-3 w-3" /> Clone
@@ -238,7 +273,11 @@ export function ServerDetail({ id }: { id: string }) {
               <div className="flex items-center gap-1.5 text-xs text-white/40">
                 <t.icon className="h-3.5 w-3.5" /> {t.label}
               </div>
-              <div className="mt-1 font-display text-lg font-semibold text-white">{t.value}</div>
+              {stats ? (
+                <div className="mt-1 font-display text-lg font-semibold text-white">{t.value}</div>
+              ) : (
+                <div className="mt-2 h-4 w-12 animate-pulse rounded bg-white/10" />
+              )}
               {t.sub && <div className="text-[11px] text-white/30">{t.sub}</div>}
             </div>
           ))}
