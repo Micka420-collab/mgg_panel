@@ -178,9 +178,13 @@ export function ServerDetail({ id }: { id: string }) {
 
   return (
     <div>
-      <Link href="/dashboard" className="mb-5 inline-flex items-center gap-1.5 text-sm text-white/45 hover:text-white">
-        <ArrowLeft className="h-4 w-4" /> All servers
-      </Link>
+      <div className="mb-5 flex items-center gap-1.5 text-sm text-white/45">
+        <Link href="/dashboard" className="inline-flex items-center gap-1.5 hover:text-white">
+          <ArrowLeft className="h-4 w-4" /> Serveurs
+        </Link>
+        <span className="text-white/25">/</span>
+        <span className="max-w-[220px] truncate text-white/70">{s.name}</span>
+      </div>
 
       {/* header */}
       <div className="glass-raised lit-panel p-5">

@@ -149,6 +149,13 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                   >
                     <Icon className="mt-0.5 h-4 w-4 shrink-0" />
                     <span className="leading-snug text-white/90">{t.message}</span>
+                    <button
+                      onClick={() => setToasts((ts) => ts.filter((x) => x.id !== t.id))}
+                      aria-label="Fermer"
+                      className="mt-0.5 ml-1 shrink-0 text-white/40 transition hover:text-white"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 );
               })}

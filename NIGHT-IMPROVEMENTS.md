@@ -32,3 +32,7 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 
 ### Lot 5 — Favoris dashboard
 - **`server-grid.tsx`** : sur le tableau de bord, ⭐ épingle un serveur en favori → il remonte en haut de la liste (persisté localStorage). Étoile au survol des cartes. Utile dès qu'on gère plusieurs serveurs. Page dashboard refactorisée (cartes extraites en composant client).
+
+### Lot 6 — Polish (toasts + fil d'ariane)
+- **Bouton fermer (×)** sur les notifications toast (`confirm.tsx`) — dismiss manuel + `aria-label`.
+- **Fil d'ariane** sur la page serveur (`server-detail.tsx`) : « Serveurs / NomDuServeur » au lieu du simple lien retour → contexte plus clair.
