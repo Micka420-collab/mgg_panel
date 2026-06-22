@@ -37,6 +37,15 @@ export function ServerDetail({ id }: { id: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const socket = useServerSocket(id);
 
+  // Remember the last open tab per server (survives navigation within the session).
+  useEffect(() => {
+    const saved = sessionStorage.getItem(`mgg:tab:${id}`);
+    if (saved) setTab(saved as Tab);
+  }, [id]);
+  useEffect(() => {
+    sessionStorage.setItem(`mgg:tab:${id}`, tab);
+  }, [id, tab]);
+
   const load = () => api(`/api/servers/${id}`).then(setDetail).catch(() => {});
   useEffect(() => {
     load();
