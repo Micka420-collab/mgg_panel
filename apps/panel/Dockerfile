@@ -29,7 +29,8 @@ COPY --from=build /app /app
 WORKDIR /app/apps/panel
 EXPOSE 3000
 # Sync the schema to the DB (idempotent), seed defaults, then start.
-# `db push` creates tables from schema.prisma; WITHOUT --accept-data-loss it
-# refuses destructive changes instead of silently dropping data. For production,
-# adopt `prisma migrate deploy` with checked-in migrations.
-CMD ["sh", "-c", "npx prisma db push --skip-generate && npm run db:seed && npm run start"]
+# `db push` keeps the data-loss guard (no --accept-data-loss) so it never silently
+# drops data — but it is made NON-FATAL (|| true): if a schema change needs manual
+# sync, the panel still boots (degraded) instead of crash-looping into a 502.
+# For stricter production, adopt `prisma migrate deploy` with checked-in migrations.
+CMD ["sh", "-c", "npx prisma db push --skip-generate || echo 'WARN: db push skipped — manual schema sync may be needed'; npm run db:seed || true; npm run start"]
