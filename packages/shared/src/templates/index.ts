@@ -2,8 +2,11 @@ import type { GameTemplate } from "./template.js";
 import { minecraftJava, minecraftBedrock } from "./minecraft.js";
 import { icarus } from "./icarus.js";
 import { valheim, palworld, rust } from "./extra.js";
+import { terraria } from "./terraria.js";
 import { garrysmod } from "./garrysmod.js";
-import { velocityProxy } from "./velocity.js";
+import { teamFortress2, counterStrike2 } from "./source.js";
+import { teamspeak, mumble } from "./voice.js";
+import { velocityProxy, bungeeProxy } from "./velocity.js";
 import { fivem } from "./fivem.js";
 
 export * from "./template.js";
@@ -12,13 +15,19 @@ export * from "./template.js";
 export const TEMPLATES: GameTemplate[] = [
   minecraftJava,
   minecraftBedrock,
+  velocityProxy,
+  bungeeProxy,
   icarus,
   fivem,
   valheim,
   palworld,
   rust,
+  terraria,
   garrysmod,
-  velocityProxy,
+  teamFortress2,
+  counterStrike2,
+  teamspeak,
+  mumble,
 ];
 
 const TEMPLATE_MAP = new Map(TEMPLATES.map((t) => [t.id, t]));

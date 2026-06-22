@@ -10,7 +10,7 @@ export const minecraftJava: GameTemplate = {
   id: "minecraft-java",
   game: "minecraft",
   name: "Minecraft: Java Edition",
-  tagline: "Vanilla, Paper, Fabric, Forge, NeoForge & more",
+  tagline: "Paper, Spigot, Fabric, Forge, NeoForge, Sponge & more",
   description:
     "The full Java Edition experience. Pick any flavour (Paper, Purpur, Fabric, Forge, NeoForge, Quilt, Vanilla) and any version, then install plugins and mods in one click. RCON console, fast Aikar JVM flags and auto world management included.",
   author: "MGG",
@@ -81,6 +81,7 @@ export const minecraftJava: GameTemplate = {
         { value: "NEOFORGE", label: "NeoForge (mods)" },
         { value: "QUILT", label: "Quilt (mods)" },
         { value: "SPIGOT", label: "Spigot (plugins)" },
+        { value: "SPONGEVANILLA", label: "SpongeVanilla (Sponge plugins + mixins)" },
         { value: "VANILLA", label: "Vanilla (official)" },
       ],
     },
