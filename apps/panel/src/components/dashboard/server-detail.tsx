@@ -16,6 +16,7 @@ import { SettingsPanel } from "./settings-panel";
 import { BackupsPanel } from "./backups-panel";
 import { NetworkPanel } from "./network-panel";
 import { PlaytimeCard } from "./playtime-card";
+import { StatusPageCard } from "./status-page-card";
 import { ModsPanel } from "./mods-panel";
 import { WorkshopPanel } from "./workshop-panel";
 import { SchedulesPanel } from "./schedules-panel";
@@ -390,7 +391,12 @@ export function ServerDetail({ id }: { id: string }) {
         {tab === "schedules" && <SchedulesPanel id={id} canManage={can("schedule.update")} />}
         {tab === "settings" && <SettingsPanel id={id} detail={detail} onSaved={load} canRename={can("settings.rename")} canStartup={can("startup.update")} />}
         {tab === "backups" && <BackupsPanel id={id} canCreate={can("backup.create")} canDelete={can("backup.delete")} canRestore={can("backup.restore")} />}
-        {tab === "network" && <NetworkPanel detail={detail} isOwner={detail.isOwner} id={id} onChanged={load} />}
+        {tab === "network" && (
+          <div className="space-y-5">
+            <NetworkPanel detail={detail} isOwner={detail.isOwner} id={id} onChanged={load} />
+            {detail.isOwner && <StatusPageCard serverId={id} />}
+          </div>
+        )}
         {tab === "network-proxy" && <VelocityPanel id={id} canManage={can("startup.update")} />}
         {tab === "subusers" && <SubusersPanel id={id} />}
       </div>

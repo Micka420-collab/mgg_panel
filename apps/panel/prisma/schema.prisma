@@ -238,6 +238,7 @@ model Server {
   idleTimeout   Int     @default(600) // seconds empty before sleep
   autoRestart   Boolean @default(false) // monitor restarts the server if it crashes
   subdomain     String? @unique // e.g. "myserver" -> myserver.mgg.host
+  statusToken   String? @unique // public shareable status page token (/status/<token>)
 
   // Clone lineage: a cloned server remembers its origin so its files can be
   // pushed back to it (promote). onDelete SetNull so deleting an origin orphans
