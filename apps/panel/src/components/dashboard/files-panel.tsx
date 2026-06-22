@@ -73,6 +73,23 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
     setEditing(null);
   }
 
+  // Editor keyboard shortcuts: Esc closes (with the unsaved guard), Ctrl/Cmd+S saves.
+  useEffect(() => {
+    if (!editing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        void closeEditor();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (canWrite) void save();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, canWrite]);
+
   async function del(p: string) {
     if (
       !(await confirmDialog({
@@ -206,6 +223,7 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
               </div>
             </div>
             <textarea
+              autoFocus
               value={editing.content}
               onChange={(e) => setEditing({ ...editing, content: e.target.value })}
               readOnly={!canWrite}

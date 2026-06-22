@@ -84,3 +84,8 @@ Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) 
 
 ### Lot 15 — Confirmation Stop/Kill avec joueurs en ligne
 - Arrêter/forcer-l'arrêt (`server-detail.tsx`) **demande confirmation** quand des joueurs sont connectés (« X joueurs en ligne, déconnecter tout le monde ? ») — évite de couper le serveur sous les joueurs par mégarde. Complète le préavis déjà présent sur le redémarrage.
+
+## ☀️ Suite (matin, user « continue le polish »)
+
+### Lot 16 — Clavier dans l'éditeur de fichiers
+- `Échap` ferme l'éditeur (avec la garde anti-perte), `Ctrl/Cmd+S` enregistre, et le textarea prend le focus à l'ouverture (`files-panel.tsx`). Édition de config au clavier, comme un vrai éditeur.
