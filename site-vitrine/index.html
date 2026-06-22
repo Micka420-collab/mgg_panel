@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MGG Panel — Hébergement de jeux & services, en 1 clic</title>
+<meta name="description" content="MGG Panel : héberge tes serveurs de jeu, tes bases de données, tes sites web et tes apps depuis un seul panneau. Mods en 1 clic, sauvegardes, gestionnaire de RAM, et une API pour ton launcher." />
+<style>
+  :root{
+    --bg:#0a0e14; --bg2:#0d1117; --card:rgba(255,255,255,.04); --line:rgba(255,255,255,.10);
+    --cyan:#22B8D8; --cyan-l:#8FE3F2; --violet:#7C5CFF; --txt:#e8edf2; --muted:rgba(232,237,242,.55);
+    --online:#34D399;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  .grad{background:linear-gradient(135deg,var(--cyan) 0%,var(--violet) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:14px;font-weight:600;font-size:15px;transition:.2s;border:1px solid var(--line)}
+  .btn-p{background:linear-gradient(135deg,var(--cyan),var(--violet));border:none;color:#fff;box-shadow:0 10px 30px -12px rgba(124,92,255,.6)}
+  .btn-p:hover{transform:translateY(-2px)}
+  .btn-g:hover{background:rgba(255,255,255,.06)}
+  /* ambient glow */
+  .glow{position:fixed;inset:0;z-index:-1;pointer-events:none}
+  .glow::before,.glow::after{content:"";position:absolute;border-radius:50%;filter:blur(120px);opacity:.32}
+  .glow::before{width:520px;height:520px;background:var(--cyan);top:-160px;left:-120px}
+  .glow::after{width:560px;height:560px;background:var(--violet);top:160px;right:-160px}
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(10,14,20,.6);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{font-weight:800;font-size:19px;letter-spacing:-.5px}
+  .logo b{color:var(--cyan)}
+  nav .links{display:flex;gap:26px;font-size:14px;color:var(--muted)}
+  nav .links a:hover{color:var(--txt)}
+  @media(max-width:720px){nav .links{display:none}}
+  /* hero */
+  .hero{padding:96px 0 72px;text-align:center}
+  .kicker{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--cyan-l);border:1px solid var(--line);padding:6px 14px;border-radius:999px;background:var(--card)}
+  h1{font-size:clamp(40px,7vw,72px);line-height:1.04;font-weight:800;letter-spacing:-1.5px;margin:26px 0 0}
+  .hero p{max-width:620px;margin:22px auto 0;font-size:19px;color:var(--muted)}
+  .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:38px}
+  .pills{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:34px;font-size:14px;color:var(--muted)}
+  .pills span{display:inline-flex;gap:7px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--online);box-shadow:0 0 10px var(--online)}
+  /* section */
+  section{padding:72px 0}
+  .h2{font-size:clamp(28px,4.5vw,44px);font-weight:800;letter-spacing:-1px;text-align:center}
+  .sub{text-align:center;color:var(--muted);max-width:640px;margin:14px auto 0;font-size:17px}
+  .grid{display:grid;gap:18px;margin-top:48px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.g3,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;transition:.2s}
+  .card:hover{border-color:rgba(255,255,255,.22);transform:translateY(-3px)}
+  .card .ic{font-size:30px}
+  .card h3{margin:14px 0 6px;font-size:18px}
+  .card p{color:var(--muted);font-size:14.5px}
+  .cat{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--cyan);margin:40px 0 16px;font-weight:700}
+  .tile{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .tile .e{font-size:24px}
+  .tile b{display:block;font-size:15px}
+  .tile small{color:var(--muted);font-size:12.5px}
+  .grid.tiles{grid-template-columns:repeat(3,1fr);gap:12px;margin-top:0}
+  @media(max-width:760px){.grid.tiles{grid-template-columns:1fr}}
+  /* band */
+  .band{background:linear-gradient(135deg,rgba(34,184,216,.10),rgba(124,92,255,.10));border:1px solid var(--line);border-radius:26px;padding:46px;text-align:center}
+  .stats{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+  .stat b{display:block;font-size:34px;font-weight:800}
+  .stat small{color:var(--muted)}
+  /* footer */
+  footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<nav><div class="wrap">
+  <div class="logo">MGG<b>·</b>Panel</div>
+  <div class="links">
+    <a href="#jeux">Jeux</a>
+    <a href="#hebergement">Hébergement</a>
+    <a href="#features">Fonctionnalités</a>
+    <a href="#start">Commencer</a>
+  </div>
+  <a href="#start" class="btn btn-p" style="padding:9px 18px;font-size:14px">Déployer →</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="kicker">✦ Hébergement multi-jeux & services, repensé</span>
+  <h1>Serveurs de jeu,<br><span class="grad">invoqués en secondes.</span></h1>
+  <p>Un seul panneau pour héberger tes <b>jeux</b>, tes <b>bases de données</b>, tes <b>sites web</b> et tes <b>apps</b>. Mods en 1 clic, mise en veille intelligente, sauvegardes, gestionnaire de RAM, et une API pour ton propre launcher.</p>
+  <div class="cta">
+    <a href="#start" class="btn btn-p">🚀 Déployer un serveur</a>
+    <a href="#hebergement" class="btn btn-g">Voir le catalogue</a>
+  </div>
+  <div class="pills">
+    <span><i class="dot"></i> En ligne en moins de 60s</span>
+    <span>🛡️ Isolé & sécurisé</span>
+    <span>⚡ Ryzen + NVMe</span>
+  </div>
+</div></header>
+
+<section id="jeux"><div class="wrap">
+  <div class="h2">Un panneau. <span class="grad">Tous les jeux.</span></div>
+  <p class="sub">Minecraft, survie, sandbox, FPS, vocal… Choisis un jeu et tu tournes en moins d'une minute. Nouveau jeu = donnée, pas de downtime.</p>
+  <div class="grid g3">
+    <div class="card"><div class="ic">🟩</div><h3>Minecraft</h3><p>Java & Bedrock — Paper, Spigot, Sponge, Fabric, Forge, NeoForge, modpacks, et proxies Velocity / BungeeCord / Waterfall.</p></div>
+    <div class="card"><div class="ic">🌴</div><h3>Survie & sandbox</h3><p>Icarus, Valheim, Palworld, Rust, Terraria — mondes, mods et sauvegardes gérés pour toi.</p></div>
+    <div class="card"><div class="ic">🎯</div><h3>FPS & Source</h3><p>Garry's Mod, Team Fortress 2, Counter-Strike 2 — SteamCMD + RCON, Workshop, prêts à jouer.</p></div>
+  </div>
+  <div class="grid tiles" style="margin-top:18px">
+    <div class="tile"><span class="e">🎧</span><div><b>TeamSpeak 3</b><small>Vocal communautaire</small></div></div>
+    <div class="tile"><span class="e">🎙️</span><div><b>Mumble</b><small>Vocal faible latence</small></div></div>
+    <div class="tile"><span class="e">🛰️</span><div><b>Proxies réseau</b><small>Un seul adresse, plusieurs serveurs</small></div></div>
+  </div>
+</div></section>
+
+<section id="hebergement"><div class="wrap">
+  <div class="h2">Pas que des jeux. <span class="grad">Un hébergement complet.</span></div>
+  <p class="sub">Bases de données, sites web et apps en 1 clic — la base SQL de tes plugins, le site de ta communauté, ou tes propres SaaS auto-hébergés. Même gestion que les jeux.</p>
+
+  <div class="cat">🗄️ Bases de données</div>
+  <div class="grid g4">
+    <div class="tile"><span class="e">🐬</span><div><b>MySQL</b><small>SQL universel</small></div></div>
+    <div class="tile"><span class="e">🦭</span><div><b>MariaDB</b><small>Fork rapide</small></div></div>
+    <div class="tile"><span class="e">🐘</span><div><b>PostgreSQL</b><small>SQL avancé</small></div></div>
+    <div class="tile"><span class="e">🧱</span><div><b>Redis</b><small>Cache mémoire</small></div></div>
+  </div>
+
+  <div class="cat">🌐 Web</div>
+  <div class="grid g4">
+    <div class="tile"><span class="e">🌐</span><div><b>Nginx</b><small>Site statique / SPA</small></div></div>
+    <div class="tile"><span class="e">📝</span><div><b>WordPress</b><small>Blog, vitrine, boutique</small></div></div>
+  </div>
+
+  <div class="cat">🚀 Apps & SaaS — 1 clic</div>
+  <div class="grid g4">
+    <div class="tile"><span class="e">🔗</span><div><b>n8n</b><small>Automatisation no-code</small></div></div>
+    <div class="tile"><span class="e">📈</span><div><b>Uptime Kuma</b><small>Monitoring & statut</small></div></div>
+    <div class="tile"><span class="e">🔐</span><div><b>Vaultwarden</b><small>Mots de passe</small></div></div>
+    <div class="tile"><span class="e">☁️</span><div><b>Nextcloud</b><small>Cloud privé</small></div></div>
+  </div>
+</div></section>
+
+<section id="features"><div class="wrap">
+  <div class="h2">Tout ce que les autres <span class="grad">font payer en plus.</span></div>
+  <div class="grid g3">
+    <div class="card"><div class="ic">🌙</div><h3>Veille « wake-on-join »</h3><p>Les serveurs s'endorment à vide et se réveillent à la première connexion — écran « démarrage… », jamais d'erreur.</p></div>
+    <div class="card"><div class="ic">📦</div><h3>Mods & modpacks en 1 clic</h3><p>Recherche Modrinth & CurseForge dans le panneau. Les dépendances se résolvent toutes seules.</p></div>
+    <div class="card"><div class="ic">🖥️</div><h3>Console live + TPS</h3><p>Console temps réel, commandes, et CPU / RAM / TPS / joueurs visibles en direct.</p></div>
+    <div class="card"><div class="ic">🧠</div><h3>Gestionnaire de RAM</h3><p>Ajuste la RAM/CPU de chaque serveur et vois ce qu'il reste sur l'hôte, avec une vue capacité claire.</p></div>
+    <div class="card"><div class="ic">💾</div><h3>Sauvegardes automatiques</h3><p>Snapshots world-safe, restauration en 1 clic, et envoi S3 optionnel hors-site.</p></div>
+    <div class="card"><div class="ic">🔌</div><h3>API pour ton launcher</h3><p>API REST + WebSocket versionnée et login par device-code : liste, démarre et rejoins les serveurs.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="band">
+    <div class="h2" style="font-size:30px">Vitesse bare-metal, zéro lag.</div>
+    <p class="sub" style="margin-bottom:26px">AMD Ryzen haute fréquence, mémoire DDR5, NVMe Gen4 — et un bouclier anti-DDoS devant chaque port.</p>
+    <div class="stats">
+      <div class="stat"><b class="grad">5.0GHz</b><small>Ryzen</small></div>
+      <div class="stat"><b class="grad">DDR5</b><small>Mémoire</small></div>
+      <div class="stat"><b class="grad">Gen4</b><small>NVMe</small></div>
+      <div class="stat"><b class="grad">99.9%</b><small>Uptime</small></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="start"><div class="wrap" style="text-align:center">
+  <div class="h2">Ton serveur est à <span class="grad">un clic.</span></div>
+  <p class="sub">Jeux, bases de données, sites, apps — déploie ce que tu veux, gère tout au même endroit.</p>
+  <div class="cta" style="justify-content:center">
+    <a href="#" class="btn btn-p">🚀 Commencer maintenant</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  MGG Panel — outil d'hébergement complet · jeux, bases de données, web & apps · propulsé par Docker.
+</div></footer>
+
+</body>
+</html>
