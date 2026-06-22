@@ -28,8 +28,8 @@ export const nginxStatic: GameTemplate = {
   dataPath: "/usr/share/nginx/html",
   resources: { memoryMb: 256, cpuPercent: 100, diskMb: 4096 },
   features: ["web", "world-upload"],
-  // Host 8080 (port 80 is taken by the panel's own web server); nginx listens on 80.
-  ports: [{ name: "HTTP", protocol: "tcp", default: 8080, containerPort: 80, primary: true }],
+  // Host 8100 (80=panel/Caddy, 8080=daemon are taken); nginx listens on 80 inside.
+  ports: [{ name: "HTTP", protocol: "tcp", default: 8100, containerPort: 80, primary: true }],
   variables: [],
   install: {
     image: "nginx:alpine",
@@ -64,8 +64,8 @@ export const wordpress: GameTemplate = {
   dataPath: "/var/www/html",
   resources: { memoryMb: 1024, cpuPercent: 150, diskMb: 8192 },
   features: ["web"],
-  // Host 8081 (80 is the panel's); Apache listens on 80 inside the container.
-  ports: [{ name: "HTTP", protocol: "tcp", default: 8081, containerPort: 80, primary: true }],
+  // Host 8101 (80=panel, 8080=daemon taken); Apache listens on 80 inside.
+  ports: [{ name: "HTTP", protocol: "tcp", default: 8101, containerPort: 80, primary: true }],
   variables: [
     { key: "WORDPRESS_DB_HOST", name: "Hôte de la base (host:port)", description: "Adresse du serveur MySQL/MariaDB, ex: 192.168.1.137:3306 (voir l'onglet Réseau de ta base).", default: "", userViewable: true, userEditable: true, type: "string", rules: "required|string", group: "Base de données" },
     { key: "WORDPRESS_DB_NAME", name: "Nom de la base", description: "Doit correspondre à la base créée sur ton serveur MySQL.", default: "wordpress", userViewable: true, userEditable: true, type: "string", rules: "required|string", group: "Base de données" },
