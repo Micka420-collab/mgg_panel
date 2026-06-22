@@ -31,6 +31,7 @@ export interface PortSpec {
   /** human label, e.g. "Game", "Query", "RCON" */
   name: string;
   protocol: "tcp" | "udp" | "both";
+  /** preferred HOST port (where auto-allocation starts looking for a free port) */
   default: number;
   /** environment variable that should receive the assigned port */
   envVar?: string;
@@ -38,6 +39,13 @@ export interface PortSpec {
   primary?: boolean;
   /** offset from the primary port when auto-allocating (e.g. RCON = primary+? ) */
   offsetFromPrimary?: number;
+  /**
+   * Fixed port the image LISTENS on inside the container, when it can't be
+   * changed (e.g. nginx/apache on 80). The daemon then maps host:<allocated> →
+   * container:<containerPort>. Omit for images told their port via `envVar`
+   * (they listen on the allocated port directly).
+   */
+  containerPort?: number;
 }
 
 export interface InstallScript {

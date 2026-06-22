@@ -191,9 +191,12 @@ function buildPortBindings(spec: ServerBuildSpec) {
   const bindings: Record<string, { HostIp: string; HostPort: string }[]> = {};
   const primary = spec.allocations.find((a) => a.primary);
   for (const alloc of spec.allocations) {
+    // The container LISTENS on containerPort (defaults to the host port for
+    // env-driven servers); the host publishes `alloc.port`.
+    const cport = alloc.containerPort ?? alloc.port;
     const protocols = alloc.protocol === "both" ? ["tcp", "udp"] : [alloc.protocol];
     for (const proto of protocols) {
-      const key = `${alloc.port}/${proto}`;
+      const key = `${cport}/${proto}`;
       exposed[key] = {};
       const isRcon = alloc.role.toLowerCase() === "rcon";
       // Wake-on-join: bind the primary TCP port on loopback at an offset so the

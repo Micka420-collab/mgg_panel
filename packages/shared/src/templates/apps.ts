@@ -85,7 +85,8 @@ export const vaultwarden: GameTemplate = {
   dataPath: "/data",
   resources: { memoryMb: 512, cpuPercent: 100, diskMb: 2048 },
   features: ["web"],
-  ports: [{ name: "HTTP", protocol: "tcp", default: 80, envVar: "ROCKET_PORT", primary: true }],
+  // ROCKET_PORT makes Vaultwarden listen on the allocated host port (avoids 80).
+  ports: [{ name: "HTTP", protocol: "tcp", default: 8083, envVar: "ROCKET_PORT", primary: true }],
   variables: [
     { key: "ADMIN_TOKEN", name: "Token admin (/admin)", description: "Mot de passe du panneau d'admin. Généré automatiquement.", default: "{{RANDOM}}", userViewable: true, userEditable: false, type: "string", rules: "string", group: "Accès" },
     { key: "SIGNUPS_ALLOWED", name: "Inscriptions ouvertes", description: "Autoriser la création de comptes (mettre false après avoir créé le tien).", default: "true", userViewable: true, userEditable: true, type: "boolean", rules: "boolean", group: "Accès" },
@@ -115,7 +116,8 @@ export const nextcloud: GameTemplate = {
   dataPath: "/var/www/html",
   resources: { memoryMb: 1024, cpuPercent: 150, diskMb: 16384 },
   features: ["web"],
-  ports: [{ name: "HTTP", protocol: "tcp", default: 80, primary: true }],
+  // Host 8082 (80 is the panel's); Apache listens on 80 inside the container.
+  ports: [{ name: "HTTP", protocol: "tcp", default: 8082, containerPort: 80, primary: true }],
   variables: [
     { key: "NEXTCLOUD_ADMIN_USER", name: "Admin", description: "Nom du compte administrateur.", default: "admin", userViewable: true, userEditable: true, type: "string", rules: "required|string", group: "Accès" },
     { key: "NEXTCLOUD_ADMIN_PASSWORD", name: "Mot de passe admin", description: "Généré automatiquement.", default: "{{RANDOM}}", userViewable: true, userEditable: false, type: "string", rules: "required|string", group: "Accès" },

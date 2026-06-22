@@ -53,14 +53,20 @@ export function buildServerSpec(server: Server, allocations: DbAllocation[]): Se
     rcon = { port, password };
   }
 
-  const sharedAllocations: Allocation[] = allocations.map((a) => ({
-    id: a.id,
-    ip: a.ip,
-    port: a.port,
-    protocol: mapProtocol(a.protocol),
-    role: a.role,
-    primary: a.primary,
-  }));
+  const sharedAllocations: Allocation[] = allocations.map((a) => {
+    // Fixed-port images (no envVar, declared containerPort) listen on a fixed
+    // internal port → tell the daemon to map host:port → container:containerPort.
+    const portSpec = template.ports.find((p) => p.name.toLowerCase() === a.role.toLowerCase());
+    return {
+      id: a.id,
+      ip: a.ip,
+      port: a.port,
+      protocol: mapProtocol(a.protocol),
+      role: a.role,
+      primary: a.primary,
+      containerPort: portSpec?.containerPort ?? a.port,
+    };
+  });
 
   return {
     serverId: server.id,
