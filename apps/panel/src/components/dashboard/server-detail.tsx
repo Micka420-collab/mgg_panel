@@ -95,6 +95,16 @@ export function ServerDetail({ id }: { id: string }) {
       if (!ok) return; // annulé → pas de redémarrage
       warnSeconds = 30;
     }
+    // Arrêt/kill avec joueurs en ligne → confirmer (déconnecte tout le monde).
+    if ((action === "stop" || action === "kill") && (stats?.players?.online ?? 0) > 0) {
+      const ok = await confirmDialog({
+        title: `${stats!.players!.online} joueur(s) en ligne`,
+        description: `${action === "kill" ? "Forcer l'arrêt" : "Arrêter"} le serveur va déconnecter tout le monde immédiatement. Continuer ?`,
+        danger: true,
+        confirmLabel: action === "kill" ? "Forcer l'arrêt" : "Arrêter quand même",
+      });
+      if (!ok) return;
+    }
     setBusy(action);
     try {
       await api(`/api/servers/${id}/power`, {

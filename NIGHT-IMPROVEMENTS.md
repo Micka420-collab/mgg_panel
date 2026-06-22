@@ -81,3 +81,6 @@ Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) 
 
 ### Lot 14 — Cohérence des états vides
 - Composant `EmptyState` appliqué aux panneaux **Joueurs** (hors ligne / aucun joueur) et **Fichiers** (dossier vide) → tous les états vides du panel sont désormais soignés et homogènes.
+
+### Lot 15 — Confirmation Stop/Kill avec joueurs en ligne
+- Arrêter/forcer-l'arrêt (`server-detail.tsx`) **demande confirmation** quand des joueurs sont connectés (« X joueurs en ligne, déconnecter tout le monde ? ») — évite de couper le serveur sous les joueurs par mégarde. Complète le préavis déjà présent sur le redémarrage.
