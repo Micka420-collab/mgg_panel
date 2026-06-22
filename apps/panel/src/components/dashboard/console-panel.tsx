@@ -311,7 +311,7 @@ export function ConsolePanel({
             className="w-full rounded-md border border-white/10 bg-black/30 py-1.5 pl-8 pr-7 font-mono text-xs text-white outline-none transition placeholder:text-white/25 focus:border-cyan/50"
           />
           {query && (
-            <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
+            <button onClick={() => setQuery("")} aria-label="Effacer la recherche" className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -354,6 +354,7 @@ export function ConsolePanel({
           <button
             onClick={jumpToBottom}
             title="Aller en bas"
+            aria-label="Aller en bas du journal"
             className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-surface/90 text-cyan-light shadow-lg backdrop-blur transition hover:bg-surface"
           >
             <ArrowDownToLine className="h-4 w-4" />

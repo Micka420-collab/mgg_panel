@@ -71,4 +71,7 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 
 **Incident géré** : disque VM saturé à 100% (images Docker de mes builds) → purgé à 48%, + `docker image prune` désormais automatique après chaque build. C'était probablement la cause du prospect Icarus qui ne se chargeait pas.
 
-Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) : accessibilité aria-labels, responsive mobile fin, diff de config dans l'éditeur de fichiers, sparklines sur les cartes du dashboard.
+Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) : responsive mobile fin, diff de config dans l'éditeur de fichiers, sparklines sur les cartes du dashboard.
+
+### Lot 12 — Accessibilité (réveil 6h19)
+- `aria-label` sur les boutons icône-only (copier l'adresse, kill, effacer recherche console, retour-bas console) — lecteurs d'écran + clavier. Système vérifié sain au réveil (panel 200, Icarus up NaN=0, disque 48%).

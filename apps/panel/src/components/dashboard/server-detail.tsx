@@ -233,7 +233,7 @@ export function ServerDetail({ id }: { id: string }) {
                   </span>
                 )}
               </div>
-              <button onClick={copyAddress} className="mt-1 inline-flex items-center gap-2 font-mono text-sm text-cyan-light hover:text-cyan">
+              <button onClick={copyAddress} aria-label="Copier l'adresse du serveur" className="mt-1 inline-flex items-center gap-2 font-mono text-sm text-cyan-light hover:text-cyan">
                 {s.address ?? "—"}
                 {copied ? <Check className="h-3.5 w-3.5 text-online" /> : <Copy className="h-3.5 w-3.5 opacity-60" />}
               </button>
@@ -260,7 +260,7 @@ export function ServerDetail({ id }: { id: string }) {
             <button onClick={() => power("stop")} disabled={!can("control.stop") || !running || !!busy} className="btn-ghost text-warn disabled:opacity-40">
               {busy === "stop" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />} Stop
             </button>
-            <button onClick={() => power("kill")} disabled={!can("control.stop") || state === "installing" || !!busy} className="btn-danger disabled:opacity-40" title="Force kill">
+            <button onClick={() => power("kill")} disabled={!can("control.stop") || state === "installing" || !!busy} className="btn-danger disabled:opacity-40" title="Force kill" aria-label="Forcer l'arrêt du serveur (kill)">
               <Zap className="h-4 w-4" />
             </button>
             {detail.isOwner && s.clonedFrom && (
