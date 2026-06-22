@@ -1,0 +1,17 @@
+[Unit]
+Description=Mindcraft AI - corps Minecraft de Shellia/HERMES (Shellia-World)
+After=network-online.target ollama.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/mindcraft
+ExecStart=/usr/bin/node main.js
+Restart=always
+RestartSec=10
+# garde le modele chaud et evite de spammer si le serveur MC est down
+StandardOutput=append:/var/log/mindcraft-bot.log
+StandardError=append:/var/log/mindcraft-bot.log
+
+[Install]
+WantedBy=multi-user.target

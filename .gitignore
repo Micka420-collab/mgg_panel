@@ -53,3 +53,7 @@ Thumbs.db
 *.pem
 daemon.token
 node-config.json
+deploy/mindcraft-keys.json
+
+# Deploy artifacts (tarballs SCP'd to the VM)
+*.tgz
