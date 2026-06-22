@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import {
   ShieldCheck, Users, KeyRound, Copy, Check, RefreshCw, Lock, Save, Loader2, Ban, Info, Crown, RotateCw,
+  BadgeCheck, Sparkles,
 } from "lucide-react";
 import { api } from "@/lib/client";
 import { confirmDialog, toast } from "@/components/ui/confirm";
@@ -77,6 +78,29 @@ export function IcarusAdminPanel({ id, variables, stats, running, canEdit, onSav
 
   return (
     <div className="space-y-5">
+      {/* branding / identity */}
+      <div className="glass p-5">
+        <h3 className="flex items-center gap-2 font-display font-semibold text-white"><BadgeCheck className="h-4 w-4 text-cyan" /> Identité & branding</h3>
+        <p className="mt-1 text-sm text-white/50">Le <b className="text-white/80">nom du serveur</b> est ce que TOUS les joueurs voient (navigateur de serveurs, écran de connexion, menu pause) — c'est le branding le plus visible, appliqué automatiquement.</p>
+        <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3">
+          <div className="text-xs text-white/35">Aperçu dans le navigateur de serveurs :</div>
+          <div className="mt-1 flex items-center gap-2 font-medium text-white"><span>🪐</span> {name || "(sans nom)"}</div>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input className="input min-w-[220px] flex-1" value={name} onChange={(e) => setName(e.target.value)} disabled={!canEdit} />
+          {canEdit && (
+            <>
+              <button onClick={() => setName("⭐ Serveur Officiel MGG Panel")} className="btn-ghost whitespace-nowrap text-sm"><Sparkles className="h-4 w-4" /> Nom officiel</button>
+              <button onClick={() => setName("⭐ ZARN • Officiel MGG Panel")} className="btn-ghost whitespace-nowrap text-sm">ZARN officiel</button>
+            </>
+          )}
+        </div>
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-white/55">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan" />
+          <span><b className="text-white/75">Une image forcée sur l'écran en jeu ?</b> Icarus ne le permet pas côté serveur — sa config officielle n'a aucun champ MOTD/bannière/image, et le jeu ne pousse aucune interface aux clients (vérifié). Le seul vrai levier automatique est le <b className="text-white/75">nom ci-dessus</b>. Pour une vraie image (ex. écran de chargement brandé), il faut un <b className="text-white/75">mod client</b> <code className="font-mono text-cyan-light">.pak</code> que <b className="text-white/75">chaque joueur installe</b> dans <code className="font-mono">Icarus/Content/Paks/mods/</code> — distribuable via ton Discord / site.</span>
+        </div>
+      </div>
+
       {/* roster */}
       <div className="glass p-5">
         <h3 className="flex items-center gap-2 font-display font-semibold text-white"><Users className="h-4 w-4 text-cyan" /> Joueurs connectés {stats?.players ? `(${stats.players.online}/${stats.players.max})` : ""}</h3>
@@ -117,7 +141,6 @@ export function IcarusAdminPanel({ id, variables, stats, running, canEdit, onSav
       <div className="glass p-5">
         <h3 className="flex items-center gap-2 font-display font-semibold text-white"><Lock className="h-4 w-4 text-cyan" /> Accès au serveur</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div><label className="label">Nom du serveur</label><input className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={!canEdit} /></div>
           <div><label className="label">Joueurs max</label><input className="input" type="number" value={maxPlayers} onChange={(e) => setMaxPlayers(e.target.value)} disabled={!canEdit} /></div>
           <div className="sm:col-span-2">
             <label className="label">Mot de passe d'accès (verrouille le serveur — vide = ouvert)</label>

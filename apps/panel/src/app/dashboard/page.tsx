@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AutoRefresh } from "@/components/dashboard/auto-refresh";
 import { NodeResources } from "@/components/dashboard/node-resources";
+import { DashboardFeed } from "@/components/dashboard/dashboard-feed";
 import { ServerGrid } from "@/components/dashboard/server-grid";
 import { reconcileStates } from "@/lib/server-state";
 import { DaemonClient } from "@/lib/daemon";
@@ -79,6 +80,8 @@ export default async function DashboardHome() {
       {ramMb && servers.length > 0 && (
         <NodeResources totalMb={ramMb.total} availableMb={ramMb.available} running={runningCount} />
       )}
+
+      {servers.length > 0 && <DashboardFeed />}
 
       {servers.length === 0 ? (
         <div className="glass mt-8 flex flex-col items-center justify-center px-6 py-20 text-center">
