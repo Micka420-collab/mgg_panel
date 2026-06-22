@@ -45,3 +45,6 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 
 ### Lot 9 — Barres d'usage sur les tuiles
 - **Barres de progression** sous les tuiles CPU / RAM / Disque (`server-detail.tsx`) : visuel instantané du % d'utilisation (cyan < 75 %, ambre < 90 %, rouge ≥ 90 %). On voit en un coup d'œil ce qui sature.
+
+### Lot 10 — États vides soignés
+- **Composant `EmptyState`** réutilisable (icône + titre + texte) appliqué aux panneaux **Sauvegardes** et **Planifications** : « rien ici » devient un état soigné et localisé au lieu d'un texte gris brut. Le genre de détail qui fait pro.
