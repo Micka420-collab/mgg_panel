@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ShieldCheck, KeyRound, Loader2, Plus, Trash2, Copy, Check, AlertTriangle, Lock } from "lucide-react";
+import { ShieldCheck, KeyRound, Loader2, Plus, Trash2, Copy, Check, AlertTriangle, Lock, Bell } from "lucide-react";
 import { api } from "@/lib/client";
 import { confirmDialog, toast } from "@/components/ui/confirm";
 import { relativeTime } from "@/lib/util";
@@ -13,6 +13,7 @@ interface Me {
   email: string;
   role: string;
   totpEnabled: boolean;
+  emailNotifications: boolean;
 }
 interface ApiKey {
   id: string;
@@ -52,10 +53,44 @@ export default function AccountPage() {
         </div>
       </div>
 
+      <NotificationPrefs me={me} onChange={loadMe} />
       <ChangePassword />
       <TwoFactor me={me} onChange={loadMe} />
       <ApiKeys keys={keys} reload={loadKeys} isAdmin={me.role === "ADMIN"} />
       <WebhooksPanel />
+    </div>
+  );
+}
+
+function NotificationPrefs({ me, onChange }: { me: Me; onChange: () => void }) {
+  const [busy, setBusy] = useState(false);
+  async function toggle(v: boolean) {
+    setBusy(true);
+    try {
+      await api("/api/me", { method: "PATCH", json: { emailNotifications: v } });
+      toast(v ? "Notifications email activées." : "Notifications email désactivées.", "success");
+      onChange();
+    } catch (e: any) {
+      toast(e.message, "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="glass flex items-center justify-between p-6">
+      <div>
+        <h2 className="flex items-center gap-2 font-display font-semibold text-white"><Bell className="h-4 w-4 text-cyan" /> Notifications par email</h2>
+        <p className="mt-1 text-sm text-white/45">Recevoir un email en cas de crash serveur, alerte sécurité, sauvegarde ou bilan IA.</p>
+      </div>
+      <button
+        onClick={() => toggle(!me.emailNotifications)}
+        disabled={busy}
+        className={`relative h-7 w-12 shrink-0 rounded-full transition ${me.emailNotifications ? "bg-cyan" : "bg-white/15"}`}
+        aria-pressed={me.emailNotifications}
+        title={me.emailNotifications ? "Activé" : "Désactivé"}
+      >
+        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${me.emailNotifications ? "left-6" : "left-1"}`} />
+      </button>
     </div>
   );
 }

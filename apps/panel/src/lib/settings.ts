@@ -16,6 +16,35 @@ export const SETTING_AI_PROVIDER = "ai_provider";
 /** Model id for the active provider (e.g. claude-haiku-4-5-… or deepseek/deepseek-chat). */
 export const SETTING_AI_MODEL = "ai_model";
 
+/** SMTP (transactional email) settings. */
+export const SETTING_SMTP_HOST = "smtp_host";
+export const SETTING_SMTP_PORT = "smtp_port";
+export const SETTING_SMTP_USER = "smtp_user";
+export const SETTING_SMTP_PASS = "smtp_pass";
+export const SETTING_SMTP_FROM = "smtp_from";
+export const SETTING_SMTP_SECURE = "smtp_secure";
+
+export interface SmtpConfig {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+  from: string;
+}
+
+/** Resolve SMTP config (DB-first, env fallback). Returns null when no host is set (email off). */
+export async function getSmtpConfig(): Promise<SmtpConfig | null> {
+  const host = ((await getSecretSetting(SETTING_SMTP_HOST)) || process.env.SMTP_HOST || "").trim();
+  if (!host) return null;
+  const port = Number(((await getSecretSetting(SETTING_SMTP_PORT)) || process.env.SMTP_PORT || "587").trim()) || 587;
+  const user = ((await getSecretSetting(SETTING_SMTP_USER)) || process.env.SMTP_USER || "").trim();
+  const pass = ((await getSecretSetting(SETTING_SMTP_PASS)) || process.env.SMTP_PASS || "").trim();
+  const from = ((await getSecretSetting(SETTING_SMTP_FROM)) || process.env.SMTP_FROM || user || "mgg@localhost").trim();
+  const secureRaw = ((await getSecretSetting(SETTING_SMTP_SECURE)) || process.env.SMTP_SECURE || (port === 465 ? "true" : "false")).trim();
+  return { host, port, secure: secureRaw === "true", user, pass, from };
+}
+
 export type AiProvider = "anthropic" | "openrouter";
 
 export interface AiConfig {

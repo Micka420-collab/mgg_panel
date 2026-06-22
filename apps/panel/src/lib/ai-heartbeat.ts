@@ -6,6 +6,7 @@ import { askAssistant, type AssistantContext } from "./assistant";
 import { getTemplate } from "@mgg/shared";
 import { sendDiscordWebhook } from "./notify";
 import { env } from "./env";
+import { emailAlert } from "./email";
 
 /**
  * AI heartbeat — the Copilot's "pulse".
@@ -150,12 +151,15 @@ async function analyzeServer(s: ServerRow, ai: Awaited<ReturnType<typeof getAiCo
   // (or it's the first one / was resolved) — never spam an unchanged status.
   const notable = level !== "info";
   const changed = !existing || existing.level !== level || existing.resolved;
-  if (notable && changed && env.alertWebhook) {
-    await sendDiscordWebhook(env.alertWebhook, {
-      title: `🧠 Bilan IA — ${s.name}`,
-      description: message,
-      level,
-      ts: new Date().toISOString(),
-    }).catch(() => {});
+  if (notable && changed) {
+    if (env.alertWebhook) {
+      await sendDiscordWebhook(env.alertWebhook, {
+        title: `🧠 Bilan IA — ${s.name}`,
+        description: message,
+        level,
+        ts: new Date().toISOString(),
+      }).catch(() => {});
+    }
+    await emailAlert({ level, message: `Bilan IA — ${s.name} : ${message}`, serverId: s.id }).catch(() => {});
   }
 }

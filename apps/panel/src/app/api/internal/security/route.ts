@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { json, route } from "@/lib/http";
 import { HttpError } from "@/lib/auth";
 import { sha256, constantTimeEqual } from "@/lib/crypto";
+import { emailAlert } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -36,5 +37,7 @@ export const POST = route(async (req) => {
       resolved: false,
     },
   });
+  // Email the owner on serious security events (best-effort; info-level stays in-panel).
+  if (b.severity !== "info") await emailAlert({ level: b.severity, message: `[${b.category}] ${b.message}`, serverId: b.serverId });
   return json({ ok: true });
 });

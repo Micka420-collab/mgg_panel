@@ -5,6 +5,7 @@ import { api } from "@/lib/client";
 import { cn, relativeTime } from "@/lib/util";
 import { DdnsCard } from "@/components/dashboard/ddns-card";
 import { AiKeyCard } from "@/components/dashboard/ai-key-card";
+import { EmailSettingsCard } from "@/components/dashboard/email-settings-card";
 import { UpdateCard } from "@/components/dashboard/update-card";
 
 interface AlertView {
@@ -82,6 +83,7 @@ export default function AdminPage() {
 
       <UpdateCard />
       <AiKeyCard />
+      <EmailSettingsCard />
       <DdnsCard />
 
 

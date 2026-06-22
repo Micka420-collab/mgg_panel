@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Play, Square, RotateCw, Zap, Copy, Check, Cpu, MemoryStick, HardDrive, Users, Clock,
+  Play, Square, RotateCw, Zap, LayoutDashboard, Copy, Check, Cpu, MemoryStick, HardDrive, Users, Clock,
   Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope, ArrowUpCircle, GitBranch, ShieldCheck,
 } from "lucide-react";
 import { useServerSocket } from "@/lib/use-server-socket";
@@ -25,16 +25,17 @@ import { AppearancePanel } from "./appearance-panel";
 import { PlayersPanel } from "./players-panel";
 import { MetricsPanel } from "./metrics-panel";
 import { ResourcesPanel } from "./resources-panel";
+import { OverviewPanel } from "./overview-panel";
 import { MapPanel } from "./map-panel";
 import { AssistantPanel } from "./assistant-panel";
 import { VelocityPanel } from "./velocity-panel";
 import { ModDoctorPanel } from "./mod-doctor-panel";
 
-type Tab = "console" | "assistant" | "files" | "players" | "appearance" | "stats" | "resources" | "map" | "mods" | "mod-doctor" | "schedules" | "settings" | "backups" | "network" | "network-proxy" | "subusers";
+type Tab = "overview" | "console" | "assistant" | "files" | "players" | "appearance" | "stats" | "resources" | "map" | "mods" | "mod-doctor" | "schedules" | "settings" | "backups" | "network" | "network-proxy" | "subusers";
 
 export function ServerDetail({ id }: { id: string }) {
   const [detail, setDetail] = useState<any>(null);
-  const [tab, setTab] = useState<Tab>("console");
+  const [tab, setTab] = useState<Tab>("overview");
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const socket = useServerSocket(id);
@@ -156,6 +157,7 @@ export function ServerDetail({ id }: { id: string }) {
   const supportsContent = ["mods", "plugins", "modpacks", "workshop"].some((f) => features.includes(f));
 
   const tabs: { key: Tab; label: string; icon: any; show: boolean }[] = [
+    { key: "overview", label: "Vue d'ensemble", icon: LayoutDashboard, show: true },
     { key: "console", label: "Console", icon: Terminal, show: true },
     { key: "assistant", label: "Copilot", icon: Sparkles, show: can("control.console") },
     { key: "players", label: "Players", icon: Users2, show: s.game === "minecraft" && can("control.command") },
@@ -368,6 +370,20 @@ export function ServerDetail({ id }: { id: string }) {
       </div>
 
       <div className="mt-5">
+        {tab === "overview" && (
+          <OverviewPanel
+            id={id}
+            server={s}
+            state={state}
+            stats={stats}
+            busy={busy}
+            copied={copied}
+            can={can}
+            onPower={power}
+            onCopy={copyAddress}
+            onTab={(t) => setTab(t as Tab)}
+          />
+        )}
         {tab === "console" && (
           <ConsolePanel
             socket={socket}

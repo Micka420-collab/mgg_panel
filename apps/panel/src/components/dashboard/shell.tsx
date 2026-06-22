@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Server, Settings, ShieldAlert, LogOut, Menu, X, BookOpen, Plus, CreditCard, Blocks, HardDrive, Search } from "lucide-react";
+import { Server, Settings, ShieldAlert, LogOut, Menu, X, BookOpen, Plus, CreditCard, Blocks, HardDrive, Search, Bell, ScrollText } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { AmbientBackground } from "@/components/ambient";
 import { CommandPalette } from "./command-palette";
 import { AlertsBadge } from "./alerts-badge";
+import { NotificationsBadge } from "./notifications-badge";
 import { cn } from "@/lib/util";
 import { api } from "@/lib/client";
 import { useT } from "@/i18n/client";
@@ -27,6 +28,8 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
 
   const nav = [
     { href: "/dashboard", label: t("nav.servers"), icon: Server, exact: true },
+    { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
+    { href: "/dashboard/activity", label: "Activité", icon: ScrollText },
     { href: "/dashboard/blueprints", label: t("nav.blueprints"), icon: Blocks },
     { href: "/dashboard/billing", label: t("nav.billing"), icon: CreditCard },
     { href: "/dashboard/account", label: t("nav.account"), icon: Settings },
@@ -84,6 +87,7 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
                 <n.icon className="h-4 w-4" />
                 {n.label}
                 {n.href === "/dashboard/admin" && <AlertsBadge />}
+                {n.href === "/dashboard/notifications" && <NotificationsBadge />}
               </Link>
             ))}
           </nav>
