@@ -15,3 +15,7 @@ déploiement, revenir en arrière si casse. Lots d'améliorations → 1 build te
   - 📋 **Copier** le journal (filtré) + 📥 **Télécharger en .txt**
   - 🔢 Compteur de lignes (filtré/total), 🔽 bouton « retour en bas », toggle auto-scroll
 - **Onglet mémorisé** par serveur (`server-detail.tsx`) — on revient sur l'onglet quitté, plus de reset sur Console.
+
+### Lot 2 — Palette de commandes (Cmd/Ctrl+K)
+- **`command-palette.tsx`** : palette globale (⌘K / Ctrl+K) pour sauter vers n'importe quel serveur ou page instantanément (recherche floue, navigation clavier ↑↓ + Entrée, Échap). Aucun panel concurrent (Pterodactyl/Pelican) n'a ça.
+- Bouton « Rechercher ⌘K » ajouté dans la sidebar (`shell.tsx`) pour la découvrabilité.

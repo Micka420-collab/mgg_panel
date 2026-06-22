@@ -2,9 +2,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Server, Settings, ShieldAlert, LogOut, Menu, X, BookOpen, Plus, CreditCard, Blocks, HardDrive } from "lucide-react";
+import { Server, Settings, ShieldAlert, LogOut, Menu, X, BookOpen, Plus, CreditCard, Blocks, HardDrive, Search } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { AmbientBackground } from "@/components/ambient";
+import { CommandPalette } from "./command-palette";
 import { cn } from "@/lib/util";
 import { api } from "@/lib/client";
 import { useT } from "@/i18n/client";
@@ -44,6 +45,7 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
   return (
     <>
       <AmbientBackground />
+      <CommandPalette />
       <div className="flex min-h-screen">
         {/* sidebar */}
         <aside
@@ -55,7 +57,14 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
           <div className="px-2 py-2">
             <Logo />
           </div>
-          <Link href="/dashboard/new" className="btn-primary mt-4" onClick={() => setOpen(false)}>
+          <button
+            onClick={() => window.dispatchEvent(new Event("mgg:open-cmdk"))}
+            className="mt-4 flex w-full items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/45 transition hover:border-white/20 hover:text-white"
+          >
+            <Search className="h-4 w-4" /> Rechercher
+            <kbd className="ml-auto rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] text-white/40">⌘K</kbd>
+          </button>
+          <Link href="/dashboard/new" className="btn-primary mt-3" onClick={() => setOpen(false)}>
             <Plus className="h-4 w-4" /> {t("nav.newServer")}
           </Link>
           <nav className="mt-6 flex flex-1 flex-col gap-1">
