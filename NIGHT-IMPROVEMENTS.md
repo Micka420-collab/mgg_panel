@@ -89,3 +89,6 @@ Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) 
 
 ### Lot 16 — Clavier dans l'éditeur de fichiers
 - `Échap` ferme l'éditeur (avec la garde anti-perte), `Ctrl/Cmd+S` enregistre, et le textarea prend le focus à l'ouverture (`files-panel.tsx`). Édition de config au clavier, comme un vrai éditeur.
+
+### Lot 17 — Accessibilité (boutons d'action)
+- `aria-label` sur les boutons icône-only restants : supprimer sauvegarde/planification/fichier, exécuter planification (backups, schedules, files). Le panel est maintenant cohérent côté lecteurs d'écran.

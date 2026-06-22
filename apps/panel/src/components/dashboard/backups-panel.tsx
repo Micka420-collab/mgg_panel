@@ -127,7 +127,7 @@ export function BackupsPanel({
                   </button>
                 )}
                 {canDelete && !b.locked && (
-                  <button onClick={() => del(b)} className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => del(b)} aria-label="Supprimer la sauvegarde" className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
                 )}
               </div>
             </div>

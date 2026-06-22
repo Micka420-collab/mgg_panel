@@ -193,7 +193,7 @@ export function FilesPanel({ id, canWrite, canDelete }: { id: string; canWrite: 
               <div className="flex items-center gap-4">
                 {!e.isDir && <span className="text-xs text-white/30">{formatBytes(e.size)}</span>}
                 {canDelete && (
-                  <button onClick={() => del(e.path)} className="text-white/20 opacity-0 transition group-hover:opacity-100 hover:text-danger">
+                  <button onClick={() => del(e.path)} aria-label={`Supprimer ${e.name}`} className="text-white/20 opacity-0 transition group-hover:opacity-100 hover:text-danger">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 )}
