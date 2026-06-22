@@ -24,12 +24,13 @@ import { SubusersPanel } from "./subusers-panel";
 import { AppearancePanel } from "./appearance-panel";
 import { PlayersPanel } from "./players-panel";
 import { MetricsPanel } from "./metrics-panel";
+import { ResourcesPanel } from "./resources-panel";
 import { MapPanel } from "./map-panel";
 import { AssistantPanel } from "./assistant-panel";
 import { VelocityPanel } from "./velocity-panel";
 import { ModDoctorPanel } from "./mod-doctor-panel";
 
-type Tab = "console" | "assistant" | "files" | "players" | "appearance" | "stats" | "map" | "mods" | "mod-doctor" | "schedules" | "settings" | "backups" | "network" | "network-proxy" | "subusers";
+type Tab = "console" | "assistant" | "files" | "players" | "appearance" | "stats" | "resources" | "map" | "mods" | "mod-doctor" | "schedules" | "settings" | "backups" | "network" | "network-proxy" | "subusers";
 
 export function ServerDetail({ id }: { id: string }) {
   const [detail, setDetail] = useState<any>(null);
@@ -161,6 +162,7 @@ export function ServerDetail({ id }: { id: string }) {
     { key: "files", label: "Files", icon: FolderOpen, show: can("file.read") },
     { key: "appearance", label: "Appearance", icon: Palette, show: s.game === "minecraft" && can("file.read") },
     { key: "stats", label: "Stats", icon: Activity, show: can("control.console") },
+    { key: "resources", label: "Ressources", icon: MemoryStick, show: can("startup.read") },
     { key: "map", label: "Map", icon: Map, show: s.game === "minecraft" && can("startup.read") },
     { key: "mods", label: "Content", icon: Package, show: supportsContent && can("startup.read") },
     { key: "mod-doctor", label: "Mod Doctor", icon: Stethoscope, show: s.game === "minecraft" && can("startup.read") },
@@ -383,6 +385,7 @@ export function ServerDetail({ id }: { id: string }) {
         {tab === "files" && <FilesPanel id={id} canWrite={can("file.write")} canDelete={can("file.delete")} />}
         {tab === "appearance" && <AppearancePanel id={id} canWrite={can("file.write")} />}
         {tab === "stats" && <MetricsPanel id={id} />}
+        {tab === "resources" && <ResourcesPanel id={id} canEdit={detail.isOwner} />}
         {tab === "map" && <MapPanel id={id} detail={detail} />}
         {tab === "mods" && (s.game === "garrysmod"
           ? <WorkshopPanel id={id} canManage={can("startup.update")} />
