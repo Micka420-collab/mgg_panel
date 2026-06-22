@@ -166,10 +166,10 @@ export function ServerDetail({ id }: { id: string }) {
     return { level, label };
   })();
 
-  const tiles = [
-    { icon: Cpu, label: "CPU", value: stats ? `${stats.cpuPercentOfLimit}%` : "—", sub: stats ? `${stats.cpuPercent.toFixed(0)}% raw` : "" },
-    { icon: MemoryStick, label: "Memory", value: stats ? formatBytes(stats.memoryBytes, 0) : "—", sub: `of ${formatBytes(s.memoryMb * 1024 * 1024, 0)}` },
-    { icon: HardDrive, label: "Disk", value: stats ? formatBytes(stats.diskBytes, 0) : "—", sub: `of ${formatBytes(s.diskMb * 1024 * 1024, 0)}` },
+  const tiles: { icon: any; label: string; value: string; sub: string; pct?: number }[] = [
+    { icon: Cpu, label: "CPU", value: stats ? `${stats.cpuPercentOfLimit}%` : "—", sub: stats ? `${stats.cpuPercent.toFixed(0)}% raw` : "", pct: stats ? Math.min(100, stats.cpuPercentOfLimit) : undefined },
+    { icon: MemoryStick, label: "Memory", value: stats ? formatBytes(stats.memoryBytes, 0) : "—", sub: `of ${formatBytes(s.memoryMb * 1024 * 1024, 0)}`, pct: stats && stats.memoryLimitBytes ? Math.min(100, Math.round((stats.memoryBytes / stats.memoryLimitBytes) * 100)) : undefined },
+    { icon: HardDrive, label: "Disk", value: stats ? formatBytes(stats.diskBytes, 0) : "—", sub: `of ${formatBytes(s.diskMb * 1024 * 1024, 0)}`, pct: stats && s.diskMb ? Math.min(100, Math.round((stats.diskBytes / (s.diskMb * 1024 * 1024)) * 100)) : undefined },
     { icon: Users, label: "Players", value: stats?.players ? `${stats.players.online}/${stats.players.max}` : "—", sub: "online" },
     { icon: Clock, label: "Uptime", value: stats ? formatUptime(stats.uptimeSeconds) : "—", sub: "" },
     { icon: Activity, label: "Latence", value: stats?.latencyMs != null ? `${stats.latencyMs} ms` : "—", sub: "requête serveur" },
@@ -283,6 +283,17 @@ export function ServerDetail({ id }: { id: string }) {
                 <div className="mt-2 h-4 w-12 animate-pulse rounded bg-white/10" />
               )}
               {t.sub && <div className="text-[11px] text-white/30">{t.sub}</div>}
+              {typeof t.pct === "number" && (
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      t.pct > 90 ? "bg-danger" : t.pct > 75 ? "bg-warn" : "bg-cyan",
+                    )}
+                    style={{ width: `${t.pct}%` }}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>

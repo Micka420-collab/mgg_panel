@@ -42,3 +42,6 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 
 ### Lot 8 — Suggestions de commandes (console)
 - **Suggestions de commandes** dans la console (`console-panel.tsx`) : pendant la frappe, une rangée de commandes courantes correspondant au préfixe apparaît (list, say, weather clear, difficulty…). Clic = remplit l'input. Découvrabilité pour les nouveaux admins, sans gêner l'historique ↑↓.
+
+### Lot 9 — Barres d'usage sur les tuiles
+- **Barres de progression** sous les tuiles CPU / RAM / Disque (`server-detail.tsx`) : visuel instantané du % d'utilisation (cyan < 75 %, ambre < 90 %, rouge ≥ 90 %). On voit en un coup d'œil ce qui sature.
