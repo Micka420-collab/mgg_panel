@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { json, route } from "@/lib/http";
 import { HttpError } from "@/lib/auth";
+import { sha256, constantTimeEqual } from "@/lib/crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ const schema = z.object({
 export const POST = route(async (req) => {
   const auth = (await headers()).get("authorization") ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (!token || token !== process.env.DAEMON_TOKEN) throw new HttpError(401, "unauthorized");
+  if (!token || !constantTimeEqual(sha256(token), sha256(process.env.DAEMON_TOKEN ?? ""))) throw new HttpError(401, "unauthorized");
 
   const b = schema.parse(await req.json());
   // Unique key per event — this is an append-only feed, not a deduped status.
