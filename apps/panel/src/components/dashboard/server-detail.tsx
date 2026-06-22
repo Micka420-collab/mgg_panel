@@ -26,12 +26,13 @@ import { PlayersPanel } from "./players-panel";
 import { MetricsPanel } from "./metrics-panel";
 import { ResourcesPanel } from "./resources-panel";
 import { OverviewPanel } from "./overview-panel";
+import { IcarusAdminPanel } from "./icarus-admin-panel";
 import { MapPanel } from "./map-panel";
 import { AssistantPanel } from "./assistant-panel";
 import { VelocityPanel } from "./velocity-panel";
 import { ModDoctorPanel } from "./mod-doctor-panel";
 
-type Tab = "overview" | "console" | "assistant" | "files" | "players" | "appearance" | "stats" | "resources" | "map" | "mods" | "mod-doctor" | "schedules" | "settings" | "backups" | "network" | "network-proxy" | "subusers";
+type Tab = "overview" | "console" | "assistant" | "icarus-admin" | "files" | "players" | "appearance" | "stats" | "resources" | "map" | "mods" | "mod-doctor" | "schedules" | "settings" | "backups" | "network" | "network-proxy" | "subusers";
 
 export function ServerDetail({ id }: { id: string }) {
   const [detail, setDetail] = useState<any>(null);
@@ -160,6 +161,7 @@ export function ServerDetail({ id }: { id: string }) {
     { key: "overview", label: "Vue d'ensemble", icon: LayoutDashboard, show: true },
     { key: "console", label: "Console", icon: Terminal, show: true },
     { key: "assistant", label: "Copilot", icon: Sparkles, show: can("control.console") },
+    { key: "icarus-admin", label: "Administration", icon: ShieldCheck, show: s.game === "icarus" && can("startup.read") },
     { key: "players", label: "Players", icon: Users2, show: s.game === "minecraft" && can("control.command") },
     { key: "files", label: "Files", icon: FolderOpen, show: can("file.read") },
     { key: "appearance", label: "Appearance", icon: Palette, show: s.game === "minecraft" && can("file.read") },
@@ -397,6 +399,16 @@ export function ServerDetail({ id }: { id: string }) {
           />
         )}
         {tab === "assistant" && <AssistantPanel id={id} detail={detail} />}
+        {tab === "icarus-admin" && (
+          <IcarusAdminPanel
+            id={id}
+            variables={detail.variables ?? []}
+            stats={stats}
+            running={running}
+            canEdit={can("startup.update")}
+            onSaved={load}
+          />
+        )}
         {tab === "players" && <PlayersPanel id={id} canManage={can("players.manage")} />}
         {tab === "files" && <FilesPanel id={id} canWrite={can("file.write")} canDelete={can("file.delete")} />}
         {tab === "appearance" && <AppearancePanel id={id} canWrite={can("file.write")} />}
