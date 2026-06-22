@@ -36,3 +36,6 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 ### Lot 6 — Polish (toasts + fil d'ariane)
 - **Bouton fermer (×)** sur les notifications toast (`confirm.tsx`) — dismiss manuel + `aria-label`.
 - **Fil d'ariane** sur la page serveur (`server-detail.tsx`) : « Serveurs / NomDuServeur » au lieu du simple lien retour → contexte plus clair.
+
+### Lot 7 — Badge d'alertes live
+- **`alerts-badge.tsx`** : pastille rouge sur le menu **Admin** (sidebar) avec le nombre d'alertes non résolues, rafraîchie toutes les 30 s. Met en valeur le feed sécurité / lag / bilans IA construit cette nuit, repérable d'un coup d'œil. Admin uniquement.

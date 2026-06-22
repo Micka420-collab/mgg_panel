@@ -6,6 +6,7 @@ import { Server, Settings, ShieldAlert, LogOut, Menu, X, BookOpen, Plus, CreditC
 import { Logo } from "@/components/logo";
 import { AmbientBackground } from "@/components/ambient";
 import { CommandPalette } from "./command-palette";
+import { AlertsBadge } from "./alerts-badge";
 import { cn } from "@/lib/util";
 import { api } from "@/lib/client";
 import { useT } from "@/i18n/client";
@@ -82,6 +83,7 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
               >
                 <n.icon className="h-4 w-4" />
                 {n.label}
+                {n.href === "/dashboard/admin" && <AlertsBadge />}
               </Link>
             ))}
           </nav>
