@@ -60,6 +60,36 @@ function highlight(text: string, q: string): React.ReactNode {
   return parts;
 }
 
+// Common server commands — surfaced as prefix suggestions while typing.
+const COMMON_COMMANDS = [
+  "list",
+  "say ",
+  "stop",
+  "restart",
+  "save-all",
+  "seed",
+  "weather clear",
+  "weather rain",
+  "time set day",
+  "time set night",
+  "difficulty peaceful",
+  "difficulty normal",
+  "difficulty hard",
+  "gamemode survival ",
+  "gamemode creative ",
+  "op ",
+  "deop ",
+  "whitelist add ",
+  "whitelist on",
+  "ban ",
+  "pardon ",
+  "kick ",
+  "tp ",
+  "give ",
+  "xp add ",
+  "kill ",
+];
+
 type FilterMode = "all" | "warn" | "error";
 
 export function ConsolePanel({
@@ -82,7 +112,14 @@ export function ConsolePanel({
   const [atBottomState, setAtBottomState] = useState(true);
   const [macros, setMacros] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const cmdInputRef = useRef<HTMLInputElement>(null);
   const atBottom = useRef(true);
+
+  const suggestions = useMemo(() => {
+    const q = input.trim().toLowerCase();
+    if (!q || !canCommand) return [];
+    return COMMON_COMMANDS.filter((c) => c.toLowerCase().startsWith(q) && c.toLowerCase() !== q).slice(0, 6);
+  }, [input, canCommand]);
 
   // Saved command macros (quick-action buttons), persisted per server.
   const macroKey = `mgg:macros:${serverId}`;
@@ -353,9 +390,26 @@ export function ConsolePanel({
           )}
         </div>
       )}
+      {suggestions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-white/10 bg-white/[0.015] px-3 py-1.5">
+          {suggestions.map((c) => (
+            <button
+              key={c}
+              onClick={() => {
+                setInput(c);
+                cmdInputRef.current?.focus();
+              }}
+              className="rounded-md border border-white/10 bg-black/20 px-2 py-1 font-mono text-[11px] text-white/55 transition hover:border-cyan/40 hover:text-cyan-light"
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
       <form onSubmit={submit} className="flex items-center gap-2 border-t border-white/10 bg-console-bg px-3 py-2.5">
         <ChevronRight className="h-4 w-4 text-cyan" />
         <input
+          ref={cmdInputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKey}

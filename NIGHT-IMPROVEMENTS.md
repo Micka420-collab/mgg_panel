@@ -39,3 +39,6 @@ Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'image
 
 ### Lot 7 — Badge d'alertes live
 - **`alerts-badge.tsx`** : pastille rouge sur le menu **Admin** (sidebar) avec le nombre d'alertes non résolues, rafraîchie toutes les 30 s. Met en valeur le feed sécurité / lag / bilans IA construit cette nuit, repérable d'un coup d'œil. Admin uniquement.
+
+### Lot 8 — Suggestions de commandes (console)
+- **Suggestions de commandes** dans la console (`console-panel.tsx`) : pendant la frappe, une rangée de commandes courantes correspondant au préfixe apparaît (list, say, weather clear, difficulty…). Clic = remplit l'input. Découvrabilité pour les nouveaux admins, sans gêner l'historique ↑↓.
