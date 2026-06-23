@@ -43,6 +43,8 @@ model User {
   avatarUrl    String?
   // Receive transactional emails (crash/backup/security alerts). Opt-out per user.
   emailNotifications Boolean @default(true)
+  // Suspended accounts cannot log in (admin moderation lever).
+  suspended Boolean @default(false)
 
   // 2FA (TOTP)
   totpEnabled   Boolean @default(false)

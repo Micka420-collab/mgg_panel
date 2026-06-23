@@ -45,6 +45,33 @@ export const ALL_SCOPES = Object.keys(SCOPES) as Scope[];
 /** Owners implicitly hold every scope. */
 export const OWNER_SCOPES: readonly Scope[] = ALL_SCOPES;
 
+/** Human category labels for grouping scopes in the UI (keyed by the scope prefix). */
+export const SCOPE_GROUP_LABELS: Record<string, string> = {
+  control: "Puissance & console",
+  file: "Fichiers",
+  backup: "Sauvegardes",
+  allocation: "Réseau",
+  startup: "Démarrage",
+  settings: "Réglages",
+  schedule: "Planificateur",
+  subuser: "Sous-utilisateurs",
+  players: "Joueurs",
+};
+
+/** Ready-made permission bundles ("roles") for granting sub-user access fast. */
+export interface ScopePreset {
+  key: string;
+  label: string;
+  description: string;
+  scopes: Scope[];
+}
+export const SCOPE_PRESETS: ScopePreset[] = [
+  { key: "viewer", label: "Lecture seule", description: "Voir console, fichiers, sauvegardes — sans rien modifier", scopes: ["control.console", "file.read", "backup.read", "startup.read", "allocation.read", "schedule.read", "players.read"] },
+  { key: "moderator", label: "Modérateur", description: "Console + commandes + gestion des joueurs", scopes: ["control.console", "control.command", "players.read", "players.manage"] },
+  { key: "operator", label: "Opérateur", description: "Démarrer/arrêter, fichiers, sauvegardes, planificateur", scopes: ["control.console", "control.command", "control.start", "control.stop", "file.read", "file.write", "backup.read", "backup.create", "backup.restore", "schedule.read", "schedule.update", "players.read"] },
+  { key: "trusted", label: "Confiance totale", description: "Toutes les permissions sur ce serveur", scopes: [...ALL_SCOPES] },
+];
+
 /** A safe, read-only default for launcher tokens. */
 export const LAUNCHER_DEFAULT_SCOPES: readonly Scope[] = [
   "control.console",

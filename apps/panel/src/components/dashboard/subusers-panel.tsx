@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { Users2, Plus, Trash2, Loader2, Save, ChevronDown } from "lucide-react";
-import { SCOPES } from "@mgg/shared";
+import { SCOPES, SCOPE_PRESETS } from "@mgg/shared";
 import { api } from "@/lib/client";
 import { confirmDialog } from "@/components/ui/confirm";
 import { cn } from "@/lib/util";
@@ -39,8 +39,16 @@ function ScopePicker({ value, onChange }: { value: Set<string>; onChange: (s: Se
     onChange(next);
   };
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Object.entries(GROUPED).map(([group, scopes]) => (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-white/40">Presets :</span>
+        {SCOPE_PRESETS.map((p) => (
+          <button key={p.key} type="button" onClick={() => onChange(new Set(p.scopes))} title={p.description} className="chip hover:border-cyan/40 hover:text-white">{p.label}</button>
+        ))}
+        <button type="button" onClick={() => onChange(new Set())} className="chip hover:border-cyan/40 hover:text-white">Aucune</button>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Object.entries(GROUPED).map(([group, scopes]) => (
         <div key={group}>
           <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/40">{GROUP_LABELS[group] ?? group}</div>
           <div className="space-y-1.5">
@@ -58,6 +66,7 @@ function ScopePicker({ value, onChange }: { value: Set<string>; onChange: (s: Se
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }

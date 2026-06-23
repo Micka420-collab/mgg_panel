@@ -29,6 +29,9 @@ export const POST = route(async (req) => {
   }
   resetFailures(`login:${key}`);
 
+  // Suspended accounts are blocked (admin moderation).
+  if (user.suspended) throw new HttpError(403, "Ce compte est suspendu. Contacte un administrateur.");
+
   await createSession(user.id, !user.totpEnabled);
   await audit("user.login", { userId: user.id, metadata: { needs2fa: user.totpEnabled } });
 
