@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import { env } from "./env";
+import { resolvesToNode } from "./domain-verify";
 
 /**
  * Integrated reverse proxy — drives the bundled Caddy via its Admin API so a
@@ -149,6 +150,35 @@ export async function resyncDomains(): Promise<void> {
       await upsertRoute(d.hostname, upstreamFor(d.server.node.publicIp, d.targetPort));
     } catch {
       /* leave for the next resync */
+    }
+  }
+}
+
+/**
+ * Periodically re-confirm that each active domain still points at its node.
+ * Verification is otherwise one-shot, so without this a route (and its TLS
+ * cert) would persist after the owner re-points DNS elsewhere — letting a
+ * tenant hold a hostname they no longer control. On a mismatch we pull the
+ * route and mark the domain pending so it must be re-verified to come back.
+ */
+export async function reverifyActiveDomains(): Promise<void> {
+  if (!ADMIN) return;
+  const domains = await db.customDomain.findMany({
+    where: { status: "active" },
+    include: { server: { include: { node: true } } },
+  });
+  for (const d of domains) {
+    try {
+      const { ok } = await resolvesToNode(d.hostname, d.server.node.publicIp);
+      if (!ok) {
+        await removeRoute(d.hostname);
+        await db.customDomain.update({
+          where: { id: d.id },
+          data: { status: "pending", lastError: "DNS no longer points here — re-verify to re-enable." },
+        });
+      }
+    } catch {
+      /* transient resolver error — re-check next pass */
     }
   }
 }

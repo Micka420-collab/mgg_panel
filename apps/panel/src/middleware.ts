@@ -21,6 +21,8 @@ function tierFor(path: string): { bucket: string; limit: number } {
   }
   // public, unauthenticated wake links — moderate
   if (path.startsWith("/api/wake")) return { bucket: "wake", limit: 40 };
+  // public, unauthenticated server pages — each hits the daemon, so keep tight
+  if (path.startsWith("/api/public")) return { bucket: "public", limit: 30 };
   // everything else under /api
   return { bucket: "api", limit: 120 };
 }

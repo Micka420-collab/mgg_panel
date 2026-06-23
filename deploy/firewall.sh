@@ -30,6 +30,19 @@ PANEL_PORTS="${PANEL_PORTS:-80, 443}"
 DAEMON_PORT="${DAEMON_PORT:-8080}"
 SFTP_PORT="${SFTP_PORT:-2022}"
 
+# Source allowlist for the CONTROL plane (daemon 8080 + SFTP 2022). These are
+# root-equivalent / credentialed surfaces and should NOT be world-open. Set
+# CONTROL_ALLOW to a comma/space-separated list of trusted IPs/CIDRs (e.g. the
+# panel host and your admin IP) to restrict them. Empty = open (legacy).
+CONTROL_ALLOW="${CONTROL_ALLOW:-}"
+if [ -n "$CONTROL_ALLOW" ]; then
+  ALLOW_SET="$(echo "$CONTROL_ALLOW" | tr ', ' '\n' | grep -v '^$' | paste -sd, -)"
+  CONTROL_RULES="tcp dport { $DAEMON_PORT, $SFTP_PORT } ip saddr { $ALLOW_SET } accept"
+else
+  CONTROL_RULES="tcp dport $DAEMON_PORT accept
+    tcp dport $SFTP_PORT accept"
+fi
+
 # Per-source new-connection / packet rates (normal vs attack mode)
 if [ "$CMD" = "attack" ]; then
   TCP_RATE="${TCP_RATE:-15/second}"; TCP_BURST="${TCP_BURST:-30}"
@@ -65,10 +78,18 @@ table inet mgg {
     tcp dport $SSH_PORT ct state new meter ssh4 { ip saddr limit rate over 6/minute burst 5 packets } drop
     tcp dport $SSH_PORT accept
 
-    # Panel / daemon / SFTP control surfaces
+    # Never accept the Caddy admin API from the host (it is internal-only).
+    tcp dport 2019 drop
+
+    # Panel (public web) — open.
     tcp dport { $PANEL_PORTS } accept
-    tcp dport $DAEMON_PORT accept
-    tcp dport $SFTP_PORT accept
+
+    # SFTP — per-source new-connection rate limit (credential-stuffing guard).
+    tcp dport $SFTP_PORT ct state new meter sftp4 { ip saddr limit rate over 10/minute burst 8 packets } drop
+
+    # Daemon (8080) + SFTP (2022) control surfaces — restricted to CONTROL_ALLOW
+    # when set, otherwise open (legacy). Prefer setting CONTROL_ALLOW.
+    $CONTROL_RULES
 
     # Game TCP (everything else >= 1024): per-source SYN-flood rate limit
     tcp flags & (fin|syn|rst|ack) == syn tcp dport >= 1024 \
@@ -86,5 +107,10 @@ EOF
 
 echo "✓ MGG firewall applied (mode: $CMD)."
 echo "  TCP new-conn limit: $TCP_RATE (burst $TCP_BURST) · UDP: $UDP_RATE (burst $UDP_BURST)"
-echo "  Open: SSH $SSH_PORT, panel $PANEL_PORTS, daemon $DAEMON_PORT, sftp $SFTP_PORT, games >=1024 (rate-limited)"
+if [ -n "$CONTROL_ALLOW" ]; then
+  echo "  Control plane (daemon $DAEMON_PORT + sftp $SFTP_PORT) RESTRICTED to: $CONTROL_ALLOW"
+else
+  echo "  ⚠ Control plane (daemon $DAEMON_PORT + sftp $SFTP_PORT) is OPEN — set CONTROL_ALLOW=<trusted IPs> to restrict it."
+fi
+echo "  Open: SSH $SSH_PORT, panel $PANEL_PORTS, games >=1024 (rate-limited); admin :2019 dropped."
 echo "  Make persistent:  nft list table inet mgg > /etc/nftables.conf  (and enable nftables.service)"

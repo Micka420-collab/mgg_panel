@@ -8,7 +8,7 @@ import { monitorTick } from "./monitor";
 import { updateDuckDnsFromEnv, duckDnsConfigured } from "./ddns";
 import { recordStats } from "./metrics";
 import { detectResourcePressure } from "./predict";
-import { resyncDomains, caddyConfigured } from "./reverse-proxy";
+import { resyncDomains, reverifyActiveDomains, caddyConfigured } from "./reverse-proxy";
 
 /** Next fire time for a cron expression in a pinned timezone, or null if invalid. */
 export function nextRun(cron: string, timezone: string, from: Date = new Date()): Date | null {
@@ -121,5 +121,9 @@ export function startScheduler(): void {
     setTimeout(() => {
       resyncDomains().catch((e) => console.error("[scheduler] domain resync failed", e));
     }, 10_000);
+    // Re-confirm active domains still point here every 30 min (revoke stale routes).
+    setInterval(() => {
+      reverifyActiveDomains().catch((e) => console.error("[scheduler] domain reverify failed", e));
+    }, 30 * 60_000);
   }
 }

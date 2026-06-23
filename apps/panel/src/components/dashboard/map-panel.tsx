@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { Map as MapIcon, Loader2, ExternalLink, RefreshCw, Info, Sparkles } from "lucide-react";
+import { Map as MapIcon, Loader2, ExternalLink, RefreshCw, Info, Sparkles, ShieldAlert } from "lucide-react";
 import { api } from "@/lib/client";
 
 interface MapState {
@@ -92,6 +92,19 @@ export function MapPanel({ id, detail }: { id: string; detail?: any }) {
           </div>
         </div>
 
+        <div className="flex items-start gap-2.5 rounded-xl border border-warn/30 bg-warn/10 px-4 py-3 text-sm text-warn">
+          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="space-y-1">
+            <p className="font-medium">This map is public and unencrypted.</p>
+            <p className="text-warn/80">
+              Anyone with the link can see your world — and, by default, the <strong>live positions of online players</strong>.
+              It&apos;s served over plain <span className="font-mono">http://</span> (so it won&apos;t embed below on an HTTPS panel —
+              use <strong>Open</strong>). For a private or PvP world, connect a custom domain in the <strong>Network</strong> tab to
+              serve it over HTTPS, and hide players in BlueMap&apos;s config.
+            </p>
+          </div>
+        </div>
+
         <div className="glass overflow-hidden p-0">
           <iframe
             key={reloadKey}
@@ -122,6 +135,14 @@ export function MapPanel({ id, detail }: { id: string; detail?: any }) {
           Install <span className="text-white/70">BlueMap</span> to render an explorable, real-time 3D web map of your
           world. We&apos;ll add the mod and publish its web port automatically.
         </p>
+
+        <div className="mx-auto mt-4 flex max-w-md items-start gap-2.5 rounded-xl border border-warn/30 bg-warn/10 px-3 py-2.5 text-left text-sm text-warn">
+          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            Heads up: the map is served <strong>publicly over plain HTTP</strong> and, by default, shows the{" "}
+            <strong>live positions of online players</strong>. Only enable it for a world you&apos;re happy to make public.
+          </span>
+        </div>
 
         {error && (
           <div className="mx-auto mt-4 max-w-md rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">

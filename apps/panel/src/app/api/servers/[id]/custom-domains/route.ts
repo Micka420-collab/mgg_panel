@@ -54,12 +54,21 @@ export const POST = route(async (req, ctx: { params: { id: string } }) => {
   const primary = c.allocations.find((a) => a.primary) ?? c.allocations[0];
   if (!primary) throw new HttpError(400, "This server has no allocated port to proxy to.");
   const targetPort = body.targetPort ?? primary.port;
-  if (!c.allocations.some((a) => a.port === targetPort)) {
-    throw new HttpError(422, "You can only proxy to one of this server's own ports.");
+  const targetAlloc = c.allocations.find((a) => a.port === targetPort);
+  if (!targetAlloc) throw new HttpError(422, "You can only proxy to one of this server's own ports.");
+  // Reverse-proxying is HTTP(S) only — refuse non-HTTP roles (RCON/Query) so we
+  // can't expose a raw control/query protocol over public HTTPS.
+  if (["rcon", "query"].includes(targetAlloc.role.toLowerCase())) {
+    throw new HttpError(422, `Port ${targetPort} is a ${targetAlloc.role} port, not a web service — pick an HTTP/map port.`);
   }
 
+  // Global uniqueness, but only for ACTIVE (verified) domains: an unverified
+  // pending claim must never let one tenant squat a hostname another owns.
   const existing = await db.customDomain.findUnique({ where: { hostname } });
-  if (existing) throw new HttpError(409, "That domain is already connected to a server.");
+  if (existing) {
+    if (existing.status === "active") throw new HttpError(409, "That domain is already connected to a server.");
+    await db.customDomain.delete({ where: { id: existing.id } }); // reclaim a stale/unverified claim
+  }
 
   const created = await db.customDomain.create({
     data: { hostname, serverId: c.server.id, targetPort, status: "pending" },

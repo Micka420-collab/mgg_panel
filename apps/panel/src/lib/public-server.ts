@@ -39,9 +39,26 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
+// Short per-subdomain cache so a burst of anonymous page hits collapses to one
+// daemon round-trip (the public endpoint is unauthenticated — see middleware
+// rate-limit tier). 12s keeps the page "live" without amplifying into the node.
+const CACHE_TTL_MS = 12_000;
+const cache = new Map<string, { at: number; data: PublicServer | null }>();
+
 export async function getPublicServer(subdomain: string): Promise<PublicServer | null> {
   const sub = (subdomain ?? "").trim();
   if (!sub || sub.length > 63) return null;
+
+  const key = sub.toLowerCase();
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.data;
+  const data = await resolvePublicServer(sub);
+  cache.set(key, { at: Date.now(), data });
+  if (cache.size > 5000) cache.clear(); // crude bound
+  return data;
+}
+
+async function resolvePublicServer(sub: string): Promise<PublicServer | null> {
 
   const server = await db.server.findFirst({
     where: { subdomain: { equals: sub, mode: "insensitive" } },
@@ -63,11 +80,9 @@ export async function getPublicServer(subdomain: string): Promise<PublicServer |
     state = status.state;
     const p = status.players as { online?: number; max?: number; sample?: string[] } | null;
     if (p) {
-      players = {
-        online: p.online ?? 0,
-        max: p.max ?? 0,
-        sample: Array.isArray(p.sample) ? p.sample.slice(0, 20) : [],
-      };
+      // Counts only on the public page — we intentionally do NOT expose the
+      // online players' names to anonymous visitors (privacy / anti-targeting).
+      players = { online: p.online ?? 0, max: p.max ?? 0, sample: [] };
     }
   } catch {
     /* node unreachable / slow — fall back to the cached DB state */
