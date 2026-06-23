@@ -3,6 +3,7 @@ import { PassThrough } from "node:stream";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { ServerState, type ServerBuildSpec, type ServerStats } from "@mgg/shared";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
@@ -190,9 +191,12 @@ function buildPortBindings(spec: ServerBuildSpec) {
   const bindings: Record<string, { HostIp: string; HostPort: string }[]> = {};
   const primary = spec.allocations.find((a) => a.primary);
   for (const alloc of spec.allocations) {
+    // The container LISTENS on containerPort (defaults to the host port for
+    // env-driven servers); the host publishes `alloc.port`.
+    const cport = alloc.containerPort ?? alloc.port;
     const protocols = alloc.protocol === "both" ? ["tcp", "udp"] : [alloc.protocol];
     for (const proto of protocols) {
-      const key = `${alloc.port}/${proto}`;
+      const key = `${cport}/${proto}`;
       exposed[key] = {};
       const isRcon = alloc.role.toLowerCase() === "rcon";
       // Wake-on-join: bind the primary TCP port on loopback at an offset so the
@@ -221,6 +225,33 @@ function memoryConfig(spec: ServerBuildSpec) {
   else if (spec.limits.swapMb === 0) memorySwap = mem; // swap disabled (== memory)
   else memorySwap = mem + spec.limits.swapMb * 1024 * 1024;
   return { Memory: mem, MemorySwap: memorySwap };
+}
+
+/**
+ * Stable hash of the parts of a spec that require a container REBUILD when they
+ * change (image, env/variables, limits, start command, data path). Stored as a
+ * container label so the daemon can rebuild ONLY on real changes — not on every
+ * start. This keeps settings changes (MOTD, variables…) applying on the next
+ * start, while preserving images that keep their data inside the container layer
+ * (e.g. the Icarus/Wine image) across plain restarts instead of re-downloading.
+ */
+export function specHash(spec: ServerBuildSpec): string {
+  const env = Object.entries(spec.environment).sort(([a], [b]) => a.localeCompare(b));
+  const canonical = JSON.stringify({
+    image: spec.dockerImage,
+    env,
+    mem: spec.limits.memoryMb,
+    cpu: spec.limits.cpuPercent,
+    cmd: spec.startupCommand ?? "",
+    data: spec.containerDataPath,
+  });
+  return createHash("sha256").update(canonical).digest("hex").slice(0, 16);
+}
+
+/** Read the spec hash label off an existing container (null if none). */
+export async function containerSpecHash(serverId: string): Promise<string | null> {
+  const info = await inspect(serverId);
+  return info?.Config?.Labels?.["mgg.specHash"] ?? null;
 }
 
 /** Create (or recreate) the container for a server from its build spec. */
@@ -260,6 +291,7 @@ export async function buildContainer(spec: ServerBuildSpec): Promise<void> {
       "mgg.managed": "true",
       "mgg.serverId": spec.serverId,
       "mgg.templateId": spec.templateId,
+      "mgg.specHash": specHash(spec),
     },
     ExposedPorts: exposed,
     Cmd: spec.startupCommand ? ["/bin/sh", "-c", spec.startupCommand] : undefined,

@@ -1,18 +1,20 @@
 import Link from "next/link";
-import { Boxes, Plug, Code2, Server, ArrowRight } from "lucide-react";
+import { Boxes, Plug, Code2, Server, ArrowRight, Database } from "lucide-react";
 
 export default function DocsOverview() {
   return (
     <div className="space-y-6 text-white/70">
       <h1 className="font-display text-4xl font-bold text-white">Documentation</h1>
       <p className="text-lg text-white/55">
-        MGG is a multi-game server hosting platform: a stateless Next.js <strong className="text-white">panel</strong>{" "}
+        MGG is a complete hosting platform: a stateless Next.js <strong className="text-white">panel</strong>{" "}
         (control plane) plus a per-node <strong className="text-white">daemon</strong> (data plane) that drives Docker.
-        Minecraft and Icarus ship today; new games are added as data via the template engine.
+        Host games <em>and</em> databases, websites and 1-click apps — all from one catalog, with the same console,
+        files, backups and RAM manager. New services are added as data via the template engine.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {[
+          { icon: Database, title: "Hébergement (DB · Web · Apps)", body: "Déploie MySQL/PostgreSQL/Redis, un site Nginx/WordPress, ou n8n/Nextcloud/Vaultwarden en 1 clic.", href: "/docs/hosting" },
           { icon: Boxes, title: "Game templates", body: "How Minecraft, Icarus, Valheim, Rust & Palworld are modelled as a single egg schema.", href: "/docs/api" },
           { icon: Plug, title: "Launcher API", body: "Device-code auth + endpoints so your custom launcher can list, start and join servers.", href: "/docs/launcher" },
           { icon: Code2, title: "REST API", body: "The full client + admin surface for automation and integrations.", href: "/docs/api" },

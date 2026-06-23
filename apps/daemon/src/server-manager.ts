@@ -11,6 +11,8 @@ import {
 import {
   attachStdin,
   buildContainer,
+  containerSpecHash,
+  specHash,
   followLogs,
   hostVolumePath,
   inspect,
@@ -29,6 +31,7 @@ import { sendRcon, queryPlayers } from "./rcon.js";
 import { queryA2S } from "./a2s.js";
 import { volumeSize } from "./files.js";
 import { logger } from "./logger.js";
+import { IcarusLogTracker, type IcarusEvent } from "./icarus-log.js";
 
 const CONSOLE_BUFFER = 250;
 const SPEC_FILE = ".mgg/spec.json";
@@ -44,7 +47,11 @@ interface Runtime {
   stdin?: NodeJS.ReadWriteStream;
   playerTimer?: NodeJS.Timeout;
   diskTimer?: NodeJS.Timeout;
-  players?: { online: number; max: number; sample: string[] };
+  players?: { online: number; max: number; sample: string[]; admins?: string[] };
+  /** Icarus has no RCON → a log tailer is the only source of the live roster. */
+  icarusLog?: IcarusLogTracker;
+  /** last measured query round-trip latency in ms (RCON/A2S) */
+  latencyMs?: number;
   /** intent flag: we asked the container to stop, so a `die` event is clean (Offline), not a crash (Errored). */
   stopping?: boolean;
 }
@@ -61,6 +68,8 @@ interface Runtime {
  */
 class ServerManager extends EventEmitter {
   private servers = new Map<string, Runtime>();
+  /** last automatic lag-storm restart per server (cooldown guard). */
+  private icarusAutoRestart = new Map<string, number>();
 
   async init(): Promise<void> {
     await this.rehydrate();
@@ -155,18 +164,6 @@ class ServerManager extends EventEmitter {
         if (rt.state === ServerState.Running || rt.state === ServerState.Starting) return;
         if (rt.state === ServerState.Installing)
           throw new Error("Server is still installing — please wait for it to finish, then press Start.");
-        // If the container isn't there yet (e.g. the image was pruned, or a prior
-        // build never completed), (re)build it now — pulling the image first,
-        // since buildContainer only creates and would throw "No such image".
-        if (!(await inspect(serverId))) {
-          this.pushConsole(serverId, "[MGG] Building container…", "system");
-          try {
-            await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
-          } catch (e) {
-            logger.warn({ e, image: rt.spec.dockerImage }, "pull before start failed (may exist locally)");
-          }
-          await buildContainer(rt.spec);
-        }
         rt.stopping = false;
         // Admission control at START time: refuse if the host doesn't have enough
         // free RAM for this server right now (prevents host OOM). Uses real
@@ -183,7 +180,23 @@ class ServerManager extends EventEmitter {
             );
           }
         }
+        // MGG fix: rebuild the container ONLY when the spec changed (settings,
+        // variables, limits, image) or it doesn't exist yet — so panel changes
+        // apply on the next start, WITHOUT wiping images that keep their data in
+        // the container layer (e.g. the Icarus/Wine image) on every plain
+        // restart (which would re-download the game and lose worlds).
         this.setState(serverId, ServerState.Starting);
+        const needsRebuild =
+          !(await inspect(serverId)) || (await containerSpecHash(serverId)) !== specHash(rt.spec);
+        if (needsRebuild) {
+          this.pushConsole(serverId, "[MGG] Applying settings & building container…", "system");
+          try {
+            await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
+          } catch (e) {
+            logger.warn({ e, image: rt.spec.dockerImage }, "pull before start failed (may exist locally)");
+          }
+          await buildContainer(rt.spec);
+        }
         this.pushConsole(serverId, "[MGG] Starting server…", "system");
         await startContainer(serverId);
         rt.startedAt = Date.now();
@@ -193,11 +206,12 @@ class ServerManager extends EventEmitter {
       case "restart":
         this.pushConsole(serverId, "[MGG] Restarting…", "system");
         await this.gracefulStop(serverId);
-        await startContainer(serverId).catch(async () => {
-          // container may need rebuild if it was removed
+        // MGG fix: rebuild only if the spec changed; otherwise just restart so
+        // container-layer data (e.g. the Icarus game & saves) is preserved.
+        if (!(await inspect(serverId)) || (await containerSpecHash(serverId)) !== specHash(rt.spec)) {
           await buildContainer(rt.spec);
-          await startContainer(serverId);
-        });
+        }
+        await startContainer(serverId);
         rt.startedAt = Date.now();
         this.setState(serverId, ServerState.Starting);
         this.beginStreaming(serverId);
@@ -240,6 +254,35 @@ class ServerManager extends EventEmitter {
     await stopContainer(serverId);
     this.setState(serverId, ServerState.Offline);
     this.endStreaming(serverId);
+  }
+
+  /** Redémarrage avec préavis : diffuse un compte à rebours in-game (RCON `say`)
+   *  puis redémarre. Sans RCON / serveur arrêté → redémarre tout de suite (impossible
+   *  de prévenir). Retourne immédiatement ; le décompte + restart tournent en fond. */
+  async restartWithWarning(serverId: string, seconds: number): Promise<void> {
+    const rt = this.requireRuntime(serverId);
+    const warn = Math.max(1, Math.min(600, Math.floor(seconds) || 30));
+    if (!rt.spec.rcon || rt.state !== ServerState.Running) {
+      await this.power(serverId, "restart");
+      return;
+    }
+    const host = await rconHost(serverId);
+    const { port, password } = rt.spec.rcon;
+    const say = (m: string) => sendRcon(host, port, password, `say ${m}`).catch(() => undefined);
+    void (async () => {
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+      let left = warn;
+      await say(`§e[MGG] Redemarrage du serveur dans ${left}s.`);
+      for (const mark of [60, 30, 15, 10, 5, 4, 3, 2, 1]) {
+        if (mark >= left) continue;
+        await sleep((left - mark) * 1000);
+        left = mark;
+        await say(`§eRedemarrage dans ${mark}s...`);
+      }
+      await sleep(left * 1000);
+      await say("§cRedemarrage en cours...");
+      await this.power(serverId, "restart").catch((e) => logger.warn({ e, serverId }, "warned restart failed"));
+    })();
   }
 
   async sendCommand(serverId: string, command: string): Promise<void> {
@@ -312,6 +355,132 @@ class ServerManager extends EventEmitter {
     this.emit(`console:${serverId}`, [entry]);
   }
 
+  /** Is this an Icarus server? (Icarus has no RCON — we read its log instead.) */
+  private isIcarus(rt: Runtime): boolean {
+    return /icarus/i.test(rt.spec.dockerImage) || /icarus/i.test(rt.spec.templateId);
+  }
+
+  /** Turn an Icarus log event into a console line + optional Discord notification. */
+  private handleIcarusEvent(serverId: string, e: IcarusEvent): void {
+    const rt = this.servers.get(serverId);
+    if (!rt?.icarusLog) return;
+    rt.players = rt.icarusLog.snapshot();
+    if (e.type === "join") {
+      this.pushConsole(serverId, `>> ${e.player.name} a rejoint le serveur (${e.online}/${e.max})`, "stdout");
+      void this.notifyDiscord(`:wave: **${e.player.name}** a rejoint **Icarus** — ${e.online}/${e.max} en ligne`);
+    } else if (e.type === "leave") {
+      const mins = Math.max(1, Math.round(e.sessionMs / 60000));
+      this.pushConsole(serverId, `<< ${e.name} a quitté le serveur (${e.online}/${e.max}, session ~${mins} min)`, "stdout");
+      void this.notifyDiscord(`:door: **${e.name}** a quitté **Icarus** — ${e.online}/${e.max} en ligne (session ~${mins} min)`);
+      void this.reportPlaytime(serverId, e.steamId, e.name, Math.round(e.sessionMs / 1000));
+    } else if (e.type === "crash") {
+      this.pushConsole(serverId, `!! Crash détecté: ${e.line}`, "stderr");
+      void this.notifyDiscord(`:boom: **Crash détecté sur Icarus** : \`${e.line.slice(0, 200)}\``);
+      void this.reportSecurity(serverId, "critical", "crash", e.line.slice(0, 200));
+    } else if (e.type === "security") {
+      this.pushConsole(serverId, `!! Sécurité [${e.category}]: ${e.message}`, "stderr");
+      void this.notifyDiscord(`:shield: **Sécurité Icarus** [${e.category}] : ${e.message}`);
+      void this.reportSecurity(serverId, e.severity, e.category, e.message);
+    } else if (e.type === "lagstorm") {
+      this.pushConsole(
+        serverId,
+        `!! Lag détecté: ${e.rate} erreurs/s (coordonnées NaN d'un perso) depuis ${e.sustainedSec}s`,
+        "stderr",
+      );
+      void this.notifyDiscord(
+        `:rotating_light: **Lag détecté sur Icarus** — ${e.rate} erreurs/s (perso aux coordonnées invalides) depuis ${e.sustainedSec}s.`,
+      );
+      void this.reportSecurity(serverId, "warning", "lagstorm", `Lag NaN ${e.rate} erreurs/s depuis ${e.sustainedSec}s`);
+      // Auto-mitigation: when the storm is severe AND sustained, restart the
+      // server (the only server-side lever — Icarus has no RCON to kick one
+      // player). Guarded by a config flag + a cooldown so it never loops.
+      const env = rt.spec.environment;
+      const autofix = !/^(0|false|off|no)$/i.test(env["ICARUS_LAG_AUTOFIX"] ?? "1");
+      const afterSec = parseInt(env["ICARUS_LAG_AUTOFIX_SECONDS"] ?? "", 10) || 120;
+      const last = this.icarusAutoRestart.get(serverId) ?? 0;
+      if (autofix && e.sustainedSec >= afterSec && Date.now() - last > 30 * 60_000) {
+        this.icarusAutoRestart.set(serverId, Date.now());
+        this.pushConsole(serverId, `>> Auto-correction: redémarrage (lag NaN soutenu ${e.sustainedSec}s)`, "stdout");
+        void this.notifyDiscord(
+          `:wrench: **Auto-correction Icarus** : redémarrage automatique (lag NaN soutenu ${e.sustainedSec}s, joueurs éjectés).`,
+        );
+        void this.power(serverId, "restart").catch((err) =>
+          logger.warn({ err, serverId }, "icarus lag auto-restart failed"),
+        );
+      }
+    }
+  }
+
+  /**
+   * Best-effort Discord notification via a webhook URL in the env. Dormant
+   * until ICARUS_DISCORD_WEBHOOK (or the generic ALERT_WEBHOOK) is set — then
+   * join/leave/crash events post to the channel automatically.
+   */
+  private async notifyDiscord(content: string): Promise<void> {
+    const url = process.env.ICARUS_DISCORD_WEBHOOK || process.env.ALERT_WEBHOOK;
+    if (!url) return;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, username: "MGG · Icarus" }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timer));
+    } catch {
+      /* best-effort: never let a notification break the manager */
+    }
+  }
+
+  /**
+   * Report a security event to the panel so it surfaces in the dashboard
+   * Security feed (stored as an Alert). Best-effort, authenticated with the
+   * node bearer token the panel already shares.
+   */
+  private async reportSecurity(
+    serverId: string,
+    severity: "info" | "warning" | "critical",
+    category: string,
+    message: string,
+  ): Promise<void> {
+    const url = process.env.PANEL_URL;
+    const token = process.env.DAEMON_TOKEN;
+    if (!url || !token) return;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      await fetch(`${url}/api/internal/security`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ serverId, severity, category, message }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timer));
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  /** Report a finished play session to the panel (accumulates the leaderboard). */
+  private async reportPlaytime(serverId: string, steamId: string, name: string, seconds: number): Promise<void> {
+    if (seconds <= 0) return;
+    const url = process.env.PANEL_URL;
+    const token = process.env.DAEMON_TOKEN;
+    if (!url || !token) return;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      await fetch(`${url}/api/internal/playtime`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ serverId, steamId, name, seconds }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timer));
+    } catch {
+      /* best-effort */
+    }
+  }
+
   private beginStreaming(serverId: string) {
     const rt = this.servers.get(serverId);
     if (!rt) return;
@@ -343,7 +512,10 @@ class ServerManager extends EventEmitter {
             : 0,
         uptimeSeconds: rt.startedAt ? Math.floor((Date.now() - rt.startedAt) / 1000) : 0,
         diskBytes: rt.lastStats?.diskBytes ?? 0,
-        players: rt.players ? { online: rt.players.online, max: rt.players.max, sample: rt.players.sample } : undefined,
+        players: rt.players
+          ? { online: rt.players.online, max: rt.players.max, sample: rt.players.sample, admins: rt.players.admins }
+          : undefined,
+        latencyMs: rt.latencyMs,
       };
       rt.lastStats = stats;
       this.emit(`stats:${serverId}`, stats);
@@ -351,22 +523,63 @@ class ServerManager extends EventEmitter {
       .then((stop) => (rt.stopStats = stop))
       .catch((e) => logger.warn({ e, serverId }, "stats stream failed"));
 
-    // periodic player query - RCON (Minecraft) or A2S (Source/Steam query games)
-    if (rt.spec.rcon) {
+    // periodic player query + latency - RCON (Minecraft) or A2S (Source/Steam query games)
+    // Icarus has NO RCON and A2S only yields a count → tail its log for the real
+    // roster (names + SteamIDs) and surface join/leave/crash events.
+    if (this.isIcarus(rt)) {
+      const logPath = path.join(hostVolumePath(serverId), "drive_c/icarus/Saved/Logs/Icarus.log");
+      const max = parseInt(rt.spec.environment["SERVER_MAX_PLAYERS"] ?? "", 10) || 8;
+      const adminIds = new Set(
+        (rt.spec.environment["ICARUS_ADMIN_STEAMIDS"] ?? "")
+          .split(/[,;\s]+/)
+          .map((s) => s.trim())
+          .filter((s) => /^\d{17}$/.test(s)),
+      );
+      const tracker = new IcarusLogTracker(logPath, max, (e) => this.handleIcarusEvent(serverId, e), adminIds);
+      rt.icarusLog = tracker;
+      tracker.start().catch((e) => logger.warn({ e, serverId }, "icarus log tracker failed to start"));
+      // Icarus answers A2S on a distinct Query port — keep a latency ping there.
+      const qAlloc =
+        rt.spec.allocations.find((a) => /query/i.test(a.role)) ??
+        rt.spec.allocations.find((a) => a.primary) ??
+        rt.spec.allocations[0];
+      // mirror the tracker's roster into rt.players + measure latency
       rt.playerTimer = setInterval(async () => {
         if (rt.state !== ServerState.Running) return;
+        if (rt.icarusLog) rt.players = rt.icarusLog.snapshot();
+        if (qAlloc) {
+          const t0 = Date.now();
+          const r = await queryA2S(await rconHost(serverId), qAlloc.port).catch(() => null);
+          if (r) rt.latencyMs = Date.now() - t0;
+        }
+      }, 5000);
+    } else if (rt.spec.rcon) {
+      rt.playerTimer = setInterval(async () => {
+        if (rt.state !== ServerState.Running) return;
+        const t0 = Date.now();
         const players = await queryPlayers(await rconHost(serverId), rt.spec.rcon!.port, rt.spec.rcon!.password);
-        if (players) rt.players = players;
+        if (players) {
+          rt.players = players;
+          rt.latencyMs = Date.now() - t0;
+        }
       }, 15000);
     } else if (rt.spec.features.includes("query")) {
-      // Source-engine games (Garry's Mod, ...) have no RCON list; read the live
-      // player count straight off the game port with an A2S_INFO query.
-      const primary = rt.spec.allocations.find((a) => a.primary) ?? rt.spec.allocations[0];
-      if (primary) {
+      // A2S_INFO over UDP. ⚠️ Certains jeux (Icarus) répondent sur un port "Query"
+      // DISTINCT du port de jeu → interroger l'allocation Query si elle existe,
+      // sinon le port de jeu (Source-engine comme Garry's Mod = même port).
+      const qAlloc =
+        rt.spec.allocations.find((a) => /query/i.test(a.role)) ??
+        rt.spec.allocations.find((a) => a.primary) ??
+        rt.spec.allocations[0];
+      if (qAlloc) {
         rt.playerTimer = setInterval(async () => {
           if (rt.state !== ServerState.Running) return;
-          const players = await queryA2S(await rconHost(serverId), primary.port);
-          if (players) rt.players = players;
+          const t0 = Date.now();
+          const players = await queryA2S(await rconHost(serverId), qAlloc.port);
+          if (players) {
+            rt.players = players;
+            rt.latencyMs = Date.now() - t0;
+          }
         }, 15000);
       }
     }
@@ -387,6 +600,8 @@ class ServerManager extends EventEmitter {
     if (rt.diskTimer) clearInterval(rt.diskTimer);
     rt.playerTimer = undefined;
     rt.diskTimer = undefined;
+    rt.icarusLog?.stop();
+    rt.icarusLog = undefined;
     if (clearStdin && rt.stdin) {
       try {
         rt.stdin.end();

@@ -13,7 +13,7 @@ import {
   type AssistantVariable,
 } from "@/lib/assistant";
 import { runCopilotAgent } from "@/lib/copilot-agent";
-import { getAnthropicKey } from "@/lib/settings";
+import { getAiConfig } from "@/lib/settings";
 
 /**
  * AI Server Copilot endpoint.
@@ -58,13 +58,22 @@ export const POST = route(async (req, ctx: { params: { id: string } }) => {
   const env = (c.server.environment as Record<string, string>) ?? {};
   const tpl = getTemplate(c.server.templateId);
 
-  // Live state (falls back to the cached row state if the node is unreachable).
+  // Live state + recent console (falls back to the cached row state if the node
+  // is unreachable). The console tail gives the Copilot the actual logs to
+  // reason over — without it, it can only guess.
   let state = c.server.state as string;
+  let consoleTail: string[] | undefined;
   try {
-    const status = await new DaemonClient(c.node).status(c.server.id);
+    const status = await new DaemonClient(c.node).status(c.server.id, { console: 60 });
     if (status?.state) state = status.state;
+    if (Array.isArray(status?.console)) {
+      consoleTail = status.console
+        .map((l) => (typeof l === "string" ? l : l?.line))
+        .filter((x): x is string => !!x && x.trim().length > 0)
+        .slice(-50);
+    }
   } catch {
-    /* node offline -> use cached state */
+    /* node offline -> use cached state, no console */
   }
 
   // Build user-viewable startup variables with their effective values, exactly
@@ -91,27 +100,38 @@ export const POST = route(async (req, ctx: { params: { id: string } }) => {
     state,
     features: tpl?.features ?? [],
     variables,
-    // The daemon exposes console only over WebSocket (no HTTP tail endpoint), so
-    // we intentionally omit consoleTail; the helper degrades gracefully without it.
-    consoleTail: undefined,
+    consoleTail,
     canCommand,
   };
 
-  // A key set from the admin dashboard takes precedence over the env var.
-  const { key } = await getAnthropicKey();
+  // Resolve the active AI backend (provider + key + model) from the dashboard /
+  // env. The dashboard takes precedence so an operator can switch providers
+  // without redeploying.
+  const ai = await getAiConfig();
 
-  // With a key, run the AGENTIC Copilot: it can take real actions (power,
-  // settings, mods, create servers) — strictly within THIS user's permissions,
-  // re-checked per tool. Without a key, fall back to the read-only rule helper.
-  const result = key
-    ? await runCopilotAgent({
-        user,
-        currentServerId: c.server.id,
-        ctx: assistantCtx,
-        messages: messages as AssistantMessage[],
-        apiKey: key,
-      })
-    : await askAssistant(assistantCtx, messages as AssistantMessage[], null);
+  // With an Anthropic key, run the AGENTIC Copilot: it can take real actions
+  // (power, settings, mods, create servers) — strictly within THIS user's
+  // permissions, re-checked per tool. OpenRouter models use the chat assistant
+  // (answers + one-click command chips; no autonomous tool execution). With no
+  // key, fall back to the read-only rule helper.
+  let result;
+  if (ai.key && ai.provider === "anthropic") {
+    result = await runCopilotAgent({
+      user,
+      currentServerId: c.server.id,
+      ctx: assistantCtx,
+      messages: messages as AssistantMessage[],
+      apiKey: ai.key,
+    });
+  } else if (ai.key && ai.provider === "openrouter") {
+    result = await askAssistant(assistantCtx, messages as AssistantMessage[], {
+      provider: "openrouter",
+      key: ai.key,
+      model: ai.model,
+    });
+  } else {
+    result = await askAssistant(assistantCtx, messages as AssistantMessage[], null);
+  }
 
   return json(result);
 });

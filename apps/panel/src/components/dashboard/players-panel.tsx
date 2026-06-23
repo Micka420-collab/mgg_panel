@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/client";
 import { confirmDialog } from "@/components/ui/confirm";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/util";
 
 interface PlayersResponse {
@@ -141,9 +142,9 @@ export function PlayersPanel({ id, canManage }: { id: string; canManage: boolean
             <Loader2 className="h-5 w-5 animate-spin text-cyan" />
           </div>
         ) : !online ? (
-          <div className="px-4 py-10 text-center text-sm text-white/30">Server is offline — start it to manage players.</div>
+          <EmptyState icon={Users2} title="Serveur hors ligne" text="Démarre le serveur pour gérer les joueurs." />
         ) : sample.length === 0 ? (
-          <div className="px-4 py-10 text-center text-sm text-white/30">No players online right now.</div>
+          <EmptyState icon={Users2} title="Aucun joueur en ligne" text="Personne n'est connecté pour le moment." />
         ) : (
           <div className="divide-y divide-white/5">
             {sample.map((name) => (

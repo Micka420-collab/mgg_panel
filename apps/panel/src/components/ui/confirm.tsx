@@ -135,20 +135,27 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
-            {/* toasts */}
-            <div className="pointer-events-none fixed bottom-4 right-4 z-[110] flex flex-col gap-2">
+            {/* toasts — top-center popup with a rotating light border */}
+            <div className="pointer-events-none fixed left-1/2 top-4 z-[110] flex -translate-x-1/2 flex-col items-center gap-2">
               {toasts.map((t) => {
                 const Icon = ToastIcon[t.kind];
                 return (
                   <div
                     key={t.id}
                     className={cn(
-                      "pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-xl border px-4 py-3 text-sm shadow-xl backdrop-blur-md animate-in slide-in-from-bottom-2",
+                      "spin-light pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-xl border px-4 py-3 text-sm shadow-xl backdrop-blur-md animate-in slide-in-from-top-2",
                       toastStyle[t.kind],
                     )}
                   >
                     <Icon className="mt-0.5 h-4 w-4 shrink-0" />
                     <span className="leading-snug text-white/90">{t.message}</span>
+                    <button
+                      onClick={() => setToasts((ts) => ts.filter((x) => x.id !== t.id))}
+                      aria-label="Fermer"
+                      className="mt-0.5 ml-1 shrink-0 text-white/40 transition hover:text-white"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 );
               })}

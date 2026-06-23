@@ -1,0 +1,94 @@
+# MGG Panel — améliorations nocturnes (autonome)
+
+Session de nuit : améliorer en continu le panel (détails + innovations qui le
+démarquent des autres panels). Revue prévue ~6h.
+
+Règles : builds **panel-only** (ne pas couper Icarus live), vérifier chaque
+déploiement, revenir en arrière si casse. Lots d'améliorations → 1 build testé.
+
+## Journal
+
+### Lot 1 — Console pro + persistance onglet
+- **Console** (`console-panel.tsx`) entièrement repensée :
+  - 🔍 Recherche en direct avec **surlignage** des correspondances
+  - 🎚️ Filtre par gravité : Tout / Warn+ / Erreurs
+  - 📋 **Copier** le journal (filtré) + 📥 **Télécharger en .txt**
+  - 🔢 Compteur de lignes (filtré/total), 🔽 bouton « retour en bas », toggle auto-scroll
+- **Onglet mémorisé** par serveur (`server-detail.tsx`) — on revient sur l'onglet quitté, plus de reset sur Console.
+
+### Lot 2 — Palette de commandes (Cmd/Ctrl+K)
+- **`command-palette.tsx`** : palette globale (⌘K / Ctrl+K) pour sauter vers n'importe quel serveur ou page instantanément (recherche floue, navigation clavier ↑↓ + Entrée, Échap). Aucun panel concurrent (Pterodactyl/Pelican) n'a ça.
+- Bouton « Rechercher ⌘K » ajouté dans la sidebar (`shell.tsx`) pour la découvrabilité.
+
+### ⚠️ Incident disque (résolu)
+Disque VM à **100%** (mes builds répétés DOCKER_BUILDKIT=0 → 30 GB d'images orphelines + 22 GB de cache). Purgé → **48% (50 GB libres)**. Probablement la cause du prospect Icarus qui ne se chargeait pas (disque plein = save impossible). **Correctif permanent** : `docker image prune -f` intégré après chaque build nocturne.
+
+### Lot 3 — Score de santé + skeletons
+- **Score de santé** serveur (`server-detail.tsx`) : badge vert « Bonne santé » / ambre « Charge élevée » / rouge « Critique » dans l'en-tête, calculé en direct depuis CPU / RAM / latence. Vue d'un coup d'œil que les autres panels n'ont pas.
+- **Skeletons de chargement** sur les tuiles de stats (shimmer au lieu de « — » pendant le chargement).
+
+### Lot 4 — Macros de commandes (console)
+- **Barre de macros** dans la console (`console-panel.tsx`) : enregistre tes commandes favorites en boutons cliquables (ex. « say Redémarrage dans 5 min », « list », « weather clear »), persistées par serveur (localStorage). 1 clic = exécution. Atout power-user que les autres panels n'ont pas.
+
+### Lot 5 — Favoris dashboard
+- **`server-grid.tsx`** : sur le tableau de bord, ⭐ épingle un serveur en favori → il remonte en haut de la liste (persisté localStorage). Étoile au survol des cartes. Utile dès qu'on gère plusieurs serveurs. Page dashboard refactorisée (cartes extraites en composant client).
+
+### Lot 6 — Polish (toasts + fil d'ariane)
+- **Bouton fermer (×)** sur les notifications toast (`confirm.tsx`) — dismiss manuel + `aria-label`.
+- **Fil d'ariane** sur la page serveur (`server-detail.tsx`) : « Serveurs / NomDuServeur » au lieu du simple lien retour → contexte plus clair.
+
+### Lot 7 — Badge d'alertes live
+- **`alerts-badge.tsx`** : pastille rouge sur le menu **Admin** (sidebar) avec le nombre d'alertes non résolues, rafraîchie toutes les 30 s. Met en valeur le feed sécurité / lag / bilans IA construit cette nuit, repérable d'un coup d'œil. Admin uniquement.
+
+### Lot 8 — Suggestions de commandes (console)
+- **Suggestions de commandes** dans la console (`console-panel.tsx`) : pendant la frappe, une rangée de commandes courantes correspondant au préfixe apparaît (list, say, weather clear, difficulty…). Clic = remplit l'input. Découvrabilité pour les nouveaux admins, sans gêner l'historique ↑↓.
+
+### Lot 9 — Barres d'usage sur les tuiles
+- **Barres de progression** sous les tuiles CPU / RAM / Disque (`server-detail.tsx`) : visuel instantané du % d'utilisation (cyan < 75 %, ambre < 90 %, rouge ≥ 90 %). On voit en un coup d'œil ce qui sature.
+
+### Lot 10 — États vides soignés
+- **Composant `EmptyState`** réutilisable (icône + titre + texte) appliqué aux panneaux **Sauvegardes** et **Planifications** : « rien ici » devient un état soigné et localisé au lieu d'un texte gris brut. Le genre de détail qui fait pro.
+
+### Lot 11 — Titre d'onglet dynamique
+- Le **nom du serveur** s'affiche dans l'onglet du navigateur (`ServerName · MGG`) quand on est sur sa page — pratique avec plusieurs serveurs ouverts en parallèle (`server-detail.tsx`).
+
+---
+
+## 🌅 Récap pour 6h
+**11 améliorations déployées en autonomie, chacune vérifiée (panel HTTP 200) avant de passer à la suivante. Aucune coupure du serveur Icarus (builds panel-only). Disque sous contrôle.**
+
+1. Console pro — recherche+surlignage, filtre gravité, copie, .txt, compteur, retour-bas
+2. Palette de commandes ⌘K (saut rapide serveur/page) — *aucun panel concurrent n'a ça*
+3. Score de santé serveur (vert/ambre/rouge) + skeletons de chargement
+4. Macros de commandes (boutons favoris par serveur)
+5. Favoris dashboard (⭐ épingler en haut)
+6. Bouton fermer sur les toasts + fil d'ariane
+7. Badge live d'alertes non résolues (menu Admin)
+8. Suggestions de commandes (autocomplétion par préfixe)
+9. Barres d'usage CPU/RAM/Disque sur les tuiles
+10. États vides soignés (composant `EmptyState`)
+11. Titre d'onglet dynamique
+
+**Incident géré** : disque VM saturé à 100% (images Docker de mes builds) → purgé à 48%, + `docker image prune` désormais automatique après chaque build. C'était probablement la cause du prospect Icarus qui ne se chargeait pas.
+
+Tout est committé (commits `Panel night #1..#11`). Pistes restantes (réserve) : responsive mobile fin, diff de config dans l'éditeur de fichiers, sparklines sur les cartes du dashboard.
+
+### Lot 12 — Accessibilité (réveil 6h19)
+- `aria-label` sur les boutons icône-only (copier l'adresse, kill, effacer recherche console, retour-bas console) — lecteurs d'écran + clavier. Système vérifié sain au réveil (panel 200, Icarus up NaN=0, disque 48%).
+
+### Lot 13 — Garde anti-perte dans l'éditeur de fichiers
+- L'éditeur de fichiers (`files-panel.tsx`) affiche un indicateur **« ● non enregistré »** et **demande confirmation avant de fermer** (clic fond ou ×) si des modifications ne sont pas sauvées. Évite de perdre une édition de config par erreur.
+
+### Lot 14 — Cohérence des états vides
+- Composant `EmptyState` appliqué aux panneaux **Joueurs** (hors ligne / aucun joueur) et **Fichiers** (dossier vide) → tous les états vides du panel sont désormais soignés et homogènes.
+
+### Lot 15 — Confirmation Stop/Kill avec joueurs en ligne
+- Arrêter/forcer-l'arrêt (`server-detail.tsx`) **demande confirmation** quand des joueurs sont connectés (« X joueurs en ligne, déconnecter tout le monde ? ») — évite de couper le serveur sous les joueurs par mégarde. Complète le préavis déjà présent sur le redémarrage.
+
+## ☀️ Suite (matin, user « continue le polish »)
+
+### Lot 16 — Clavier dans l'éditeur de fichiers
+- `Échap` ferme l'éditeur (avec la garde anti-perte), `Ctrl/Cmd+S` enregistre, et le textarea prend le focus à l'ouverture (`files-panel.tsx`). Édition de config au clavier, comme un vrai éditeur.
+
+### Lot 17 — Accessibilité (boutons d'action)
+- `aria-label` sur les boutons icône-only restants : supprimer sauvegarde/planification/fichier, exécuter planification (backups, schedules, files). Le panel est maintenant cohérent côté lecteurs d'écran.

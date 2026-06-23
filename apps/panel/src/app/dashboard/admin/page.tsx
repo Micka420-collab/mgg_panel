@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Server, Users, HardDrive, Plus, Loader2, CircleCheck, CircleX, BellRing } from "lucide-react";
+import Link from "next/link";
+import { Server, Users, HardDrive, Plus, Loader2, CircleCheck, CircleX, BellRing, ArrowRight } from "lucide-react";
 import { api } from "@/lib/client";
 import { cn, relativeTime } from "@/lib/util";
 import { DdnsCard } from "@/components/dashboard/ddns-card";
 import { AiKeyCard } from "@/components/dashboard/ai-key-card";
+import { EmailSettingsCard } from "@/components/dashboard/email-settings-card";
 import { UpdateCard } from "@/components/dashboard/update-card";
 
 interface AlertView {
@@ -75,13 +77,17 @@ export default function AdminPage() {
           <h1 className="font-display text-3xl font-bold text-white">Admin</h1>
           <p className="mt-1 text-sm text-white/50">Platform overview and node management.</p>
         </div>
-        <button onClick={() => setAdding((v) => !v)} className="btn-primary"><Plus className="h-4 w-4" /> Add node</button>
+        <div className="flex gap-2">
+          <Link href="/dashboard/admin/users" className="btn-ghost"><Users className="h-4 w-4" /> Utilisateurs & permissions</Link>
+          <button onClick={() => setAdding((v) => !v)} className="btn-primary"><Plus className="h-4 w-4" /> Add node</button>
+        </div>
       </div>
 
       {error && <div className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
       <UpdateCard />
       <AiKeyCard />
+      <EmailSettingsCard />
       <DdnsCard />
 
 

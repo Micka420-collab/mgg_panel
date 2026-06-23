@@ -78,23 +78,43 @@ export interface AssistantResult {
 
 const MODEL = "claude-haiku-4-5-20251001";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-chat";
+
+/** AI backend config passed by the caller (resolved from settings/env). */
+export interface AiCallConfig {
+  provider: "anthropic" | "openrouter";
+  key: string | null;
+  /** Model id; falls back to a per-provider default when omitted. */
+  model?: string;
+}
 
 /**
  * Public entrypoint. Picks the AI path when a key exists, else the rule engine.
  *
- * `apiKey` lets the caller pass a key resolved at request time (e.g. one set from
- * the admin dashboard, which takes precedence over env). When omitted, we fall
- * back to the ANTHROPIC_API_KEY env var so the function stays usable standalone.
+ * `ai` lets the caller pass the AI config resolved at request time (provider +
+ * key + model from the admin dashboard, which takes precedence over env). For
+ * back-compat a bare string is treated as an Anthropic key, and when omitted we
+ * fall back to the ANTHROPIC_API_KEY env var so the function stays standalone.
  */
 export async function askAssistant(
   ctx: AssistantContext,
   messages: AssistantMessage[],
-  apiKey?: string | null,
+  ai?: AiCallConfig | string | null,
 ): Promise<AssistantResult> {
-  const key = (apiKey ?? process.env.ANTHROPIC_API_KEY)?.trim();
+  const cfg: AiCallConfig =
+    typeof ai === "string"
+      ? { provider: "anthropic", key: ai }
+      : ai && typeof ai === "object"
+        ? ai
+        : { provider: "anthropic", key: process.env.ANTHROPIC_API_KEY ?? null };
+
+  const key = cfg.key?.trim();
   if (key) {
     try {
-      return await askAnthropic(key, ctx, messages);
+      return cfg.provider === "openrouter"
+        ? await askOpenRouter(key, cfg.model || DEFAULT_OPENROUTER_MODEL, ctx, messages)
+        : await askAnthropic(key, ctx, messages, cfg.model);
     } catch (e) {
       // Never surface upstream/network/quota errors to the user — degrade to the
       // deterministic helper so the chat keeps working.
@@ -156,6 +176,7 @@ async function askAnthropic(
   key: string,
   ctx: AssistantContext,
   messages: AssistantMessage[],
+  model?: string,
 ): Promise<AssistantResult> {
   // Trim to the last ~16 turns to keep the request small and bounded.
   const trimmed = messages
@@ -176,7 +197,7 @@ async function askAnthropic(
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: model || MODEL,
         max_tokens: 1024,
         system: buildSystemPrompt(ctx),
         messages: trimmed,
@@ -206,6 +227,66 @@ async function askAnthropic(
     .join("\n")
     .trim();
 
+  const { reply, suggestedCommands } = extractCommands(text);
+  return { reply: reply || "I'm not sure how to help with that — try rephrasing.", suggestedCommands, source: "ai" };
+}
+
+/**
+ * OpenRouter path — OpenAI-compatible Chat Completions. Lets the Copilot run on
+ * any OpenRouter-hosted model (DeepSeek, Llama, Qwen, GPT, Gemini…) instead of
+ * Anthropic. The system prompt is sent as the first `system` message; the
+ * `COMMANDS:` convention still works for one-click command chips.
+ */
+async function askOpenRouter(
+  key: string,
+  model: string,
+  ctx: AssistantContext,
+  messages: AssistantMessage[],
+): Promise<AssistantResult> {
+  const trimmed = messages
+    .filter((m) => m.content && m.content.trim())
+    .slice(-16)
+    .map((m) => ({ role: m.role, content: m.content }));
+  if (trimmed.length === 0) trimmed.push({ role: "user", content: "Hello" });
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  let res: Response;
+  try {
+    res = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${key}`,
+        // OpenRouter asks for these for attribution/routing; harmless if generic.
+        "HTTP-Referer": process.env.APP_URL || "https://mgg.panel",
+        "X-Title": "MGG Server Copilot",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024,
+        messages: [{ role: "system", content: buildSystemPrompt(ctx) }, ...trimmed],
+      }),
+      signal: controller.signal,
+      cache: "no-store",
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: { message?: string } };
+      if (body?.error?.message) detail = body.error.message;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(`OpenRouter API error: ${detail}`);
+  }
+
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const text = (data.choices?.[0]?.message?.content ?? "").trim();
   const { reply, suggestedCommands } = extractCommands(text);
   return { reply: reply || "I'm not sure how to help with that — try rephrasing.", suggestedCommands, source: "ai" };
 }

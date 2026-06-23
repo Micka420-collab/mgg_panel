@@ -32,7 +32,9 @@ export interface ServerStats {
   /** Seconds the container has been running, if any. */
   uptimeSeconds: number;
   /** Player count if the template can report it (e.g. via query/RCON). */
-  players?: { online: number; max: number; sample?: string[] };
+  players?: { online: number; max: number; sample?: string[]; admins?: string[] };
+  /** Round-trip latency (ms) of the last player/health query (RCON or A2S), if measured. */
+  latencyMs?: number;
 }
 
 /** A line streamed from the server console. */
@@ -64,12 +66,21 @@ export type ConsoleServerMessage =
 export interface Allocation {
   id: string;
   ip: string;
-  /** the externally reachable port */
+  /** the externally reachable (host) port */
   port: number;
   protocol: "tcp" | "udp" | "both";
   /** which template port this fills, e.g. "Game", "RCON", "Query" */
   role: string;
   primary: boolean;
+  /**
+   * Port the process actually LISTENS on inside the container. For most servers
+   * this equals `port` (they're told the allocated port via an env var). For
+   * fixed-port images that can't change their listen port (e.g. nginx/apache on
+   * 80), this is the image's fixed internal port and the daemon maps
+   * host:`port` → container:`containerPort`. Defaults to `port` when unset
+   * (backward-compatible with older specs).
+   */
+  containerPort?: number;
 }
 
 /** What the daemon needs to fully (re)build a container. Panel -> daemon. */

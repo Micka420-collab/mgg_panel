@@ -5,6 +5,7 @@ import { DaemonClient } from "./daemon";
 import { enforceBackupRetention } from "./backups";
 import { meterBilling } from "./billing";
 import { monitorTick } from "./monitor";
+import { aiHeartbeatTick } from "./ai-heartbeat";
 import { updateDuckDnsFromEnv, duckDnsConfigured } from "./ddns";
 import { recordStats } from "./metrics";
 
@@ -92,6 +93,9 @@ export async function tick(): Promise<void> {
   await meterBilling().catch((e) => console.error("[scheduler] billing failed", e));
   // node health + crash detection / auto-restart
   await monitorTick().catch((e) => console.error("[scheduler] monitor failed", e));
+  // AI heartbeat: periodic per-server health bilan surfaced as alerts (throttled,
+  // dormant unless an AI key is configured)
+  await aiHeartbeatTick().catch((e) => console.error("[scheduler] ai-heartbeat failed", e));
   // keep the DuckDNS stable address pointed at the current public IP
   if (duckDnsConfigured()) {
     await updateDuckDnsFromEnv().catch((e) => console.error("[scheduler] ddns failed", e));

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Archive, Plus, Loader2, RotateCcw, Trash2, Lock } from "lucide-react";
 import { api } from "@/lib/client";
 import { confirmDialog } from "@/components/ui/confirm";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatBytes, relativeTime } from "@/lib/util";
 
 interface Backup {
@@ -104,7 +105,7 @@ export function BackupsPanel({
       {loading ? (
         <div className="flex h-32 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-cyan" /></div>
       ) : backups.length === 0 ? (
-        <div className="px-4 py-12 text-center text-sm text-white/40">No backups yet. Create your first snapshot.</div>
+        <EmptyState icon={Archive} title="Aucune sauvegarde" text="Crée ta première sauvegarde du serveur pour pouvoir restaurer en cas de besoin." />
       ) : (
         <div>
           {backups.map((b) => (
@@ -126,7 +127,7 @@ export function BackupsPanel({
                   </button>
                 )}
                 {canDelete && !b.locked && (
-                  <button onClick={() => del(b)} className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => del(b)} aria-label="Supprimer la sauvegarde" className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
                 )}
               </div>
             </div>

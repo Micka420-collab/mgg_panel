@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CalendarClock, Plus, Play, Trash2, Loader2, Power, Terminal, Archive } from "lucide-react";
 import { api } from "@/lib/client";
 import { confirmDialog } from "@/components/ui/confirm";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/util";
 
 interface Task {
@@ -137,7 +138,13 @@ export function SchedulesPanel({ id, canManage }: { id: string; canManage: boole
       {loading ? (
         <div className="flex h-24 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-cyan" /></div>
       ) : schedules.length === 0 ? (
-        <div className="glass px-4 py-10 text-center text-sm text-white/40">No schedules yet.</div>
+        <div className="glass">
+          <EmptyState
+            icon={CalendarClock}
+            title="Aucune tâche planifiée"
+            text="Automatise redémarrages, commandes et sauvegardes avec des expressions cron."
+          />
+        </div>
       ) : (
         <div className="space-y-3">
           {schedules.map((s) => (
@@ -158,9 +165,9 @@ export function SchedulesPanel({ id, canManage }: { id: string; canManage: boole
               </div>
               {canManage && (
                 <div className="flex items-center gap-2">
-                  <button onClick={() => runNow(s)} className="btn-ghost px-2.5 py-1.5 text-xs" title="Run now"><Play className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => runNow(s)} className="btn-ghost px-2.5 py-1.5 text-xs" title="Run now" aria-label="Exécuter maintenant"><Play className="h-3.5 w-3.5" /></button>
                   <button onClick={() => toggle(s)} className="btn-ghost px-2.5 py-1.5 text-xs">{s.active ? "Pause" : "Resume"}</button>
-                  <button onClick={() => del(s)} className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => del(s)} aria-label="Supprimer la planification" className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
                 </div>
               )}
             </div>

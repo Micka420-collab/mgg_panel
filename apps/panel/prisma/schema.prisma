@@ -41,6 +41,10 @@ model User {
   passwordHash String
   role         UserRole @default(USER)
   avatarUrl    String?
+  // Receive transactional emails (crash/backup/security alerts). Opt-out per user.
+  emailNotifications Boolean @default(true)
+  // Suspended accounts cannot log in (admin moderation lever).
+  suspended Boolean @default(false)
 
   // 2FA (TOTP)
   totpEnabled   Boolean @default(false)
@@ -132,10 +136,25 @@ model Alert {
   nodeId    String?
   node      Node?    @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   resolved  Boolean  @default(false)
+  readAt    DateTime? // when the owner/admin marked this notification read (null = unread)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([resolved])
+}
+
+model PlaytimeStat {
+  id           String   @id @default(cuid())
+  serverId     String
+  steamId      String
+  name         String
+  totalSeconds Int      @default(0)
+  sessions     Int      @default(0)
+  lastSeenAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([serverId, steamId])
+  @@index([serverId])
 }
 
 model Allocation {
@@ -224,6 +243,7 @@ model Server {
   idleTimeout   Int     @default(600) // seconds empty before sleep
   autoRestart   Boolean @default(false) // monitor restarts the server if it crashes
   subdomain     String? @unique // e.g. "myserver" -> myserver.mgg.host
+  statusToken   String? @unique // public shareable status page token (/status/<token>)
 
   // Clone lineage: a cloned server remembers its origin so its files can be
   // pushed back to it (promote). onDelete SetNull so deleting an origin orphans

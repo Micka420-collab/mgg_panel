@@ -4,6 +4,7 @@ import { DaemonClient } from "./daemon";
 import { env } from "./env";
 import { sendDiscordWebhook } from "./notify";
 import { emitWebhook } from "./webhooks";
+import { emailAlert } from "./email";
 
 type Level = "info" | "warning" | "critical";
 
@@ -19,6 +20,7 @@ async function raise(key: string, level: Level, message: string, opts: { serverI
   if (env.alertWebhook) {
     await sendDiscordWebhook(env.alertWebhook, { title: `⚠️ ${message}`, description: key, level, ts: new Date().toISOString() });
   }
+  await emailAlert({ level, message, serverId: opts.serverId ?? null });
 }
 
 async function resolve(key: string) {

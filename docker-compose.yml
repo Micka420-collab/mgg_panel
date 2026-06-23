@@ -59,8 +59,14 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       # AI Server Copilot (optional). Dormant when unset: the copilot falls back
-      # to a deterministic rule-based helper instead of the Anthropic API.
+      # to a deterministic rule-based helper. Provider can be Anthropic OR
+      # OpenRouter (DeepSeek, Llama, GPT…) — set from the admin dashboard or here.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      AI_PROVIDER: ${AI_PROVIDER:-}
+      AI_MODEL: ${AI_MODEL:-}
+      # AI heartbeat: minutes between per-server health bilans (0 disables). Default 30.
+      AI_HEARTBEAT_MINUTES: ${AI_HEARTBEAT_MINUTES:-30}
     # Not published to the host — Caddy reaches the panel over the internal
     # network. This keeps the panel off 0.0.0.0 and forces traffic through TLS.
     expose:
@@ -77,6 +83,9 @@ services:
       DAEMON_DATA_DIR: /var/lib/mgg/volumes
       DAEMON_BACKUP_DIR: /var/lib/mgg/backups
       DOCKER_SOCKET: /var/run/docker.sock
+      # Icarus has no RCON → the daemon tails its log for the live roster and can
+      # post join/leave/crash events to a Discord webhook (optional, dormant if unset).
+      ICARUS_DISCORD_WEBHOOK: ${ICARUS_DISCORD_WEBHOOK:-}
       NODE_PUBLIC_IP: ${NODE_PUBLIC_IP:-127.0.0.1}
       # SFTP: validate logins against the panel and listen on 2022
       PANEL_URL: http://panel:3000

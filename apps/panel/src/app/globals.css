@@ -57,6 +57,91 @@ body {
     }
   }
 
+  /* Lit control panel — a soft cyan/violet halo bleeding out behind the surface,
+     plus a faint hairline-lit top edge. Used on the main control panel header
+     and a few key cards for a "panel that glows" feel. */
+  .control-glow {
+    position: relative;
+    isolation: isolate;
+  }
+  .control-glow::after {
+    content: "";
+    position: absolute;
+    inset: -34px -24px -10px;
+    z-index: -1;
+    border-radius: 32px;
+    background:
+      radial-gradient(68% 130% at 28% 0%, rgba(0, 180, 216, 0.22), transparent 62%),
+      radial-gradient(58% 130% at 92% 8%, rgba(109, 92, 255, 0.18), transparent 62%);
+    filter: blur(38px);
+    pointer-events: none;
+  }
+  /* A lighter accent glow for secondary spots (cards, tiles). */
+  .glow-accent {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow-accent::after {
+    content: "";
+    position: absolute;
+    inset: -20px;
+    z-index: -1;
+    border-radius: 28px;
+    background: radial-gradient(60% 120% at 50% 0%, rgba(0, 180, 216, 0.14), transparent 65%);
+    filter: blur(30px);
+    pointer-events: none;
+  }
+
+  /* Main control panel: a slow light travelling around the edge + a deep
+     drop-shadow and behind-halo for a floating "depth" feel. */
+  .lit-panel {
+    position: relative;
+    isolation: isolate;
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
+      0 34px 80px -34px rgba(0, 0, 0, 0.92),
+      0 10px 30px -16px rgba(0, 180, 216, 0.20);
+  }
+  .lit-panel::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--spin-angle),
+      transparent 0deg,
+      rgba(0, 180, 216, 0.65) 55deg,
+      rgba(109, 92, 255, 0.65) 120deg,
+      transparent 205deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: spin-border-angle 7s linear infinite;
+    pointer-events: none;
+  }
+  .lit-panel::after {
+    content: "";
+    position: absolute;
+    inset: -32px -22px -14px;
+    z-index: -1;
+    border-radius: 34px;
+    background:
+      radial-gradient(66% 130% at 28% 0%, rgba(0, 180, 216, 0.20), transparent 62%),
+      radial-gradient(56% 130% at 92% 8%, rgba(109, 92, 255, 0.16), transparent 62%);
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lit-panel::before {
+      animation: none;
+    }
+  }
+
   /* Hairline divider */
   .hr {
     @apply h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent;
@@ -142,4 +227,66 @@ body {
 .console-surface {
   background: #0b0e14;
   color: #c9d1d9;
+}
+
+/* ── Rotating light border (e.g. around the top toast popup) ──────────────── */
+@property --spin-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes spin-border-angle {
+  to {
+    --spin-angle: 360deg;
+  }
+}
+/* A conic light sweeping around the element's border, + a soft rotating halo. */
+.spin-light {
+  position: relative;
+  isolation: isolate;
+}
+.spin-light::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--spin-angle),
+    transparent 0deg,
+    rgba(0, 180, 216, 0.95) 70deg,
+    rgba(109, 92, 255, 0.95) 140deg,
+    transparent 220deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin-border-angle 2.8s linear infinite;
+  pointer-events: none;
+}
+.spin-light::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--spin-angle),
+    transparent,
+    rgba(0, 180, 216, 0.28),
+    rgba(109, 92, 255, 0.28),
+    transparent 60%
+  );
+  filter: blur(11px);
+  animation: spin-border-angle 2.8s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin-light::before,
+  .spin-light::after {
+    animation: none;
+  }
 }
