@@ -12,6 +12,7 @@ import * as files from "./files.js";
 import * as backups from "./backups.js";
 import { selfDestruct } from "./teardown.js";
 import { selfUpdate } from "./update.js";
+import { restartPanel } from "./restart.js";
 
 /** Constant-time bearer-token check (hash to equalise length, avoid timing leak). */
 function tokenMatches(presented: string): boolean {
@@ -323,6 +324,19 @@ export function createHttpApp() {
     wrap(async (_req, res) => {
       res.status(202).json({ accepted: true });
       selfUpdate().catch((e) => logger.error({ e }, "self-update failed to start"));
+    }),
+  );
+
+  // ── restart just the panel container (apply a pulled update / recover) ──────
+  app.post(
+    "/api/restart-panel",
+    wrap(async (_req, res) => {
+      // Respond first, then restart the panel a beat later so this reply flushes
+      // (the request came from the panel we're about to restart).
+      res.status(202).json({ accepted: true });
+      setTimeout(() => {
+        restartPanel().catch((e) => logger.error({ e }, "panel restart failed"));
+      }, 1500);
     }),
   );
 

@@ -47,6 +47,25 @@ const en = {
     emptyText:
       "Deploy your first Minecraft, Icarus or other game server. It'll be online in under a minute.",
     emptyCta: "Create a server",
+    shared: "Shared",
+    sharedWithYou: "Shared with you",
+  },
+  admin: {
+    platformUpdate: "Platform update",
+    platformUpdateDesc:
+      "Pull the latest MGG release from the GitHub source and rebuild the panel & daemon. Game servers keep running; the panel is briefly unavailable while it rebuilds.",
+    updateFromGithub: "Update from GitHub",
+    updateConfirmTitle: "Update MGG from GitHub?",
+    updateConfirmDesc:
+      "Pulls the latest code from GitHub, then rebuilds and restarts the panel & daemon. The panel will be briefly unavailable (~1–3 min). Running game servers are NOT affected.",
+    updateStarted: "Update started — pulling from GitHub and rebuilding. The panel will restart shortly.",
+    restartPanel: "Restart panel",
+    restartPanelDesc:
+      "Restart the panel to apply a pulled update (or to recover it) without a full rebuild. Quicker than a full update; game servers are unaffected.",
+    restartConfirmTitle: "Restart the panel?",
+    restartConfirmDesc:
+      "The panel will be unavailable for a few seconds while it restarts. Running game servers are NOT affected.",
+    restartStarted: "Restarting the panel… it'll be back in a few seconds.",
   },
   account: {
     title: "Account",

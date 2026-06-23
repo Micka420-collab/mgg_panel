@@ -98,7 +98,14 @@ export default async function DashboardHome() {
                       <p className="text-xs text-white/40">{tpl?.name ?? s.templateId}</p>
                     </div>
                   </div>
-                  <StateBadge state={states.get(s.id) ?? s.state} />
+                  <div className="flex flex-col items-end gap-1.5">
+                    <StateBadge state={states.get(s.id) ?? s.state} />
+                    {s.ownerId !== user.id && (
+                      <span className="rounded bg-violet/15 px-1.5 py-0.5 text-[10px] text-violet-light">
+                        {t("dashboard.shared")}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-4 rounded-lg border border-white/5 bg-black/20 px-3 py-2 font-mono text-xs text-cyan-light">
                   {address}

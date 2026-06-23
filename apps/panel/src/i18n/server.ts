@@ -10,6 +10,8 @@ export function getLocale(): Locale {
   const accept = (headers().get("accept-language") ?? "").toLowerCase();
   if (accept.startsWith("en")) return "en";
   if (accept.startsWith("fr")) return "fr";
+  if (accept.startsWith("uk")) return "uk";
+  if (accept.startsWith("zh")) return "zh";
   return defaultLocale;
 }
 

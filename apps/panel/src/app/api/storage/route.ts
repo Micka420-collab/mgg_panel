@@ -14,8 +14,11 @@ export const GET = route(async () => {
   const user = await requireUser();
   const isAdmin = user.role === "ADMIN";
 
+  // Personal view: ONLY the servers you own or that are explicitly shared with
+  // you — never other tenants' servers, even for an admin. (Global capacity per
+  // node is still shown to admins below; the per-server breakdown stays yours.)
   const servers = await db.server.findMany({
-    where: isAdmin ? {} : { OR: [{ ownerId: user.id }, { subusers: { some: { userId: user.id } } }] },
+    where: { OR: [{ ownerId: user.id }, { subusers: { some: { userId: user.id } } }] },
     include: { node: true },
   });
 

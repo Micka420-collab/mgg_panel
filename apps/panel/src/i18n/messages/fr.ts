@@ -47,6 +47,25 @@ const fr = {
     emptyText:
       "Déploie ton premier serveur Minecraft, Icarus ou autre. Il sera en ligne en moins d'une minute.",
     emptyCta: "Créer un serveur",
+    shared: "Partagé",
+    sharedWithYou: "Partagé avec toi",
+  },
+  admin: {
+    platformUpdate: "Mise à jour de la plateforme",
+    platformUpdateDesc:
+      "Récupère la dernière version de MGG depuis GitHub et reconstruit le panel & le daemon. Les serveurs de jeu continuent de tourner ; le panel est brièvement indisponible pendant la reconstruction.",
+    updateFromGithub: "Mettre à jour depuis GitHub",
+    updateConfirmTitle: "Mettre à jour MGG depuis GitHub ?",
+    updateConfirmDesc:
+      "Récupère le dernier code depuis GitHub, puis reconstruit et redémarre le panel & le daemon. Le panel sera brièvement indisponible (~1–3 min). Les serveurs de jeu en cours ne sont PAS affectés.",
+    updateStarted: "Mise à jour lancée — récupération depuis GitHub et reconstruction. Le panel va redémarrer sous peu.",
+    restartPanel: "Redémarrer le panel",
+    restartPanelDesc:
+      "Redémarre le panel pour appliquer une mise à jour récupérée (ou pour le récupérer) sans tout reconstruire. Plus rapide qu'une MAJ complète ; les serveurs de jeu ne sont pas affectés.",
+    restartConfirmTitle: "Redémarrer le panel ?",
+    restartConfirmDesc:
+      "Le panel sera indisponible quelques secondes pendant le redémarrage. Les serveurs de jeu en cours ne sont PAS affectés.",
+    restartStarted: "Redémarrage du panel… de retour dans quelques secondes.",
   },
   account: {
     title: "Compte",

@@ -197,6 +197,11 @@ export class DaemonClient {
     return this.req<{ accepted: boolean }>("POST", "/api/self-update");
   }
 
+  /** Restart just the panel container (apply a pulled update without a full rebuild). */
+  restartPanel() {
+    return this.req<{ accepted: boolean }>("POST", "/api/restart-panel");
+  }
+
   /** Browser-facing WebSocket URL for live console/stats. */
   wsUrl(serverId: string): string {
     const wsScheme = this.node.scheme === "https" ? "wss" : "ws";

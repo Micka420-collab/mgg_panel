@@ -1,11 +1,13 @@
 import type { Locale } from "./config";
 import en from "./messages/en";
 import fr from "./messages/fr";
+import uk from "./messages/uk";
+import zh from "./messages/zh";
 
 // English is the canonical/base dictionary — its shape defines the available keys.
 export type Messages = typeof en;
 
-const DICTS: Record<Locale, unknown> = { en, fr };
+const DICTS: Record<Locale, unknown> = { en, fr, uk, zh };
 
 // Deep-merge so a missing key in a non-English dictionary falls back to the English string
 // (never a raw key) — lets us translate incrementally without breaking the UI.

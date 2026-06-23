@@ -1,29 +1,48 @@
 "use client";
 import { useState } from "react";
-import { Github, RefreshCw, Loader2 } from "lucide-react";
+import { Github, RefreshCw, Loader2, RotateCw } from "lucide-react";
 import { api } from "@/lib/client";
 import { confirmDialog, toast } from "@/components/ui/confirm";
+import { useT } from "@/i18n/client";
 
-/** Admin-only: pull the latest code from GitHub and rebuild + restart the stack. */
+/** Admin-only: pull the latest code from GitHub, or just restart the panel to apply it. */
 export function UpdateCard() {
-  const [busy, setBusy] = useState(false);
+  const { t } = useT();
+  const [busy, setBusy] = useState<null | "update" | "restart">(null);
 
   async function update() {
     const ok = await confirmDialog({
-      title: "Update MGG from GitHub?",
-      description:
-        "Pulls the latest code from the GitHub source, then rebuilds and restarts the panel & daemon. The panel will be briefly unavailable while it rebuilds (~1–3 min). Running game servers are NOT affected.",
-      confirmLabel: "Update now",
+      title: t("admin.updateConfirmTitle"),
+      description: t("admin.updateConfirmDesc"),
+      confirmLabel: t("admin.updateFromGithub"),
     });
     if (!ok) return;
-    setBusy(true);
+    setBusy("update");
     try {
       await api("/api/admin/update", { method: "POST" });
-      toast("Update started — pulling from GitHub and rebuilding. The panel will restart shortly.", "success");
+      toast(t("admin.updateStarted"), "success");
     } catch (e: any) {
       toast(e.message, "error");
     } finally {
-      setBusy(false);
+      setBusy(null);
+    }
+  }
+
+  async function restart() {
+    const ok = await confirmDialog({
+      title: t("admin.restartConfirmTitle"),
+      description: t("admin.restartConfirmDesc"),
+      confirmLabel: t("admin.restartPanel"),
+    });
+    if (!ok) return;
+    setBusy("restart");
+    try {
+      await api("/api/admin/restart", { method: "POST" });
+      toast(t("admin.restartStarted"), "success");
+    } catch (e: any) {
+      toast(e.message, "error");
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -35,17 +54,22 @@ export function UpdateCard() {
             <Github className="h-4 w-4 text-cyan" />
           </div>
           <div>
-            <h3 className="font-display font-semibold text-white">Platform update</h3>
-            <p className="mt-1 max-w-prose text-sm text-white/45">
-              Pull the latest MGG release from the GitHub source and rebuild the panel &amp; daemon. Game servers keep
-              running; the panel is briefly unavailable while it rebuilds.
-            </p>
+            <h3 className="font-display font-semibold text-white">{t("admin.platformUpdate")}</h3>
+            <p className="mt-1 max-w-prose text-sm text-white/45">{t("admin.platformUpdateDesc")}</p>
           </div>
         </div>
-        <button onClick={update} disabled={busy} className="btn-primary shrink-0">
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Update from GitHub
-        </button>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button onClick={restart} disabled={!!busy} className="btn-ghost">
+            {busy === "restart" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCw className="h-4 w-4" />}{" "}
+            {t("admin.restartPanel")}
+          </button>
+          <button onClick={update} disabled={!!busy} className="btn-primary">
+            {busy === "update" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}{" "}
+            {t("admin.updateFromGithub")}
+          </button>
+        </div>
       </div>
+      <p className="mt-3 text-xs text-white/35">{t("admin.restartPanelDesc")}</p>
     </div>
   );
 }
