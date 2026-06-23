@@ -2,6 +2,14 @@
 # APP_DOMAIN defaults to :80 (no TLS). Set APP_DOMAIN=panel.example.com for
 # automatic HTTPS via Let's Encrypt.
 
+{
+	# Admin API — the panel uses it to add per-customer "custom domain" routes at
+	# runtime (host -> reverse_proxy). Bound to the container's network so the
+	# panel container can reach it as http://caddy:2019. NEVER publish :2019 to
+	# the host (it is intentionally absent from docker-compose ports).
+	admin 0.0.0.0:2019
+}
+
 {$APP_DOMAIN} {
 	encode zstd gzip
 

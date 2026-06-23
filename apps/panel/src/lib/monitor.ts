@@ -7,10 +7,14 @@ import { emitWebhook } from "./webhooks";
 
 type Level = "info" | "warning" | "critical";
 
-/** Raise (or keep) an alert, deduped by key; notifies Discord only on first raise. */
-async function raise(key: string, level: Level, message: string, opts: { serverId?: string; nodeId?: string } = {}) {
+/**
+ * Raise (or keep) an alert, deduped by key; notifies Discord only on first raise.
+ * Returns `true` when the alert was newly raised (so callers can fan out a
+ * one-shot side effect like a webhook), `false` when it was already active.
+ */
+export async function raise(key: string, level: Level, message: string, opts: { serverId?: string; nodeId?: string } = {}): Promise<boolean> {
   const existing = await db.alert.findUnique({ where: { key } });
-  if (existing && !existing.resolved) return; // already active — don't re-notify
+  if (existing && !existing.resolved) return false; // already active — don't re-notify
   await db.alert.upsert({
     where: { key },
     update: { level, message, resolved: false },
@@ -19,9 +23,10 @@ async function raise(key: string, level: Level, message: string, opts: { serverI
   if (env.alertWebhook) {
     await sendDiscordWebhook(env.alertWebhook, { title: `⚠️ ${message}`, description: key, level, ts: new Date().toISOString() });
   }
+  return true;
 }
 
-async function resolve(key: string) {
+export async function resolve(key: string) {
   const a = await db.alert.findUnique({ where: { key } });
   if (a && !a.resolved) {
     await db.alert.update({ where: { key }, data: { resolved: true } });

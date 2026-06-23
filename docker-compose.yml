@@ -48,6 +48,10 @@ services:
       DNS_PROVIDER: ${DNS_PROVIDER:-none}
       CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
       CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
+      # Integrated reverse proxy: lets users connect their OWN domain to a server
+      # with automatic HTTPS. Points at the bundled Caddy's admin API on the
+      # internal network. Unset to disable the feature.
+      CADDY_ADMIN_URL: ${CADDY_ADMIN_URL:-http://caddy:2019}
       CURSEFORGE_API_KEY: ${CURSEFORGE_API_KEY:-}
       STEAM_API_KEY: ${STEAM_API_KEY:-}
       ALERT_WEBHOOK: ${ALERT_WEBHOOK:-}

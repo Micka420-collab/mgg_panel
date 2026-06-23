@@ -1,6 +1,21 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Link2, Copy, Check, Loader2, Globe, X, CheckCircle2, ArrowRightLeft } from "lucide-react";
+import {
+  Link2,
+  Copy,
+  Check,
+  Loader2,
+  Globe,
+  X,
+  CheckCircle2,
+  ArrowRightLeft,
+  Share2,
+  Plus,
+  Trash2,
+  ExternalLink,
+  ShieldCheck,
+  AlertTriangle,
+} from "lucide-react";
 import { api } from "@/lib/client";
 import { confirmDialog, toast } from "@/components/ui/confirm";
 import { cn } from "@/lib/util";
@@ -127,6 +142,7 @@ export function NetworkPanel({ detail, isOwner, id, onChanged }: { detail: any; 
       </div>
 
       <DomainCard id={id} isOwner={isOwner} />
+      <CustomDomainsCard id={id} isOwner={isOwner} />
       {detail?.server?.game === "minecraft" && <CrossplayCard id={id} canStartup={isOwner} />}
       <SftpCard host={detail?.node?.publicIp ?? "your-node"} serverId={id} />
 
@@ -250,6 +266,7 @@ function DomainCard({ id, isOwner }: { id: string; isOwner: boolean }) {
       {error && <div className="mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
       {state.current ? (
+        <>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-online/30 bg-online/10 px-3 py-2">
             <CheckCircle2 className="h-4 w-4 text-online" />
@@ -264,6 +281,15 @@ function DomainCard({ id, isOwner }: { id: string; isOwner: boolean }) {
             </button>
           )}
         </div>
+        <a
+          href={`/s/${state.current}`}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 inline-flex items-center gap-1.5 text-xs text-cyan transition hover:text-cyan-light"
+        >
+          <Share2 className="h-3.5 w-3.5" /> Open shareable public page · <span className="font-mono">/s/{state.current}</span>
+        </a>
+        </>
       ) : isOwner ? (
         <div className="mt-4">
           <div className="flex items-stretch overflow-hidden rounded-xl border border-white/10 bg-black/25 focus-within:border-cyan/50">
@@ -286,6 +312,200 @@ function DomainCard({ id, isOwner }: { id: string; isOwner: boolean }) {
         </div>
       ) : (
         <p className="mt-3 text-sm text-white/40">No custom domain set.</p>
+      )}
+    </div>
+  );
+}
+
+interface CustomDomain {
+  id: string;
+  hostname: string;
+  targetPort: number;
+  status: string;
+  lastError: string | null;
+  verifiedAt: string | null;
+}
+interface DomainsState {
+  configured: boolean;
+  target: string;
+  ports: { port: number; role: string; primary: boolean }[];
+  domains: CustomDomain[];
+}
+
+function statusBadge(s: string) {
+  if (s === "active") return <span className="rounded bg-online/15 px-2 py-0.5 text-[11px] text-online">Live · HTTPS</span>;
+  if (s === "failed") return <span className="rounded bg-danger/15 px-2 py-0.5 text-[11px] text-danger">Failed</span>;
+  return <span className="rounded bg-warn/15 px-2 py-0.5 text-[11px] text-warn">Pending DNS</span>;
+}
+
+/**
+ * Bring-your-own-domain: point a domain from any registrar at this server and
+ * let the platform's integrated reverse proxy terminate HTTPS automatically.
+ */
+function CustomDomainsCard({ id, isOwner }: { id: string; isOwner: boolean }) {
+  const [state, setState] = useState<DomainsState | null>(null);
+  const [host, setHost] = useState("");
+  const [port, setPort] = useState<number | "">("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [working, setWorking] = useState<string | null>(null); // domainId being verified/removed
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const load = () =>
+    api<DomainsState>(`/api/servers/${id}/custom-domains`)
+      .then((s) => {
+        setState(s);
+        setPort((p) => (p === "" && s.ports[0] ? s.ports[0].port : p));
+      })
+      .catch(() => {});
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  if (!state) return null;
+
+  if (!state.configured) {
+    return (
+      <div className="glass p-5">
+        <h3 className="flex items-center gap-2 font-display font-semibold text-white">
+          <Globe className="h-4 w-4 text-cyan" /> Custom domain
+        </h3>
+        <p className="mt-1 text-sm text-white/45">
+          The integrated reverse proxy isn&apos;t enabled on this platform yet. The admin can turn it on by setting{" "}
+          <code className="text-white/60">CADDY_ADMIN_URL</code> (the bundled Caddy proxy).
+        </p>
+      </div>
+    );
+  }
+
+  async function add() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/servers/${id}/custom-domains`, { method: "POST", json: { hostname: host, targetPort: port } });
+      setHost("");
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verify(d: CustomDomain) {
+    setWorking(d.id);
+    try {
+      const r = await api<{ ok: boolean; error?: string }>(`/api/servers/${id}/custom-domains/${d.id}/verify`, { method: "POST" });
+      toast(r.ok ? "Domain is live over HTTPS 🎉" : r.error || "Not pointing here yet — check the DNS record.", r.ok ? "success" : "error");
+      await load();
+    } catch (e: any) {
+      toast(e.message, "error");
+    } finally {
+      setWorking(null);
+    }
+  }
+
+  async function remove(d: CustomDomain) {
+    if (!(await confirmDialog({ title: `Disconnect ${d.hostname}?`, description: "It will stop resolving to this server.", danger: true, confirmLabel: "Disconnect" }))) return;
+    setWorking(d.id);
+    try {
+      await api(`/api/servers/${id}/custom-domains/${d.id}`, { method: "DELETE" });
+      await load();
+    } catch (e: any) {
+      toast(e.message, "error");
+    } finally {
+      setWorking(null);
+    }
+  }
+
+  async function copy(text: string) {
+    await navigator.clipboard.writeText(text);
+    setCopied(text);
+    setTimeout(() => setCopied(null), 1500);
+  }
+
+  return (
+    <div className="glass p-5">
+      <h3 className="flex items-center gap-2 font-display font-semibold text-white">
+        <Globe className="h-4 w-4 text-cyan" /> Custom domain
+      </h3>
+      <p className="mt-1 text-sm text-white/45">
+        Point your own domain at this server — the platform&apos;s reverse proxy handles{" "}
+        <span className="text-white/70">automatic HTTPS</span>. Best for web apps, dashboards or map viewers.
+      </p>
+
+      {error && <div className="mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
+
+      {isOwner && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <input
+            value={host}
+            onChange={(e) => setHost(e.target.value.toLowerCase())}
+            placeholder="app.yourdomain.com"
+            className="input min-w-[14rem] flex-1"
+          />
+          <select value={port} onChange={(e) => setPort(Number(e.target.value))} className="input w-auto">
+            {state.ports.map((p) => (
+              <option key={p.port} value={p.port}>
+                → port {p.port} ({p.role})
+              </option>
+            ))}
+          </select>
+          <button onClick={add} disabled={busy || !host} className="btn-primary">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Add
+          </button>
+        </div>
+      )}
+
+      {state.domains.length > 0 && (
+        <ul className="mt-4 space-y-3">
+          {state.domains.map((d) => (
+            <li key={d.id} className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-sm text-white">{d.hostname}</span>
+                {statusBadge(d.status)}
+                <span className="text-xs text-white/35">→ port {d.targetPort}</span>
+                <div className="ml-auto flex items-center gap-1.5">
+                  {d.status === "active" && (
+                    <a href={`https://${d.hostname}`} target="_blank" rel="noreferrer" className="rounded p-1 text-cyan hover:text-cyan-light" title="Open">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
+                  {isOwner && (
+                    <button onClick={() => remove(d)} disabled={working === d.id} className="rounded p-1 text-white/30 hover:text-danger" title="Disconnect">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {d.status !== "active" && (
+                <div className="mt-3 space-y-2 rounded-lg border border-white/5 bg-black/20 p-3 text-xs">
+                  <p className="text-white/50">At your DNS provider, create this record, then verify:</p>
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-cyan-light">
+                    <span className="rounded bg-white/5 px-1.5 py-0.5">A</span>
+                    <span>{d.hostname}</span>
+                    <span className="text-white/30">→</span>
+                    <button onClick={() => copy(state.target)} className="inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 hover:text-white">
+                      {state.target} {copied === state.target ? <Check className="h-3 w-3 text-online" /> : <Copy className="h-3 w-3" />}
+                    </button>
+                  </div>
+                  {d.lastError && (
+                    <p className="flex items-center gap-1.5 text-warn">
+                      <AlertTriangle className="h-3.5 w-3.5" /> {d.lastError}
+                    </p>
+                  )}
+                  {isOwner && (
+                    <button onClick={() => verify(d)} disabled={working === d.id} className="btn-ghost mt-1">
+                      {working === d.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Verify & enable HTTPS
+                    </button>
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

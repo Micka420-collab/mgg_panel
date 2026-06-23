@@ -180,6 +180,10 @@ model ServerStat {
   cpu      Float
   memMb    Int
   players  Int
+  // extended history (additive — default 0 so existing rows stay valid)
+  diskMb    Int @default(0) // volume size at sample time
+  netRxKbps Int @default(0) // inbound throughput, kbit/s (delta of the cumulative counter)
+  netTxKbps Int @default(0) // outbound throughput, kbit/s
 
   @@index([serverId, ts])
 }
@@ -242,12 +246,32 @@ model Server {
   alerts       Alert[]
   webhooks     Webhook[]
   stats        ServerStat[]
+  customDomains CustomDomain[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
   @@index([nodeId])
+}
+
+// A custom domain a user brings from their own registrar and points at the
+// platform's integrated reverse proxy (Caddy), which terminates TLS
+// (auto Let's Encrypt via on-demand) and proxies to the server's HTTP port.
+model CustomDomain {
+  id         String  @id @default(cuid())
+  hostname   String  @unique // FQDN, e.g. "app.example.com" (lowercased)
+  serverId   String
+  server     Server  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  // Which of the server's ports to reverse-proxy HTTP to.
+  targetPort Int
+  // pending (DNS not yet verified) | active (verified + routed) | failed
+  status     String    @default("pending")
+  lastError  String?
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([serverId])
 }
 
 // Credit wallet ledger: positive = top-up/grant, negative = usage.

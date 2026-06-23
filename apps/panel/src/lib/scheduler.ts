@@ -7,6 +7,8 @@ import { meterBilling } from "./billing";
 import { monitorTick } from "./monitor";
 import { updateDuckDnsFromEnv, duckDnsConfigured } from "./ddns";
 import { recordStats } from "./metrics";
+import { detectResourcePressure } from "./predict";
+import { resyncDomains, caddyConfigured } from "./reverse-proxy";
 
 /** Next fire time for a cron expression in a pinned timezone, or null if invalid. */
 export function nextRun(cron: string, timezone: string, from: Date = new Date()): Date | null {
@@ -98,6 +100,8 @@ export async function tick(): Promise<void> {
   }
   // sample running-server resource usage into history
   await recordStats().catch((e) => console.error("[scheduler] metrics failed", e));
+  // predictive crash/OOM early-warning over the freshly-sampled history
+  await detectResourcePressure().catch((e) => console.error("[scheduler] predict failed", e));
 }
 
 let started = false;
@@ -110,4 +114,12 @@ export function startScheduler(): void {
     tick().catch((e) => console.error("[scheduler] tick failed", e));
   }, 60_000);
   console.log("[scheduler] started (60s interval)");
+
+  // Re-apply custom-domain reverse-proxy routes once Caddy is up (it loses
+  // admin-added routes on a reload/restart). Delayed so the proxy can boot.
+  if (caddyConfigured()) {
+    setTimeout(() => {
+      resyncDomains().catch((e) => console.error("[scheduler] domain resync failed", e));
+    }, 10_000);
+  }
 }

@@ -23,8 +23,14 @@
  *      DISCORD_CLIENT_ID  — the Discord application (client) id (required)
  *      MGG_API_URL     — base URL of the MGG panel        (default http://localhost:3000)
  *      MGG_API_KEY     — an MGG API key (Account → API keys, "aeth_…")  (required)
+ *      DISCORD_ALLOWED_USER_IDS  — comma-separated Discord user ids allowed to use the bot
+ *      DISCORD_ALLOWED_GUILD_IDS — comma-separated guild ids the bot may be used in
+ *          ⚠ At least one allowlist is REQUIRED: with neither set the bot denies
+ *            every command (fail closed), since anyone who can invoke it controls
+ *            the account's servers.
  *
- *  On boot the bot (re)registers its GLOBAL slash commands, then logs in.
+ *  On boot the bot (re)registers its slash commands (per-guild when a guild
+ *  allowlist is set, else global), then logs in.
  *  Run with:  npm start   (node src/index.js after `npm run build`)
  * ════════════════════════════════════════════════════════════════════════════
  */
@@ -48,6 +54,37 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN ?? "";
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID ?? "";
 const MGG_API_URL = (process.env.MGG_API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
 const MGG_API_KEY = process.env.MGG_API_KEY ?? "";
+
+/**
+ * Authorization allowlists (comma-separated ids). The bot acts as ONE MGG
+ * account, so anyone able to invoke a command can control those servers — the
+ * bot MUST therefore gate who may use it. Secure default: if BOTH lists are
+ * empty the bot denies every command (see {@link isAuthorized}). Set at least
+ * one to authorize use, and prefer adding the bot only to trusted guilds.
+ */
+const ALLOWED_USER_IDS = (process.env.DISCORD_ALLOWED_USER_IDS ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const ALLOWED_GUILD_IDS = (process.env.DISCORD_ALLOWED_GUILD_IDS ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+/**
+ * Whether an interaction is allowed to control servers.
+ *  - No allowlist configured at all → DENY everyone (fail closed).
+ *  - A guild allowlist is set → the command must come from an allowed guild
+ *    (DMs, which have no guildId, are rejected).
+ *  - A user allowlist is set → the invoking user must be on it.
+ *  - Both set → both checks must pass.
+ */
+function isAuthorized(i: ChatInputCommandInteraction): boolean {
+  if (ALLOWED_USER_IDS.length === 0 && ALLOWED_GUILD_IDS.length === 0) return false;
+  if (ALLOWED_GUILD_IDS.length > 0 && (!i.guildId || !ALLOWED_GUILD_IDS.includes(i.guildId))) return false;
+  if (ALLOWED_USER_IDS.length > 0 && !ALLOWED_USER_IDS.includes(i.user.id)) return false;
+  return true;
+}
 
 /** Brand accent (MGG "Sci-Fi Lab" cyan) used for neutral embeds. */
 const ACCENT = 0x22b8d8;
@@ -170,19 +207,45 @@ const commands: RESTPostAPIApplicationCommandsJSONBody[] = [
 ].map((c) => c.toJSON());
 
 /**
- * Register the commands GLOBALLY (visible in every guild + DMs). Global
- * commands can take up to ~1 hour to propagate the first time.
+ * Register slash commands. When a guild allowlist is configured we register to
+ * those guilds only (instant propagation + the commands never appear in
+ * untrusted servers); otherwise we fall back to global registration and warn if
+ * no allowlist is set at all (the bot will then deny every command).
  */
 async function registerCommands(): Promise<void> {
   const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
-  await rest.put(Routes.applicationCommands(DISCORD_CLIENT_ID), { body: commands });
-  console.log(`✓ Registered ${commands.length} global slash commands.`);
+  if (ALLOWED_GUILD_IDS.length > 0) {
+    for (const gid of ALLOWED_GUILD_IDS) {
+      await rest.put(Routes.applicationGuildCommands(DISCORD_CLIENT_ID, gid), { body: commands });
+    }
+    console.log(`✓ Registered ${commands.length} commands to ${ALLOWED_GUILD_IDS.length} allowed guild(s).`);
+  } else {
+    await rest.put(Routes.applicationCommands(DISCORD_CLIENT_ID), { body: commands });
+    console.log(`✓ Registered ${commands.length} global slash commands.`);
+    if (ALLOWED_USER_IDS.length === 0) {
+      console.warn(
+        "⚠ No DISCORD_ALLOWED_USER_IDS or DISCORD_ALLOWED_GUILD_IDS configured — the bot will DENY every command. " +
+          "Set at least one allowlist to authorize use.",
+      );
+    }
+  }
 }
 
 // ─── Command handlers ───────────────────────────────────────────────────────
 
 /** Dispatch a single chat-input interaction to its handler. */
 async function handleInteraction(i: ChatInputCommandInteraction): Promise<void> {
+  // Authorization gate — the bot acts as one MGG account, so reject anyone not
+  // on the allowlist BEFORE doing any work. Reply privately so we don't leak
+  // the bot's existence/usage to unauthorized users.
+  if (!isAuthorized(i)) {
+    await i.reply({
+      content: "⛔ You're not authorized to control these servers.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
   // All handlers touch the network, so always defer first to avoid the 3s timeout.
   await i.deferReply();
 

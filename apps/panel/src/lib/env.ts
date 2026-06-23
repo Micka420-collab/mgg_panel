@@ -74,4 +74,10 @@ export const env = {
 
   // Monitoring — Discord webhook URL alerts are posted to (optional).
   alertWebhook: optional("ALERT_WEBHOOK"),
+
+  // Integrated reverse proxy (Caddy) admin API, for custom domains. When set,
+  // the panel programmes Caddy to route a user's own domain → their server's
+  // HTTP port with automatic HTTPS. MUST stay on the internal network only
+  // (never publish :2019). Dormant/feature-off when unset.
+  caddyAdminUrl: (process.env.CADDY_ADMIN_URL ?? "").replace(/\/+$/, ""),
 };
