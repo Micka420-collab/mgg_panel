@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   Play, Square, RotateCw, Zap, LayoutDashboard, Copy, Check, Cpu, MemoryStick, HardDrive, Users, Clock,
   Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope, ArrowUpCircle, GitBranch, ShieldCheck,
+  Star, Pencil, CalendarDays, Gauge, Server as ServerIcon, X,
 } from "lucide-react";
 import { useServerSocket } from "@/lib/use-server-socket";
 import { api } from "@/lib/client";
@@ -39,7 +40,27 @@ export function ServerDetail({ id }: { id: string }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [fav, setFav] = useState(false);
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descDraft, setDescDraft] = useState("");
+  const [savingDesc, setSavingDesc] = useState(false);
   const socket = useServerSocket(id);
+
+  // Favourite (pinned on the dashboard) — shared key with the server grid.
+  useEffect(() => {
+    try {
+      const favs: string[] = JSON.parse(localStorage.getItem("mgg:favorites") ?? "[]");
+      setFav(favs.includes(id));
+    } catch { /* ignore */ }
+  }, [id]);
+  function toggleFav() {
+    try {
+      const favs: string[] = JSON.parse(localStorage.getItem("mgg:favorites") ?? "[]");
+      const next = favs.includes(id) ? favs.filter((x) => x !== id) : [...favs, id];
+      localStorage.setItem("mgg:favorites", JSON.stringify(next));
+      setFav(next.includes(id));
+    } catch { /* ignore */ }
+  }
 
   // Remember the last open tab per server (survives navigation within the session).
   useEffect(() => {
@@ -131,6 +152,19 @@ export function ServerDetail({ id }: { id: string }) {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  async function saveDescription() {
+    setSavingDesc(true);
+    try {
+      await api(`/api/servers/${id}`, { method: "PATCH", json: { description: descDraft } });
+      setEditingDesc(false);
+      load();
+    } catch (e: any) {
+      toast(e.message, "error");
+    } finally {
+      setSavingDesc(false);
+    }
+  }
+
   async function pushToOrigin() {
     const target = s.clonedFrom?.name ?? "the origin server";
     if (
@@ -213,15 +247,20 @@ export function ServerDetail({ id }: { id: string }) {
       </div>
 
       {/* header */}
-      <div className="glass-raised lit-panel p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-black/30 text-3xl">
+      <div className="glass-raised lit-panel relative overflow-hidden p-5">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-20 blur-3xl" style={{ background: s.color }} />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1" style={{ background: `linear-gradient(90deg, ${s.color}, transparent 70%)` }} />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border bg-black/30 text-3xl" style={{ borderColor: `${s.color}55`, boxShadow: `0 0 26px -8px ${s.color}` }}>
               {s.icon}
             </span>
             <div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <h1 className="font-display text-2xl font-bold text-white">{s.name}</h1>
+                <button onClick={toggleFav} title={fav ? "Retirer des favoris" : "Épingler en favori"} className={cn("transition", fav ? "text-warn" : "text-white/25 hover:text-white/60")}>
+                  <Star className={cn("h-5 w-5", fav && "fill-warn")} />
+                </button>
                 <StateBadge state={state} />
                 {health && (
                   <span
@@ -265,6 +304,31 @@ export function ServerDetail({ id }: { id: string }) {
               {!s.clonedFrom && s.cloneCount > 0 && (
                 <div className="mt-0.5 text-xs text-white/40">{s.cloneCount} clone{s.cloneCount > 1 ? "s" : ""}</div>
               )}
+              {/* description / profile */}
+              <div className="mt-2">
+                {editingDesc ? (
+                  <div className="flex items-start gap-2">
+                    <textarea
+                      className="input min-h-[58px] w-full max-w-xl text-sm"
+                      maxLength={300}
+                      autoFocus
+                      value={descDraft}
+                      onChange={(e) => setDescDraft(e.target.value)}
+                      placeholder="Décris ton serveur (visible par ton équipe)…"
+                    />
+                    <button onClick={saveDescription} disabled={savingDesc} className="btn-primary px-2.5 py-1.5 text-xs">{savingDesc ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
+                    <button onClick={() => setEditingDesc(false)} className="btn-ghost px-2.5 py-1.5 text-xs"><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { if (!detail.isOwner) return; setDescDraft(s.description ?? ""); setEditingDesc(true); }}
+                    className={cn("group inline-flex max-w-xl items-start gap-1.5 text-left text-sm", s.description ? "text-white/60" : "italic text-white/35", detail.isOwner && "hover:text-white/85")}
+                  >
+                    {s.description || (detail.isOwner ? "Ajouter une description…" : "")}
+                    {detail.isOwner && <Pencil className="mt-0.5 h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-60" />}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -296,8 +360,17 @@ export function ServerDetail({ id }: { id: string }) {
           </div>
         </div>
 
+        {/* metadata strip */}
+        <div className="relative mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-white/5 pt-3 text-xs text-white/45">
+          <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> {s.templateName ?? s.game}</span>
+          <span className="inline-flex items-center gap-1.5"><Gauge className="h-3.5 w-3.5" /> {(s.memoryMb / 1024).toFixed(s.memoryMb % 1024 ? 1 : 0)} Go RAM · {s.cpuPercent}% CPU · {Math.round(s.diskMb / 1024)} Go disque</span>
+          {detail.node?.name && <span className="inline-flex items-center gap-1.5"><ServerIcon className="h-3.5 w-3.5" /> {detail.node.name}</span>}
+          <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" /> créé le {new Date(s.createdAt).toLocaleDateString("fr-FR")}</span>
+          <button onClick={() => setTab("resources")} className="inline-flex items-center gap-1.5 text-cyan transition hover:underline"><Cpu className="h-3.5 w-3.5" /> Gérer la RAM</button>
+        </div>
+
         {/* stat tiles */}
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {tiles.map((t) => (
             <div key={t.label} className="rounded-xl border border-white/5 bg-black/20 p-3">
               <div className="flex items-center gap-1.5 text-xs text-white/40">
