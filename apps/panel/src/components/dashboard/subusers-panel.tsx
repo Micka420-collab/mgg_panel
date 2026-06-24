@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { Users2, Plus, Trash2, Loader2, Save, ChevronDown } from "lucide-react";
-import { SCOPES } from "@mgg/shared";
+import { useEffect, useState } from "react";
+import { Users2, UserPlus, Trash2, Loader2, Save, ChevronDown, ShieldCheck, Settings2 } from "lucide-react";
+import { SCOPES, ALL_SCOPES } from "@mgg/shared";
 import { api } from "@/lib/client";
-import { confirmDialog } from "@/components/ui/confirm";
+import { confirmDialog, toast } from "@/components/ui/confirm";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/util";
 
 interface Subuser {
@@ -31,6 +32,9 @@ const GROUPED = Object.entries(SCOPES).reduce<Record<string, { key: string; labe
   (acc[g] ||= []).push({ key, label });
   return acc;
 }, {});
+
+const ALL = [...ALL_SCOPES] as string[];
+const isFullAccess = (scopes: string[]) => ALL.every((s) => scopes.includes(s));
 
 function ScopePicker({ value, onChange }: { value: Set<string>; onChange: (s: Set<string>) => void }) {
   const toggle = (k: string) => {
@@ -63,15 +67,16 @@ function ScopePicker({ value, onChange }: { value: Set<string>; onChange: (s: Se
 }
 
 export function SubusersPanel({ id }: { id: string }) {
+  const { t } = useT();
   const [subs, setSubs] = useState<Subuser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
   const [email, setEmail] = useState("");
+  const [advanced, setAdvanced] = useState(false);
   const [newScopes, setNewScopes] = useState<Set<string>>(new Set(["control.console", "control.start", "control.stop"]));
   const [editing, setEditing] = useState<string | null>(null);
   const [editScopes, setEditScopes] = useState<Set<string>>(new Set());
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<null | "share" | "custom" | "edit">(null);
 
   const load = () =>
     api<{ subusers: Subuser[] }>(`/api/servers/${id}/subusers`)
@@ -83,22 +88,26 @@ export function SubusersPanel({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  async function add() {
-    setBusy(true);
+  /** Send an invite with the given scopes (POST upserts by email). */
+  async function invite(scopes: string[], kind: "share" | "custom") {
+    if (!email) return;
+    setBusy(kind);
     setError(null);
     try {
-      await api(`/api/servers/${id}/subusers`, { method: "POST", json: { email, scopes: [...newScopes] } });
-      setAdding(false);
+      await api(`/api/servers/${id}/subusers`, { method: "POST", json: { email, scopes } });
+      toast(t("share.shared", { email }), "success");
       setEmail("");
+      setAdvanced(false);
       load();
     } catch (e: any) {
       setError(e.message);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
+
   async function saveEdit(uid: string) {
-    setBusy(true);
+    setBusy("edit");
     try {
       await api(`/api/servers/${id}/subusers/${uid}`, { method: "PATCH", json: { scopes: [...editScopes] } });
       setEditing(null);
@@ -106,16 +115,17 @@ export function SubusersPanel({ id }: { id: string }) {
     } catch (e: any) {
       setError(e.message);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
+
   async function remove(uid: string) {
     if (
       !(await confirmDialog({
-        title: "Remove this sub-user?",
-        description: "They will immediately lose access to this server.",
+        title: t("share.removeTitle"),
+        description: t("share.removeDesc"),
         danger: true,
-        confirmLabel: "Remove",
+        confirmLabel: t("share.remove"),
       }))
     )
       return;
@@ -125,66 +135,99 @@ export function SubusersPanel({ id }: { id: string }) {
 
   return (
     <div className="space-y-5">
+      {/* Quick share — one click, full access */}
       <div className="glass p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 font-display font-semibold text-white"><Users2 className="h-4 w-4 text-cyan" /> Sub-users</h3>
-          <button onClick={() => setAdding((v) => !v)} className="btn-primary px-3 py-1.5 text-xs"><Plus className="h-3.5 w-3.5" /> Invite</button>
-        </div>
-        <p className="mt-1 text-sm text-white/45">Give teammates scoped access to this server. They sign in with their own MGG account.</p>
+        <h3 className="flex items-center gap-2 font-display font-semibold text-white">
+          <UserPlus className="h-4 w-4 text-cyan" /> {t("share.title")}
+        </h3>
+        <p className="mt-1 text-sm text-white/45">{t("share.subtitle")}</p>
 
         {error && <div className="mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
-        {adding && (
-          <div className="mt-4 space-y-4 rounded-xl border border-white/10 bg-black/20 p-4">
-            <div className="max-w-sm">
-              <label className="label">Their account email</label>
-              <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="friend@example.com" />
-            </div>
-            <div>
-              <div className="label">Permissions</div>
-              <ScopePicker value={newScopes} onChange={setNewScopes} />
-            </div>
-            <button onClick={add} disabled={busy || !email} className="btn-primary">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add sub-user"}</button>
+        <div className="mt-4 flex flex-wrap items-end gap-2">
+          <div className="min-w-[16rem] flex-1">
+            <label className="label">{t("share.emailLabel")}</label>
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("share.emailPlaceholder")}
+            />
+          </div>
+          <button onClick={() => invite(ALL, "share")} disabled={!!busy || !email} className="btn-primary">
+            {busy === "share" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} {t("share.shareBtn")}
+          </button>
+        </div>
+
+        <button
+          onClick={() => setAdvanced((v) => !v)}
+          className="mt-3 inline-flex items-center gap-1.5 text-xs text-white/45 transition hover:text-white"
+        >
+          <Settings2 className="h-3.5 w-3.5" /> {t("share.advanced")}
+          <ChevronDown className={cn("h-3.5 w-3.5 transition", advanced && "rotate-180")} />
+        </button>
+
+        {advanced && (
+          <div className="mt-3 space-y-4 rounded-xl border border-white/10 bg-black/20 p-4">
+            <div className="label">{t("share.customPermissions")}</div>
+            <ScopePicker value={newScopes} onChange={setNewScopes} />
+            <button onClick={() => invite([...newScopes], "custom")} disabled={!!busy || !email} className="btn-ghost">
+              {busy === "custom" ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} {t("share.add")}
+            </button>
           </div>
         )}
       </div>
 
-      {loading ? (
-        <div className="flex h-24 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-cyan" /></div>
-      ) : subs.length === 0 ? (
-        <div className="glass px-4 py-10 text-center text-sm text-white/40">No sub-users yet.</div>
-      ) : (
-        <div className="space-y-3">
-          {subs.map((s) => (
-            <div key={s.id} className="glass p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-cyan-violet text-sm font-semibold text-white">{s.username.slice(0, 2).toUpperCase()}</div>
-                  <div>
-                    <div className="font-medium text-white">{s.username}</div>
-                    <div className="text-xs text-white/40">{s.email} · {s.scopes.length} permission{s.scopes.length === 1 ? "" : "s"}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => { setEditing(editing === s.userId ? null : s.userId); setEditScopes(new Set(s.scopes)); }}
-                    className="btn-ghost px-2.5 py-1.5 text-xs"
-                  >
-                    Edit <ChevronDown className={cn("h-3.5 w-3.5 transition", editing === s.userId && "rotate-180")} />
-                  </button>
-                  <button onClick={() => remove(s.userId)} className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
-                </div>
-              </div>
-              {editing === s.userId && (
-                <div className="mt-4 border-t border-white/10 pt-4">
-                  <ScopePicker value={editScopes} onChange={setEditScopes} />
-                  <button onClick={() => saveEdit(s.userId)} disabled={busy} className="btn-primary mt-4 px-3 py-1.5 text-xs"><Save className="h-3.5 w-3.5" /> Save permissions</button>
-                </div>
-              )}
-            </div>
-          ))}
+      {/* People with access */}
+      <div>
+        <div className="mb-2 flex items-center gap-2 px-1 text-sm text-white/50">
+          <Users2 className="h-4 w-4 text-cyan" /> {t("share.members")}
         </div>
-      )}
+        {loading ? (
+          <div className="flex h-24 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-cyan" /></div>
+        ) : subs.length === 0 ? (
+          <div className="glass px-4 py-10 text-center text-sm text-white/40">{t("share.noMembers")}</div>
+        ) : (
+          <div className="space-y-3">
+            {subs.map((s) => {
+              const full = isFullAccess(s.scopes);
+              return (
+                <div key={s.id} className="glass p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-9 w-9 place-items-center rounded-full bg-cyan-violet text-sm font-semibold text-white">{s.username.slice(0, 2).toUpperCase()}</div>
+                      <div>
+                        <div className="font-medium text-white">{s.username}</div>
+                        <div className="text-xs text-white/40">
+                          {s.email} · {full ? t("share.fullAccess") : t("share.permissionsN", { count: s.scopes.length })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => { setEditing(editing === s.userId ? null : s.userId); setEditScopes(new Set(s.scopes)); }}
+                        className="btn-ghost px-2.5 py-1.5 text-xs"
+                      >
+                        {t("share.edit")} <ChevronDown className={cn("h-3.5 w-3.5 transition", editing === s.userId && "rotate-180")} />
+                      </button>
+                      <button onClick={() => remove(s.userId)} className="text-white/30 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
+                    </div>
+                  </div>
+                  {editing === s.userId && (
+                    <div className="mt-4 border-t border-white/10 pt-4">
+                      <ScopePicker value={editScopes} onChange={setEditScopes} />
+                      <button onClick={() => saveEdit(s.userId)} disabled={!!busy} className="btn-primary mt-4 px-3 py-1.5 text-xs">
+                        <Save className="h-3.5 w-3.5" /> {t("share.savePerms")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

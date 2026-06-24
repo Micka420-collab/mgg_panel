@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Play, Square, RotateCw, Zap, Copy, Check, Cpu, MemoryStick, HardDrive, Users, Clock,
-  Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope, ArrowUpCircle, GitBranch,
+  Terminal, FolderOpen, SlidersHorizontal, Archive, Network, ArrowLeft, Loader2, Package, CalendarClock, Users2, Palette, Activity, Map, Sparkles, Share2, Stethoscope, ArrowUpCircle, GitBranch, UserPlus,
 } from "lucide-react";
 import { useServerSocket } from "@/lib/use-server-socket";
 import { api } from "@/lib/client";
@@ -123,7 +123,7 @@ export function ServerDetail({ id }: { id: string }) {
     { key: "backups", label: "Backups", icon: Archive, show: can("backup.read") },
     { key: "network", label: "Network", icon: Network, show: can("allocation.read") },
     { key: "network-proxy", label: "Proxy", icon: Share2, show: (s.templateId === "velocity-proxy" || s.game === "velocity") && can("startup.read") },
-    { key: "subusers", label: "Sub-users", icon: Users2, show: detail.isOwner },
+    { key: "subusers", label: "Share", icon: UserPlus, show: detail.isOwner },
   ];
 
   const tiles = [
