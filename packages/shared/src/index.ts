@@ -5,6 +5,7 @@
 export * from "./types.js";
 export * from "./scopes.js";
 export * from "./util.js";
+export * from "./memory.js";
 export * from "./templates/index.js";
 
 export const MGG = {

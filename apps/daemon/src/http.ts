@@ -3,7 +3,7 @@ import cors from "cors";
 import os from "node:os";
 import crypto from "node:crypto";
 import { z } from "zod";
-import type { ServerBuildSpec } from "@mgg/shared";
+import { MemoryAdmissionError, type ServerBuildSpec } from "@mgg/shared";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
 import { manager } from "./server-manager.js";
@@ -47,6 +47,10 @@ export function createHttpApp() {
     (req: Request, res: Response) =>
       fn(req, res).catch((e: any) => {
         logger.warn({ e: e?.message, path: req.path }, "route error");
+        if (!res.headersSent && e instanceof MemoryAdmissionError) {
+          res.status(409).json({ code: e.code, error: e.message, details: e.details });
+          return;
+        }
         if (!res.headersSent) res.status(400).json({ error: e?.message ?? "error" });
       });
 
@@ -97,7 +101,8 @@ export function createHttpApp() {
       // rebuild=0 -> persist the new spec only (applies on next start); otherwise
       // (re)build the container. build runs async; progress streams over install/console.
       const rebuild = req.query.rebuild !== "0";
-      manager.register(spec, rebuild).catch((e) => logger.error({ e }, "register failed"));
+      if (rebuild) manager.register(spec, true).catch((e) => logger.error({ e }, "register failed"));
+      else await manager.register(spec, false);
       res.status(202).json({ accepted: true });
     }),
   );

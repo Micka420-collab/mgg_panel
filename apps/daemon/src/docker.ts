@@ -6,6 +6,7 @@ import fs from "node:fs/promises";
 import { ServerState, type ServerBuildSpec, type ServerStats } from "@mgg/shared";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
+import { specFingerprint } from "./spec-fingerprint.js";
 
 export const docker = new Docker({ socketPath: config.dockerSocket });
 
@@ -260,6 +261,7 @@ export async function buildContainer(spec: ServerBuildSpec): Promise<void> {
       "mgg.managed": "true",
       "mgg.serverId": spec.serverId,
       "mgg.templateId": spec.templateId,
+      "mgg.specHash": specFingerprint(spec),
     },
     ExposedPorts: exposed,
     Cmd: spec.startupCommand ? ["/bin/sh", "-c", spec.startupCommand] : undefined,

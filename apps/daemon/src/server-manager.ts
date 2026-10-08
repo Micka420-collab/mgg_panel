@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import {
   ServerState,
+  assessMemoryAdmission,
+  MemoryAdmissionError,
   type ConsoleLine,
   type PowerAction,
   type ServerBuildSpec,
@@ -29,6 +31,7 @@ import { sendRcon, queryPlayers } from "./rcon.js";
 import { queryA2S } from "./a2s.js";
 import { volumeSize } from "./files.js";
 import { logger } from "./logger.js";
+import { specFingerprint } from "./spec-fingerprint.js";
 
 const CONSOLE_BUFFER = 250;
 const SPEC_FILE = ".mgg/spec.json";
@@ -59,8 +62,9 @@ interface Runtime {
  *   state:<id>    -> ServerState
  *   install:<id>  -> string (install output line)
  */
-class ServerManager extends EventEmitter {
+export class ServerManager extends EventEmitter {
   private servers = new Map<string, Runtime>();
+  private powerJobs = new Map<string, Promise<void>>();
 
   async init(): Promise<void> {
     await this.rehydrate();
@@ -149,25 +153,25 @@ class ServerManager extends EventEmitter {
   }
 
   async power(serverId: string, action: PowerAction): Promise<void> {
+    const prior = this.powerJobs.get(serverId) ?? Promise.resolve();
+    const job = prior.catch(() => {}).then(() => this.applyPower(serverId, action));
+    this.powerJobs.set(serverId, job);
+    try { await job; }
+    finally { if (this.powerJobs.get(serverId) === job) this.powerJobs.delete(serverId); }
+  }
+
+  private async applyPower(serverId: string, action: PowerAction): Promise<void> {
     const rt = this.requireRuntime(serverId);
     switch (action) {
       case "start": {
         if (rt.state === ServerState.Running || rt.state === ServerState.Starting) return;
         if (rt.state === ServerState.Installing)
           throw new Error("Server is still installing — please wait for it to finish, then press Start.");
-        // If the container isn't there yet (e.g. the image was pruned, or a prior
-        // build never completed), (re)build it now — pulling the image first,
-        // since buildContainer only creates and would throw "No such image".
-        if (!(await inspect(serverId))) {
-          this.pushConsole(serverId, "[MGG] Building container…", "system");
-          try {
-            await pullImage(rt.spec.dockerImage, (l) => this.emit(`install:${serverId}`, l));
-          } catch (e) {
-            logger.warn({ e, image: rt.spec.dockerImage }, "pull before start failed (may exist locally)");
-          }
-          await buildContainer(rt.spec);
+        const current = await inspect(serverId);
+        if (current?.State.Running || current?.State.Restarting) {
+          this.setState(serverId, mapState(current));
+          return;
         }
-        rt.stopping = false;
         // Admission control at START time: refuse if the host doesn't have enough
         // free RAM for this server right now (prevents host OOM). Uses real
         // MemAvailable, so it also accounts for containers started outside MGG
@@ -176,16 +180,26 @@ class ServerManager extends EventEmitter {
           const reserveMb = Number(process.env.NODE_MEMORY_RESERVE_MB ?? 512);
           const availableMb = await hostAvailableMb();
           const needMb = rt.spec.limits.memoryMb;
-          if (needMb > 0 && needMb > availableMb - reserveMb) {
+          const details = { availableMb, requiredMb: needMb, reserveMb };
+          if (!assessMemoryAdmission(details)) {
             this.setState(serverId, ServerState.Offline);
-            throw new Error(
-              `Not enough free RAM to start: ~${availableMb} MB available, ${needMb} MB needed (keeping ${reserveMb} MB for the host). Stop another server first.`,
-            );
+            throw new MemoryAdmissionError(details);
           }
         }
+        // Saved variables/resources require a new STOPPED container. Keep the
+        // same bind-mounted world volume; a matching spec needs no rebuild.
+        if (!current || current.Config.Labels?.["mgg.specHash"] !== specFingerprint(rt.spec)) {
+          this.pushConsole(serverId, "[MGG] Applying saved configuration…", "system");
+          if (!current || current.Config.Image !== rt.spec.dockerImage) {
+            await pullImage(rt.spec.dockerImage, l => this.emit(`install:${serverId}`, l));
+          }
+          await buildContainer(rt.spec);
+        }
+        rt.stopping = false;
         this.setState(serverId, ServerState.Starting);
         this.pushConsole(serverId, "[MGG] Starting server…", "system");
-        await startContainer(serverId);
+        try { await startContainer(serverId); }
+        catch (error) { this.setState(serverId, ServerState.Offline); throw error; }
         rt.startedAt = Date.now();
         this.beginStreaming(serverId);
         break;
@@ -193,14 +207,7 @@ class ServerManager extends EventEmitter {
       case "restart":
         this.pushConsole(serverId, "[MGG] Restarting…", "system");
         await this.gracefulStop(serverId);
-        await startContainer(serverId).catch(async () => {
-          // container may need rebuild if it was removed
-          await buildContainer(rt.spec);
-          await startContainer(serverId);
-        });
-        rt.startedAt = Date.now();
-        this.setState(serverId, ServerState.Starting);
-        this.beginStreaming(serverId);
+        await this.applyPower(serverId, "start");
         break;
       case "stop":
         this.setState(serverId, ServerState.Stopping);

@@ -1,6 +1,8 @@
 import { SignJWT } from "jose";
 import type { Node } from "@prisma/client";
 import type { ServerBuildSpec, ServerState, ServerStats, FileEntry, BackupMeta } from "@mgg/shared";
+import { publicDaemonError } from "@mgg/shared";
+import { HttpError } from "./auth";
 
 export type NodeLike = Pick<Node, "scheme" | "fqdn" | "daemonPort" | "tokenSecret" | "publicIp">;
 
@@ -22,11 +24,15 @@ export class DaemonClient {
     });
     if (!res.ok) {
       let msg = `daemon ${res.status}`;
+      let publicError: ReturnType<typeof publicDaemonError> = null;
       try {
-        msg = (await res.json())?.error ?? msg;
+        const body = await res.json();
+        publicError = publicDaemonError(body);
+        msg = body?.error ?? msg;
       } catch {
         /* noop */
       }
+      if (publicError) throw new HttpError(publicError.status, publicError.message);
       throw new Error(msg);
     }
     if (res.status === 204) return undefined as T;

@@ -102,6 +102,8 @@ export function SettingsPanel({
       )}
 
       {detail.isOwner && <BehaviourCard id={id} server={detail.server} />}
+      {detail.isOwner && canStartup && <MemoryCard key={detail.server.memoryMb} id={id}
+        memoryMb={detail.server.memoryMb} state={detail.status?.state} onSaved={onSaved} />}
 
       {canStartup &&
         Object.entries(grouped).map(([group, list]) => (
@@ -158,6 +160,42 @@ export function SettingsPanel({
       )}
     </div>
   );
+}
+
+function MemoryCard({ id, memoryMb, state, onSaved }: {
+  id: string; memoryMb: number; state: string; onSaved: () => void;
+}) {
+  const [value, setValue] = useState(String(memoryMb));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const stopped = ["offline", "errored"].includes(state);
+  const requested = Number(value);
+  const valid = Number.isSafeInteger(requested) && requested >= 512 && requested < memoryMb;
+  async function saveMemory() {
+    setSaving(true); setError(null);
+    try {
+      await api(`/api/servers/${id}/memory`, { method: "PATCH", json: { memoryMb: requested } });
+      toast("RAM limit saved. Start the server to apply it.", "success");
+      onSaved();
+    } catch (e: any) { setError(e.message); }
+    finally { setSaving(false); }
+  }
+  return <div className="glass p-5">
+    <h3 className="font-display font-semibold text-white">Server RAM</h3>
+    <p className="mt-2 text-sm text-white/50">Current limit: {memoryMb} MB. Reduce it if this node cannot fit the server.
+      The server must be stopped. A lower limit also reduces its hourly credit cost.</p>
+    <p className="mt-1 text-xs text-white/40">This control only reduces the allocation. Resource increases require administrator provisioning.</p>
+    <div className="mt-4 flex items-center gap-3">
+      <label className="label" htmlFor="server-memory">RAM (MB)</label>
+      <input id="server-memory" className="input w-28" type="number" min={512} max={memoryMb}
+        step={256} value={value} disabled={!stopped || saving} onChange={e => setValue(e.target.value)} />
+      <button className="btn-primary" disabled={!stopped || !valid || saving} onClick={saveMemory}>
+        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save RAM
+      </button>
+    </div>
+    {!stopped && <p className="mt-2 text-xs text-white/50">Stop the server before changing its RAM limit.</p>}
+    {error && <p className="mt-2 text-sm text-danger">{error}</p>}
+  </div>;
 }
 
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
